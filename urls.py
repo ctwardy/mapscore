@@ -55,8 +55,22 @@ from Views import edit_inst
 from Views import edit_inst_run
 from Views import edit_pw
 from Views import edit_pw_run
-
-
+from Views import uploadprofpic
+from Views import accountregcomplete
+from Views import confirm_prof_pic
+from Views import denyprofpic_confirm
+from Views import confirmprofpic_confirm
+from Views import edit_picture
+from Views import remove_profpic
+from Views import alterprofpic
+from Views import change_accountpic
+from Views import traffic
+from Views import delete_account
+from Views import deleteaccount_confirm
+from Views import terminate_accounts
+from Views import view_username_admin
+from Views import delaccountlink
+from Views import adminterminate_account
 
 # Uncomment the next two lines to enable the admin:
 # from django.contrib import admin
@@ -116,8 +130,23 @@ urlpatterns = patterns('',
 			  ('^edit_inst_run/$',edit_inst_run),
 			  ('^edit_pw/$',edit_pw),
 			  ('^edit_pw_run/$',edit_pw_run),
+			  ('^uploadprofpic/$',uploadprofpic),
+			  ('^accountregcomplete/$',accountregcomplete),
+			  ('^confirm_prof_pic/$',confirm_prof_pic),
+			  ('^denyprofpic_confirm/$',denyprofpic_confirm),
+			  ('^confirmprofpic_confirm/$',confirmprofpic_confirm),
+			  ('^edit_picture/$',edit_picture),
+			  ('^remove_profpic/$',remove_profpic),
+			  ('^alterprofpic/$',alterprofpic),
+			  ('^change_accountpic/$',change_accountpic),
+			  ('^traffic/$',traffic),
+			  ('^delete_account/$',delete_account),
+			  ('^deleteaccount_confirm/$',deleteaccount_confirm),
+			  ('^terminate_accounts/$',terminate_accounts),
+			  ('^view_username_admin/$',view_username_admin),
+			  ('^delaccountlink/$',delaccountlink),
+			  ('^adminterminate_account/$',adminterminate_account),
 			  
-			  	  
     # Examples:
     # url(r'^$', 'MapRateWeb.views.home', name='home'),
     # url(r'^MapRateWeb/', include('MapRateWeb.foo.urls')),

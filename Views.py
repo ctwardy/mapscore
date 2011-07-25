@@ -1,3 +1,6 @@
+# Main Views File 
+
+
 # Import statements
 from django.http import HttpResponse
 from django.shortcuts import render_to_response
@@ -15,7 +18,10 @@ from framework.models import Case
 from framework.models import Model
 from framework.models import Model_Account_Link
 from framework.models import Test_Model_Link
+from framework.models import Mainhits
+from framework.models import terminated_accounts
 
+import time
 import re
 import os
 from PIL import Image
@@ -31,6 +37,19 @@ def base_redirect(response):
 #-------------------------------------------------------------
 def main_page(request):
 	
+	# record a hit on the main page
+	#----------------------------------------------------
+	if len(Mainhits.objects.all()) == 0:
+		newhits = Mainhits()
+		newhits.setup()
+		newhits.save()
+		
+	
+	mainpagehit = Mainhits.objects.all()[0]
+	mainpagehit.hits = int(mainpagehit.hits) + 1 
+	mainpagehit.save()
+	#----------------------------------------------------
+	
 	request.session['completedtest'] = ''
 	request.session['completedtest_lookup'] = False
 	request.session['failure'] = False
@@ -39,6 +58,10 @@ def main_page(request):
 	request.session['active_account'] = 'none'
 	request.session['active_model'] = 'none'
 	request.session['Superlogin'] = False
+	request.session['userdel'] = ''
+	request.session['admin_name'] = ''
+	request.session['usertoken'] = False
+	request.session['admintoken'] = False
 	
 	sorted_models = []
 	allmodels = Model.objects.all()
@@ -163,6 +186,22 @@ def create_account(request):
 		count = count + 1
 		usernamefail = True
 		inputdic['usernamefail'] = usernamefail
+	
+	#don't allow multiple groups to have more than one username
+	else:
+		counter = 0
+		for c in Account.objects.all():
+			if Username == str(c.username):
+				counter = counter + 1
+		
+		for d in terminated_accounts.objects.all():
+			if Username == str(d.username):
+				counter = counter + 1
+		
+		if counter >0:
+			count = count + 1
+			inputdic['usernamerepeat'] = True
+	
 
 	if re.match(Password1_r,Password1) == None:
 		count = count + 1
@@ -209,7 +248,8 @@ def create_account(request):
 	
 	if Websitein == '':
 		Websitein = 'none'
-		
+	
+			
 	account = Account(institution_name = Institution,
 			firstname_user = Firstname,
 			lastname_user = Lastname,
@@ -217,11 +257,36 @@ def create_account(request):
 			password  = Password1,
 			Email = Email_in,
 			ID2 = Username,
-			Website = Websitein
+			Website = Websitein,
+			sessionticker = 0,
+			completedtests = 0
+
 				)
 	account.save()
-				
-	return 	render_to_response('RegistrationComplete.html',{})
+	
+	
+	
+	
+	
+	# Set up profile pic locations
+	
+	ID2 = account.ID2
+	stringurl = '/media/profpic_'
+	stringurl = stringurl + str(ID2) + '.png'
+	account.photourl = stringurl
+	
+	
+	stringlocation = 'C:\Users\Nathan Jones\Django Website\MapRateWeb\media\profpic_' + str(ID2) + '.png'
+	account.photolocation = stringlocation
+	
+	
+	account.save()
+	
+	# set default profpic
+	shutil.copyfile('C:\Users\Nathan Jones\Django Website\MapRateWeb\in_images\Defaultprofpic.png',stringlocation)
+	
+	request.session['active_account'] =  account	
+	return redirect('/uploadprofpic/')
 #-------------------------------------------------------------
 
 def account_access(request):
@@ -238,52 +303,124 @@ def account_access(request):
 	
 	if request.session['active_account'] == 'none':
 		
-		User_in = request.GET['Username']
-		Pass_in = request.GET['Password']
+		User_in = str(request.GET['Username'])
+		Pass_in = str(request.GET['Password'])
 	
 		# Verify user
 		user = auth.authenticate(username = User_in , password = Pass_in)
 	
 		# User exists
 		if user is not None:
+			
+			# If account deleted:
+			deletedcount = 0
+			for i in terminated_accounts.objects.all():
+				if User_in == str(i.username):
+					deletedcount = deletedcount + 1
+			
+			if deletedcount > 0:
+				
+				return render_to_response('accountdeletedlogin.html')
+			
+			# Set user Token
+			request.session['usertoken'] = True
+
+			
 			model_list = []
 			request.session['active_account'] = Account.objects.get(ID2 = User_in)
 			
+			# record session login
+			#--------------------------------------------------------------------------------------
+			request.session['active_account'].sessionticker = int(request.session['active_account'].sessionticker) + 1
+			request.session['active_account'].save()
+			#--------------------------------------------------------------------------------------
 			
+
 			for i in request.session['active_account'].account_models.all():
 				model_list.append(i.model_nameID)
 				
+			profpic = request.session['active_account'].photourl
 			
-			return render_to_response('AccountScreen.html',{'Name':request.session['active_account'].institution_name,'modelname_list':model_list })
+		
+			return render_to_response('AccountScreen.html',{'Name':request.session['active_account'].institution_name,'modelname_list':model_list ,'profpic':profpic})
 	
 		# User does not exist
 		else:
 
 			return render_to_response('IncorrectLogin.html',{})
 	else:
+		#------------------------------------------------------------------
+		# Token Verification
+		try:
+			if request.session['usertoken'] == False:
+				return render_to_response('noaccess.html',{})
+		except: 
+			return render_to_response('noaccess.html',{})
+		
+		#---------------------------------------------------------------------
 		model_list = []
 		for i in request.session['active_account'].account_models.all():
 			model_list.append(i.model_nameID)
 				
-			
-		return render_to_response('AccountScreen.html',{'Name':request.session['active_account'].institution_name,'modelname_list':model_list })
+		profpic = request.session['active_account'].photourl
+		
+		return render_to_response('AccountScreen.html',{'Name':request.session['active_account'].institution_name,'modelname_list':model_list,'profpic':profpic })
 		
 #-----------------------------------------------------------------
 def model_regform(request):
+	
+	#------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['usertoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+		
+	#---------------------------------------------------------------------
+	
+	
 	return render_to_response('NewModel.html',{})
 
 #-------------------------------------------------------------------
 
 def model_created(request):
 	
+	#------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['usertoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+		
+	#---------------------------------------------------------------------
+	
 	# Verify Model Name
 	
-	Model_name = request.GET['Name']
+	Model_name = str(request.GET['Name'])
 	ModelName_r = '^[a-zA-z0-9_]+$'
 	
-	# If No Match
+	count = 0
 	if re.match(ModelName_r,Model_name) == None:
+		count = count + 1
 		inputdic01 ={'namein': Model_name,'Fail':True}
+		
+	else:
+		for k in request.session['active_account'].account_models.all():
+			counter = 0
+			if Model_name == str(k.model_nameID):
+				counter = counter + 1
+				
+			if counter > 0:
+				count = count + 1
+				inputdic01 = {'namein': Model_name,'modelnamerepeat': True}
+	
+				
+		
+	if count > 0:	
+		
+		
 		return render_to_response('NewModel.html',inputdic01)
 	
 	
@@ -310,6 +447,16 @@ def model_created(request):
 #-------------------------------------------------------------------	
 
 def model_access(request):
+	
+	#------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['usertoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+		
+	#---------------------------------------------------------------------
 
 	request.session['active_case_temp'] = 'none'
 	request.session['active_test'] = 'none'
@@ -406,7 +553,7 @@ def admin_login(request):
 #--------------------------------------------------------------------
 
 def admin_account(request):
-	
+	request.session['userdel'] = ''
 	request.session['inputdic'] = 'none'
 	
 	if request.session['Superlogin'] == False:
@@ -420,6 +567,9 @@ def admin_account(request):
 		# User exists
 		if user is not None:
 			if user.is_superuser == True:
+				
+				request.session['admintoken'] = True
+				request.session['admin_name'] = User_in
 				request.session['active_account'] ='superuser'
 				request.session['Superlogin'] = True
 				return render_to_response('AdminScreen.html',{})
@@ -434,11 +584,31 @@ def admin_account(request):
 	
 	elif request.session['Superlogin'] == True:
 		
+		#------------------------------------------------------------------
+		# Token Verification
+		try:
+			if request.session['admintoken'] == False:
+				return render_to_response('noaccess.html',{})
+		except: 
+			return render_to_response('noaccess.html',{})
+		
+		#---------------------------------------------------------------------
+		
 		request.session['active_account'] ='superuser'
 		return render_to_response('AdminScreen.html',{})
 
 #--------------------------------------------------------------------------
 def testcase_admin(request):
+	
+	#------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['admintoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+		
+	#---------------------------------------------------------------------
 	
 	
 	request.session['inputdic'] = 'none'
@@ -463,6 +633,17 @@ def testcase_admin(request):
 	
 #----------------------------------------------------------------------------
 def Casereg(request):
+	
+	#------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['admintoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+		
+	#---------------------------------------------------------------------
+	
 	inputdic = {}
 	inputdic.update(csrf(request))
 	return render_to_response('Casereg.html',inputdic)
@@ -472,6 +653,26 @@ def Casereg(request):
 
 def newtest(request):
 	
+	#------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['usertoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+		
+	#---------------------------------------------------------------------
+	
+	# If all tests completed
+	count2 = 0
+	for i in request.session['active_model'].model_tests.all():
+		if i.Active == False:
+			count2 = count2 +1
+	
+	if int(count2) == int(len(Case.objects.all())):
+		
+		return render_to_response('nomorecases.html')
+	
 	# only one active test at a time
 	count001 = 0
 	for i in request.session['active_model'].model_tests.all():
@@ -480,7 +681,7 @@ def newtest(request):
 	if count001 >0:
 		return render_to_response('TestWelcome_alreadyactive.html')
 				
-
+	
 
 
 	id_in = int(request.session['active_model'].Completed_cases) +1
@@ -539,6 +740,16 @@ def newtest(request):
 #-----------------------------------------------------------------------------------------------
 def create_test(request):
 	
+	#------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['usertoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+		
+	#---------------------------------------------------------------------
+	
 	tempcase = request.session['active_case_temp'] 
 	newtest = Test( test_case = tempcase,
 			test_name = tempcase.case_name,
@@ -556,6 +767,16 @@ def create_test(request):
 	
 #-------------------------------------------------------------------------------------------------
 def setactive_test(request):
+	
+	#------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['usertoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+		
+	#---------------------------------------------------------------------
 
 	intest = request.GET['test_in_active']
 	print intest
@@ -571,6 +792,16 @@ def setactive_test(request):
 #------------------------------------------------------------------------------------------------
 def Activate_instructions(request):
 	
+	#------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['usertoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+		
+	#---------------------------------------------------------------------
+	
 	request.session['active_test'].show_instructions = True
 	request.session['active_test'].save()
 	return redirect('/test_instructions/')
@@ -579,6 +810,17 @@ def Activate_instructions(request):
 	
 #-------------------------------------------------------------------------------------------------
 def tst_instructions(request):
+	
+	#------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['usertoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+		
+	#---------------------------------------------------------------------
+	
 	if request.session['active_test'].show_instructions == True:
 		request.session['active_test'].show_instructions = False
 		request.session['active_test'].save()
@@ -589,6 +831,16 @@ def tst_instructions(request):
 #------------------------------------------------------------------------------------------------
 
 def active_test(request):
+	
+	#------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['usertoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+		
+	#---------------------------------------------------------------------
 	
 	
 	#request.session['active_test'] = Test.objects.get(ID2 = request.session['active_test'].ID2)
@@ -616,6 +868,7 @@ def active_test(request):
 	
 	# If you have failed current test
 	elif int(active_test.nav) == 1:
+		time.sleep(1)
 		return redirect('/grid_testresult/')
 		
 	
@@ -676,6 +929,16 @@ def active_test(request):
 #--------------------------------------------------------------------------------------------------
 
 def grid_test_result(request):
+	
+	#------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['usertoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+		
+	#---------------------------------------------------------------------
 	
 	active_test = request.session['active_test']
 
@@ -874,6 +1137,7 @@ def grid_test_result(request):
 		
 		request.session['active_test'].nav = 1
 		request.session['active_test'].save()
+		time.sleep(1)
 		return render_to_response('grid_affirmation_Pass.html',inputdic)
 	
 	# If you fail, progress
@@ -881,10 +1145,21 @@ def grid_test_result(request):
 
 		request.session['active_test'].nav = 1
 		request.session['active_test'].save()
+		time.sleep(1)
 		return render_to_response('grid_affirmation_Fail.html',inputdic)
 
 #---------------------------------------------------------------------------------------------------------
 def regen_test(request):
+	
+	#------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['usertoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+		
+	#---------------------------------------------------------------------
 	
 	request.session['active_test'].nav = 0
 	request.session['active_test'].generate_testpoints()
@@ -894,6 +1169,16 @@ def regen_test(request):
 #------------------------------------------------------------------------------------------------------------
 
 def passtest(request):
+	
+	#------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['usertoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+		
+	#---------------------------------------------------------------------
 	
 	active_test = request.session['active_test']
 	request.session['active_test'].Validated = True
@@ -905,6 +1190,16 @@ def passtest(request):
 
 #-----------------------------------------------------------------------------------------------------------
 def Bulkin(request):
+	
+	#------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['usertoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+		
+	#---------------------------------------------------------------------
 	
 	active_test = request.session['active_test']
 	inall = request.GET['Bulkin']
@@ -1054,18 +1349,30 @@ def Bulkin(request):
 			
 		inputdic01['fail_t'] = True
 		
+		
 		return render_to_response('grid_intest.html',inputdic01)
 		
 		
 	# If Pass
 	active_test.nav = 1
 	active_test.save()
+
 	return redirect('/grid_testresult/')
 	
 #------------------------------------------------------------------------------------------------------------	
 # Load Image 
 
 def load_image(request):
+	
+	#------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['usertoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+		
+	#---------------------------------------------------------------------
 	
 	#******************** Alter for server
 	string = 'C:/Users/Nathan Jones/Django Website/MapRateWeb/media/'
@@ -1101,6 +1408,16 @@ def load_image(request):
 
 #-------------------------------------------------------------------------------------------------------------	
 def confirm_grayscale(request):
+	
+	#------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['usertoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+		
+	#---------------------------------------------------------------------
 	
 	# Verify Image
 	image_in = Image.open(request.session['active_test'].greyscale_path)
@@ -1198,6 +1515,16 @@ def confirm_grayscale(request):
 # deny grayscale confirmation
 def denygrayscale_confirm(request):
 	
+	#------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['usertoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+		
+	#---------------------------------------------------------------------
+	
 	# Remove served Grayscale image
 	os.remove(request.session['active_test'].greyscale_path)
 	
@@ -1213,6 +1540,16 @@ def denygrayscale_confirm(request):
 #----------------------------------------------------------------------------------------------------------------
 # accept grayscale confirmation
 def acceptgrayscale_confirm(request):
+	
+	#------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['usertoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+		
+	#---------------------------------------------------------------------
 	
 	string = 'C:/Users/Nathan Jones/Django Website/MapRateWeb/user_grayscale/'
 	
@@ -1248,16 +1585,45 @@ def acceptgrayscale_confirm(request):
 
 def Rate(request):
 	
+	#------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['usertoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+		
+	#---------------------------------------------------------------------
+	
 	response = request.session['active_test'].rate()
 	
 	# Resync Model
 	request.session['active_model'] = Model.objects.get(ID2 = request.session['active_model'].ID2)
 	
 	os.remove(request.session['active_test'].greyscale_path)
+	
+	
+	# record rating
+	#--------------------------------------------------------------------
+	request.session['active_account'].completedtests = int(request.session['active_account'].completedtests) + 1
+	request.session['active_account'].save()
+	#--------------------------------------------------------------------
+	
+	
 	return redirect('/submissionreview/')	
 
 #----------------------------------------------------------------------------------------------------------------
 def submissionreview(request):
+	
+	#------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['usertoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+		
+	#---------------------------------------------------------------------
 	
 	request.session['active_model'].Completed_cases = int(request.session['active_model'].Completed_cases) + 1
 	request.session['active_model'].save()
@@ -1334,6 +1700,16 @@ def submissionreview(request):
 #-----------------------------------------------------------------------------------------------------------------------------------
 def setcompletedtest(request):
 	
+	#------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['usertoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+		
+	#---------------------------------------------------------------------
+	
 	intest_raw = str(request.GET['Nonactive_Testin'])
 	
 	intest = ''
@@ -1361,6 +1737,16 @@ def setcompletedtest(request):
 	
 #-------------------------------------------------------------------------------------------------------------------------------------
 def nonactivetest(request):
+	
+	#------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['usertoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+		
+	#---------------------------------------------------------------------
 	
 	
 	active_test = request.session['active_test']
@@ -1429,6 +1815,16 @@ def nonactivetest(request):
 #---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 def Leader_model(request):
 	
+	#-------------------------------------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['admintoken'] == False and request.session['usertoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+		
+	#-------------------------------------------------------------------------------------------------
+	
 	sorted_models = []
 	allmodels = Model.objects.all()
 	
@@ -1491,6 +1887,16 @@ def Leader_model(request):
 #---------------------------------------------------------------------------------------------------
 def switchboard(request):
 	
+	#-------------------------------------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['admintoken'] == False and request.session['usertoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+		
+	#-------------------------------------------------------------------------------------------------
+	
 	if request.GET['Sort_by'] == '0':
 		return redirect('/Leader_model/')
 		
@@ -1500,6 +1906,16 @@ def switchboard(request):
 #----------------------------------------------------------------------------------------------------
 def model_to_test_switch(request):
 	
+	#-------------------------------------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['admintoken'] == False and request.session['usertoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+		
+	#-------------------------------------------------------------------------------------------------
+	
 	request.session['nav']	= '2'
 	inputdic = request.session['inputdic'] 	
 		
@@ -1507,6 +1923,16 @@ def model_to_test_switch(request):
 
 #-------------------------------------------------------------------------------------------------------------
 def switchboard_totest(request):	
+	
+	#-------------------------------------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['admintoken'] == False and request.session['usertoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+		
+	#-------------------------------------------------------------------------------------------------
 		
 	casename_raw = str(request.GET['casename'])
 	
@@ -1589,6 +2015,16 @@ def switchboard_totest(request):
 #---------------------------------------------------------------------------------------------------------------
 def testcaseshow(request):
 	
+	#-------------------------------------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['admintoken'] == False and request.session['usertoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+		
+	#-------------------------------------------------------------------------------------------------
+	
 	if request.session['active_account'] =='superuser':
 		
 		AllCases =[]
@@ -1629,6 +2065,16 @@ def testcaseshow(request):
 #-----------------------------------------------------------------------------------------------------------------
 def return_leader(request):
 	
+	#-------------------------------------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['admintoken'] == False and request.session['usertoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+		
+	#-------------------------------------------------------------------------------------------------
+	
 	inputdic = request.session['inputdic'] 	
 	
 	if request.session['nav'] == '3':
@@ -1639,6 +2085,16 @@ def return_leader(request):
 		return render_to_response('Leaderboard_testname.html',inputdic)
 #-----------------------------------------------------------------------------------------------------------------
 def completedtest_info(request):
+	
+	#-------------------------------------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['admintoken'] == False and request.session['usertoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+		
+	#-------------------------------------------------------------------------------------------------
 
 	completed_lst = []
 	
@@ -1652,6 +2108,16 @@ def completedtest_info(request):
 
 #----------------------------------------------------------------------------------------------------------------
 def case_ref(request):
+	
+	#-------------------------------------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['admintoken'] == False and request.session['usertoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+		
+	#-------------------------------------------------------------------------------------------------
 	
 	Input = request.GET['CaseName2']
 	
@@ -1704,13 +2170,33 @@ def case_ref(request):
 #-----------------------------------------------------------------------------------------------------------------------
 def caseref_return(request):
 	
-		inputdic = request.session['inputdic'] 
+	#-------------------------------------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['admintoken'] == False and request.session['usertoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
 		
-		return render_to_response('leaderboard_test.html',inputdic)
+	#-------------------------------------------------------------------------------------------------
+	
+	inputdic = request.session['inputdic'] 
+		
+	return render_to_response('leaderboard_test.html',inputdic)
 		
 #---------------------------------------------------------------------------------------------------------------------
 
 def Account_Profile(request):
+	
+	#-------------------------------------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['admintoken'] == False and request.session['usertoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+		
+	#-------------------------------------------------------------------------------------------------
 	
 	Account_in = request.GET['Account']
 	
@@ -1720,15 +2206,27 @@ def Account_Profile(request):
 	Email = str(Active_account.Email)
 	RegisteredUser = str(Active_account.firstname_user) + ' ' + str(Active_account.lastname_user)
 	website = str(Active_account.Website)
+	profpic = str(Active_account.photourl)
 	
-	inputdic = {'Name':Name, 'Email':Email, 'RegisteredUser':RegisteredUser, 'website':website}
+	inputdic = {'Name':Name, 'Email':Email, 'RegisteredUser':RegisteredUser, 'website':website,'profpic':profpic}
 	
 	if website !='none':
 		inputdic['websitexists'] = True
 	
+	
 	return render_to_response('Account_Profile.html',inputdic)
 #--------------------------------------------------------------------------------------------------------------------
 def returnfrom_profile(request):
+	
+	#-------------------------------------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['admintoken'] == False and request.session['usertoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+		
+	#-------------------------------------------------------------------------------------------------
 	
 	inputdic = request.session['inputdic'] 
 	
@@ -1746,6 +2244,16 @@ def returnfrom_profile(request):
 #------------------------------------------------------------------------------------------------------------------------
 def completedtest_modellink(request):
 	
+	#-------------------------------------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['admintoken'] == False and request.session['usertoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+		
+	#-------------------------------------------------------------------------------------------------
+	
 	completedtest = str(request.GET['completedtest'])
 	request.session['completedtest'] = completedtest
 	request.session['completedtest_lookup'] = True
@@ -1754,6 +2262,16 @@ def completedtest_modellink(request):
 	
 #---------------------------------------------------------------------------------------------------------------------
 def case_hyperin(request):
+	
+	#-------------------------------------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['admintoken'] == False and request.session['usertoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+		
+	#-------------------------------------------------------------------------------------------------
 	
 	inputdic = request.session['inputdic'] 
 	
@@ -1772,6 +2290,16 @@ def case_hyperin(request):
 #-----------------------------------------------------------------------------------------------------------------------
 
 def upload_casefile(request):
+	
+	#------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['admintoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+		
+	#---------------------------------------------------------------------
 	
 	# Take in file - save to server
 	string = 'C:\Users\Nathan Jones\Django Website\MapRateWeb\case_in\input_unsorted.txt'
@@ -1946,6 +2474,18 @@ def upload_casefile(request):
 
 #------------------------------------------------------------------------------------------------------------------
 def exportcaselibrary(request):
+	
+	#------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['admintoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+		
+	#---------------------------------------------------------------------
+	
+	
 	string = 'C:\Users\Nathan Jones\Django Website\MapRateWeb\case_in\exported_case_Library.txt'
 	file = open(string,'w')
 	
@@ -1968,10 +2508,30 @@ def exportcaselibrary(request):
 #-------------------------------------------------------------------------------------------------------------------------
 def Manage_Account(request):
 	
+	#------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['usertoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+		
+	#---------------------------------------------------------------------
+	
 	return render_to_response('Account_manage.html')
 
 #----------------------------------------------------------------------------------------------------------------------------
 def edit_user(request):
+	
+	#------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['usertoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+		
+	#---------------------------------------------------------------------
 	
 	Account = request.session['active_account']
 	
@@ -1985,6 +2545,16 @@ def edit_user(request):
 
 #------------------------------------------------------------------------------------------------------------------------------
 def edit_user_run(request):
+	
+	#------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['usertoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+		
+	#---------------------------------------------------------------------
 	
 	Account = request.session['active_account']
 	
@@ -2049,6 +2619,16 @@ def edit_user_run(request):
 	
 #---------------------------------------------------------------------------------------------
 def edit_inst(request):	
+	
+	#------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['usertoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+		
+	#---------------------------------------------------------------------
 		
 	Account = request.session['active_account']
 	
@@ -2062,6 +2642,15 @@ def edit_inst(request):
 #---------------------------------------------------------------------------------------------
 def edit_inst_run(request):			
 		
+	#------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['usertoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+		
+	#---------------------------------------------------------------------
 	
 	Account = request.session['active_account']
 	
@@ -2128,6 +2717,15 @@ def edit_inst_run(request):
 
 def edit_pw(request):
 	
+	#------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['usertoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+		
+	#---------------------------------------------------------------------
 
 	return render_to_response('account_editpw.html')
 	
@@ -2135,6 +2733,15 @@ def edit_pw(request):
 
 def edit_pw_run(request):
 	
+	#------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['usertoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+		
+	#---------------------------------------------------------------------
 	
 	Account = request.session['active_account']
 	
@@ -2197,4 +2804,443 @@ def edit_pw_run(request):
 	User_in.save()
 	
 	return 	render_to_response('account_update_complete.html')	
+
+#--------------------------------------------------------------------------
+def uploadprofpic(request):
 	
+	inputdic = {}
+	inputdic.update(csrf(request))
+	return 	render_to_response('uploadaccountpic.html',inputdic)
+
+#----------------------------------------------------------------------------
+def accountregcomplete(request):
+	
+	return 	render_to_response('RegistrationComplete.html',{})
+
+#----------------------------------------------------------------------------
+def confirm_prof_pic(request):
+	account = request.session['active_account']
+	
+	os.remove(account.photolocation)
+	
+	destination = open(account.photolocation,'wb+')
+	
+	for chunk in request.FILES['profilephoto'].chunks():
+		destination.write(chunk)
+	destination.close()
+	
+	#------------------------------------------------------
+	#resize image
+	
+	im = Image.open(account.photolocation)
+	size = im.size
+	xsize = size[0]
+	ysize = size[1]
+	
+	if xsize > ysize:
+		diffx = xsize - 350
+		if diffx > 0:
+			totaldiff = diffx
+			xpixels = xsize - totaldiff
+			percentdiff = float(xpixels)/float(xsize)
+			ypixels = int(ysize * percentdiff)
+			im = im.resize((xpixels,ypixels) )
+		
+	
+	elif xsize < ysize:
+		diffy = ysize - 350
+		if diffy > 0:
+			totaldiff = diffy
+			ypixels = ysize - totaldiff
+			percentdiff = float(ypixels)/float(ysize)
+			xpixels = int(xsize * percentdiff)
+			im = im.resize((xpixels,ypixels))
+		
+	elif xsize == ysize:
+
+		im.resize((350,350))
+		
+	im.save(str(account.photolocation))
+	
+	
+	#----------------------------------------------------------------------------------
+	inputdic = {'account_photo':account.photourl}
+	
+	return 	render_to_response('profpic_confirm.html',inputdic)
+
+#------------------------------------------------------------------------------
+def denyprofpic_confirm(request):
+	account = request.session['active_account']
+	
+	shutil.copyfile('C:\Users\Nathan Jones\Django Website\MapRateWeb\in_images\Defaultprofpic.png',account.photolocation)
+	
+	return redirect('/uploadprofpic/')
+
+#------------------------------------------------------------------------------
+def confirmprofpic_confirm(request):
+	
+	
+	return redirect('/accountregcomplete/')
+
+#---------------------------------------------------------------------------------
+def edit_picture(request):
+	
+	#------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['usertoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+		
+	#---------------------------------------------------------------------
+	
+	account = request.session['active_account']
+	inputdic = {'account_photo':account.photourl}
+	
+	return 	render_to_response('edit_profpic.html',inputdic)
+	
+#---------------------------------------------------------------------------------
+def remove_profpic(request):
+	
+	#------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['usertoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+		
+	#---------------------------------------------------------------------
+	
+	account = request.session['active_account']
+	
+	shutil.copyfile('C:\Users\Nathan Jones\Django Website\MapRateWeb\in_images\Defaultprofpic.png',account.photolocation)
+	time.sleep(2)
+	
+	return redirect('/edit_picture/')
+	
+
+#--------------------------------------------------------------------------
+def alterprofpic(request):
+	
+	#------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['usertoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+		
+	#---------------------------------------------------------------------
+	
+	inputdic = {}
+	inputdic.update(csrf(request))
+	return 	render_to_response('change_accountpic.html',inputdic)
+
+#----------------------------------------------------------------------------
+
+def change_accountpic(request):
+	
+	#------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['usertoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+		
+	#---------------------------------------------------------------------
+	
+	
+	account = request.session['active_account']
+	
+	os.remove(account.photolocation)
+	
+	destination = open(account.photolocation,'wb+')
+	
+	for chunk in request.FILES['profilephoto'].chunks():
+		destination.write(chunk)
+	destination.close()
+	
+	#------------------------------------------------------
+	#resize image
+	
+	im = Image.open(account.photolocation)
+	size = im.size
+	xsize = size[0]
+	ysize = size[1]
+	
+	if xsize > ysize:
+		diffx = xsize - 350
+		if diffx > 0:
+			totaldiff = diffx
+			xpixels = xsize - totaldiff
+			percentdiff = float(xpixels)/float(xsize)
+			ypixels = int(ysize * percentdiff)
+			im = im.resize((xpixels,ypixels) )
+		
+	
+	elif xsize < ysize:
+		diffy = ysize - 350
+		if diffy > 0:
+			totaldiff = diffy
+			ypixels = ysize - totaldiff
+			percentdiff = float(ypixels)/float(ysize)
+			xpixels = int(xsize * percentdiff)
+			im = im.resize((xpixels,ypixels))
+		
+	elif xsize == ysize:
+
+		im.resize((350,350))
+		
+	im.save(str(account.photolocation))
+	
+	time.sleep(4)
+	
+	return redirect('/edit_picture/')
+#----------------------------------------------------------------------------------
+def traffic(request):
+	
+	#------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['admintoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+		
+	#---------------------------------------------------------------------
+	
+	mainhits = int(Mainhits.objects.all()[0].hits)
+	
+	inputlst = []
+	for i in Account.objects.all():
+		tmplst = []
+		tmplst.append(str(i.username))
+		tmplst.append(str(i.institution_name))
+		tmplst.append(str(i.sessionticker))
+		tmplst.append(str(i.completedtests))
+		
+		inputlst.append(tmplst)
+		
+	deletedlst = []
+	for i in terminated_accounts.objects.all():
+		tmplst = []
+		tmplst.append(str(i.username))
+		tmplst.append(str(i.institution_name))
+		tmplst.append(str(i.sessionticker))
+		tmplst.append(str(i.completedtests))
+		
+		deletedlst.append(tmplst)
+	
+	
+	
+	inputdic = {'mainhits':mainhits,'inputlst':inputlst,'deletedlst':deletedlst}
+	
+	return 	render_to_response('traffic.html',inputdic)
+	
+	
+#-----------------------------------------------------------------------------------
+def delete_account(request):
+	
+	#------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['admintoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+		
+	#---------------------------------------------------------------------
+	
+	return 	render_to_response('Deleteaccount.html')
+
+#------------------------------------------------------------------------------------
+def deleteaccount_confirm(request):
+	
+	#------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['admintoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+		
+	#---------------------------------------------------------------------
+	
+	password = str(request.GET['Password'])
+	account =  request.session['active_account']
+	
+	# If invalid password
+	if password != str(account.password):
+		
+		inputdic ={'passfail':True}
+	 	return 	render_to_response('Deleteaccount.html',inputdic)
+	
+
+	# If account is to be deleted
+	else:
+		# create new deleted object
+		
+		t = terminated_accounts()
+		t.username = str(account.username)
+		t.sessionticker = str(account.sessionticker)
+		t.completedtests = str(account.completedtests)
+		t.institution_name = str(account.institution_name)
+		t.save()
+		
+		
+	 	#Delete Tests / models
+	 	
+	 	for i in account.account_models.all():
+	 		
+	 		for j in i.model_tests.all():
+	 			j.delete()
+	 		
+	 		i.delete()
+	 	
+	 	 # Delete Picture
+	 	os.remove(account.photolocation)
+	 	
+	 	# delete account
+	 	
+	 	account.delete()
+	 	
+	 	return 	render_to_response('Accountdeleted.html')
+	 	
+#-------------------------------------------------------------------------------------
+def terminate_accounts(request):
+	
+	#------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['admintoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+		
+	#---------------------------------------------------------------------
+	
+	
+	inputdic = {}
+	
+	if str(request.session['userdel']) != '':
+		username = str(request.session['userdel'])
+		inputdic['accountin'] = username
+		request.session['userdel'] = ''
+	
+	return 	render_to_response('adminaccountermination.html',inputdic)
+
+#-------------------------------------------------------------------------------------
+def view_username_admin(request):
+	
+	#------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['admintoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+		
+	#---------------------------------------------------------------------
+	
+	inputlist = []
+	for i in Account.objects.all():
+		tmplst = []
+		tmplst.append(i.username)
+		tmplst.append(i.institution_name)
+		inputlist.append(tmplst)
+		
+	inputdic = {'inputlist':inputlist}
+	
+	return 	render_to_response('account_admin_terminfo.html',inputdic)
+
+#-----------------------------------------------------------------------------------
+def delaccountlink(request):
+	
+	#------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['admintoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+		
+	#---------------------------------------------------------------------
+	
+	user = str(request.GET['username'])
+	request.session['userdel'] = user	
+	 	
+	return redirect('/terminate_accounts/')	
+
+#------------------------------------------------------------------------------------
+def adminterminate_account(request):
+	
+	#------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['admintoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+		
+	#---------------------------------------------------------------------
+	
+	username = request.GET['account']
+	password_in = request.GET['Password']
+	
+	failcount = 0
+	inputdic = {'accountin':username}
+	if auth.authenticate(username = request.session['admin_name'] , password = password_in) == None:
+		failcount = failcount +1
+		inputdic['invalidpw'] = True
+	
+	
+	truecount = 0
+	for i in Account.objects.all():
+		if str(username) == i.username:
+			truecount = truecount + 1
+	
+	if truecount == 0:
+		failcount = failcount +1
+		inputdic['invalidaccount'] = True
+	
+	if  failcount > 0:
+		inputdic['Fail'] = True
+		return 	render_to_response('adminaccountermination.html',inputdic)
+
+	
+	# If pass -- proceed with delete
+	
+	account = Account.objects.get(username = username)
+	
+	# create new deleted object
+		
+	t = terminated_accounts()
+	t.username = str(account.username)
+	t.sessionticker = str(account.sessionticker)
+	t.completedtests = str(account.completedtests)
+	t.institution_name = str(account.institution_name)
+	t.save()
+		
+		
+	 #Delete Tests / models
+	 	
+	for i in account.account_models.all():
+	 		
+		for j in i.model_tests.all():
+			j.delete()
+	 		
+	 	i.delete()
+	 
+	 # Delete Picture
+	os.remove(account.photolocation)
+	 
+	 
+	 # delete account
+	 	
+	account.delete()
+	
+	
+	return 	render_to_response('accountdeleted_admin.html')

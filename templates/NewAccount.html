@@ -1,0 +1,197 @@
+<!DOCTYPE HTML Public "-//W3C//DTD HTML 4.01//EN">
+<html lang = "en">
+
+
+
+<body  marginwidth="0px" marginheight="0px" leftmargin="0px"  topmargin="0px" style ='background : url("/media/background.jpg")' npadding ='0px' height = '100%'  style ='overflow-x: hidden; overflow-y:scroll' >
+
+<div style = 'width: 1050px; margin-left:auto;margin-right:auto; background-color:#ADEFAD ;padding-left:0px'>
+<div style ='border:double; color:black; border-width:10px; position:absolute; top:0; width: 1030px;background-color:#780000;height: 110px; overflow-x:hidden;overflow-y:hidden'>
+<div style = 'margin-left: 30px ; margin-top: 0px;margin-right: 30px; margin-bottom: 0px; font-size:10px'  >
+	<h1 style = 'color :white'>
+		
+		<div style ='float:left; border:double;color:white;height:67px'> <img src = "/media/mason_logo.gif" width ='107' height = '67'  > </div>
+		<div style ='float:right; border:double;color:white;height:67px'> <img src = "/media/mason_logo.gif" width ='107' height = '67' > </div>
+		
+		
+		<center>
+		George Mason University:<br>
+		Lost Person Model Rating System<br>
+		<div style = 'margin-top:18px'>
+		<div style ='font-size:14px; position:absolute; width:95%'><i>*Account Registration*</i></div>
+		</div>
+		<center>	
+				
+	</h1>
+</div>	
+</div>
+
+
+
+<div style =' margin-left: 0% ; margin-top: 130px; margin-right: 0%; margin-bottom: 0px; color:black; overflow-y:hidden; overflow-x:hidden;'  >
+
+<div style = 'padding-left:20%;'>
+
+<br>
+<p><b>
+		Thank you for trying the lost person model rating system. <br>
+		Please fill out the following form to enable your registration.<br><br>
+		
+		Your name, institution name, Email, and website will be used <br>
+		to construct a profile that will be provided to other users <br>
+		on our leaderboard interface.<br><br>
+		
+		(*) Required Field.
+		
+	</b></p>
+	<br>
+	{% if fail %}
+	<div style = 'border:double; width:700px; background-color:#FFFF99'>
+	{% else %}
+	<div style = 'border:double; width:450px; background-color:#FFFF99'>
+	
+	{% endif %}
+	<br>
+	<form action = "/create_account/" method = "get">
+		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Registration Information</b> <br><br>
+		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i>User Information</i><br>
+		
+		
+		
+		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;First Name:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+		{% if fail %} <Input type = "text" name = "FirstName" value ='{{Firstname}}'> {% else %} <Input type = "text" name = "FirstName">  {% endif %}
+		
+		{% if firstfail %}&nbsp; <i style ='color:red; font-size:12px'> Invalid Entry </i>   {% endif %}
+		<br>
+		
+		
+		
+		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;Last Name:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		{% if fail %} <Input type = "text" name = "LastName" value ='{{Lastname}}'> {% else %} <Input type = "text" name = "LastName">  {% endif %}
+		{% if lastfail %}&nbsp; <i style ='color:red;font-size:12px'> Invalid Entry </i>   {% endif %}
+		<br>
+		
+		
+		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;Email: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		{% if fail %} <Input type = "text" name = "Email" value ='{{Email_in}}'> {% else %} <Input type = "text" name = "Email">  {% endif %}
+		{% if emailfail %}&nbsp; <i style ='color:red;font-size:12px'> Invalid Entry: must only contain leters or numbers in form (_@_._) </i>   {% endif %}
+		<br> <br>
+		
+		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i>Organization Information</i><br>
+		
+		
+		
+		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;Institution Name:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		{% if fail %} <Input type = "text" name = "Institution" value ='{{Institution}}'> {% else %} <Input type = "text" name = "Institution">  {% endif %}
+		{% if Institutionfail %}&nbsp; <i style ='color:red;font-size:12px'> Invalid Entry: must only contain leters, numbers, spaces, and colons </i>   {% endif %}
+		<br> 
+		
+		
+		
+		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Website:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;
+		{% if fail %} <Input type = "text" name = "Website" value ='{{Websitein}}'> {% else %} <Input type = "text" name = "Website">  {% endif %}
+		{% if Websitein_r %}&nbsp; <i style ='color:red;font-size:12px'> Invalid Entry </i>   {% endif %}
+		<br> <br>
+		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i>Login Information</i><br>
+		
+		
+		
+		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;Desired Username:&nbsp;&nbsp; 
+		{% if fail %} <Input type = "text" name = "Username" value ='{{Username}}'> {% else %} <Input type = "text" name = "Username">  {% endif %}
+		{% if usernamefail %}&nbsp; <i style ='color:red;font-size:12px'> Invalid Entry: must only contain letters and numbers (no spaces) </i>   {% endif %}
+		{% if usernamerepeat %}&nbsp; <i style ='color:red;font-size:12px'> Username is unavailable  </i>   {% endif %}
+		<br>
+		
+		
+		
+		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;Password:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+		{% if fail %} <Input type = "text" name = "Password1" value ='{{Password1}}'> {% else %} <Input type = "text" name = "Password1">  {% endif %}
+		{% if Pass1fail %}&nbsp; <i style ='color:red;font-size:12px'> Invalid Entry </i>   {% endif %}
+		<br>
+		
+		
+		
+		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;Repeat Password: &nbsp;&nbsp;
+		{% if fail %} <Input type = "text" name = "Password2" value ='{{Password2}}'> {% else %} <Input type = "text" name = "Password2">  {% endif %}
+		{% if Pass2fail %}&nbsp; <i style ='color:red;font-size:12px'> Invalid Entry </i>   {% endif %}
+		<br><br>
+		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		&nbsp;&nbsp;&nbsp;&nbsp;
+		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type = "Submit">	
+		<br><br>
+		
+		<center> {% if passsyncfail %}<i style ='color:red;font-size:12px'> Passwords do not match </i>   {% endif %} </center>
+		
+		
+		<br><br>
+	</form>
+	</div>
+	<br>	
+	<form action = "/main/" method = "get" name = "Return to Main Menu">
+		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		&nbsp;&nbsp;&nbsp;&nbsp;
+		<button name = "Return To Main Menu" type = "submit" value = "HTML">
+		Return To Main Menu
+		</button>
+	</form>
+	
+	
+	</div>
+
+
+
+<br><br>
+	
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+
+
+	
+	<hr color = 'Navy'>
+	<p>
+	
+		 <center ><i>GMU: C4I Center --- Mr. Nathan Jones (njonesh@gmu.edu) -- Dr. Charles Twardy</i></center>
+	</p>
+	<br>
+	
+</div>
+	
+</body>
+</html>
