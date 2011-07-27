@@ -1282,3 +1282,4 @@ class terminated_accounts(models.Model):
 	sessionticker = models.CharField(max_length = 30)
 	completedtests = models.CharField(max_length = 30)
 	institution_name = models.CharField(max_length = 30)
+	models = models.CharField(max_length = 30)
