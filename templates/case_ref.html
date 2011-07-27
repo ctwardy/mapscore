@@ -1,0 +1,159 @@
+<!DOCTYPE HTML Public "-//W3C//DTD HTML 4.01//EN">
+<html lang = "en">
+
+
+
+<body  marginwidth="0px" marginheight="0px" leftmargin="0px"  topmargin="0px" style ='background : url("/media/background.jpg")' npadding ='0px' height = '100%'  style ='overflow-x: hidden; overflow-y:scroll' >
+
+<div style = 'width: 1050px; margin-left:auto;margin-right:auto; background-color:#ADEFAD ;padding-left:0px'>
+<div style ='border:double; color:black; border-width:10px; position:absolute; top:0; width: 1030px;background-color:#780000;height: 110px; overflow-x:hidden;overflow-y:hidden'>
+<div style = 'margin-left: 30px ; margin-top: 0px;margin-right: 30px; margin-bottom: 0px; font-size:10px'  >
+	<h1 style = 'color :white'>
+		
+		<div style ='float:left; border:double;color:white;height:67px'> <img src = "/media/mason_logo.gif" width ='107' height = '67'  > </div>
+		<div style ='float:right; border:double;color:white;height:67px'> <img src = "/media/mason_logo.gif" width ='107' height = '67' > </div>
+		
+		
+		<center>
+		George Mason University:<br>
+		Lost Person Model Rating System<br>
+		<div style = 'margin-top:18px'>
+		<div style ='font-size:14px; position:absolute; width:95%'><i>*Case Reference*</i></div>
+		</div>
+		<center>	
+				
+	</h1>
+</div>	
+</div>
+
+
+
+<div style =' margin-left: 0% ; margin-top: 130px; margin-right: 0%; margin-bottom: 0px; color:black; overflow-y:hidden; overflow-x:hidden;'  >
+
+<div style = 'padding-left:325px;' >
+
+<br><br><br>
+
+	<p style = " font-size:18px;">	
+		<b>Provided below are the known lost person scenario parameters:</b>
+		
+	</p>
+</div>
+<br><br>
+
+
+<div style = 'padding-left:25px;' >
+		
+		
+
+		<image src = '{{MAP}}' style = 'border:solid; border-width:5px;float:left'>
+		
+		<div style ='position:absolute;padding-top:550px;padding-left:0px'>
+		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		<a href = 'http://code.google.com/apis/maps/terms.html'> Google Maps API - Terms <a>
+		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		<a href ='http://www.google.com/privacy.html'> Google Privacy Page <a>
+		<p> By using this service you are agreeing to be bound by Google's Terms of Use <p>
+		</div>
+			
+		
+<div style = 'padding-left:525px;' >
+	<p style = "background-color:#FFFF99 ; border: double; width : 475px">
+	<br>
+		<b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Test Case Name:</b> {{name}} 
+		<br><br>	
+		
+		<b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Required Coordinate System:</b>  WGS_84<br>
+		<br>
+		
+		<b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<u>Subject(s) Information:</b></u><br>
+		<br>
+		<b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Subject age:</b> {{age}}<br>
+		<b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Subject sex:</b> {{sex}}<br>
+		<b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Subject Category:</b> {{subject_category }}<br>
+		<b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Scenario: </b>{{scenario    }}<br>
+		<b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Subject Sub-Category:</b> {{subject_subcategory }}<br>
+		<b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Subject Activity:</b> {{subject_activity   }}<br>
+		<b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Group Type:</b> {{group_type}}<br>
+		<b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Number Lost:</b> {{number_lost  }}<br>
+		
+		
+		<br>
+		<b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<u>Search Region Information:</b></u><br>
+		<br>
+		<b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Terrain: </b>{{terrain  }}<br>
+		<b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Ecoregion Domain: </b>{{ecoregion_domain  }}<br>
+		<b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Ecoregion Division: </b>{{ecoregion_division }}<br>
+		<b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Total hours before Located: </b>{{total_hours }}<br>
+		<br>
+		
+		<b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Last Known Position:</b> {{LKP}} - {L}<br>
+		<b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# Horizantal cells: </b>{{horcells}}<br>
+		<b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# Vertical cells: </b>{{vercells}}<br>
+		<b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Total # cells: </b>{{totcells}}<br>
+		<b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Est. Cell width:</b> {{cellwidth}} meters<br>
+		<b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Est. Search Region width:</b> {{regionwidth}} Kilometers<br>
+		
+		<br>
+		
+		
+		
+		
+		
+		<b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<u>Search Region Boundary Points:</b></u><br>
+		<br>
+		<b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Upper Left:</b> {{upleft}} -{A}<br>
+		<b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Upper Right:</b> {{upright}} -{B}<br>
+		<b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Lower Right:</b> {{downright}} -{C}<br>
+		<b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Lower Left:</b> {{downleft}} -{D}<br>
+		<br>	
+		</p>
+</div>
+		
+		
+		
+		
+		
+
+		
+	
+</div>	
+
+
+<br><br>	
+<div style = 'padding-left:375px;' >	
+	
+	
+	<br>
+	
+	<form action = "/caseref_return/" method = "get" name = "Return to Model Menu">
+		
+		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		<button name = "Return To Model Menu" type = "submit" value = "HTML">
+		Return 
+		</button>
+		
+	</form>
+	
+<br>
+</div>
+</div>
+
+
+	
+	<hr color = 'Navy'>
+	<p>
+	
+		 <center ><i>GMU: C4I Center --- Mr. Nathan Jones (njonesh@gmu.edu) -- Dr. Charles Twardy</i></center>
+	</p>
+	<br>
+	
+</div>
+	
+</body>
+</html>
+	
+
+
+	
