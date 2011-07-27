@@ -1421,6 +1421,30 @@ def confirm_grayscale(request):
 	
 	# Verify Image
 	image_in = Image.open(request.session['active_test'].greyscale_path)
+	
+	# Check for demensions
+	
+	if image_in.size[0] != 5001 or image_in.size[1] != 5001:
+		
+		#----------------------------------------------------------------------------------------		
+		# reformat ID2
+		#..................................................
+		st = str(request.session['active_test'].ID2)
+		temp = ''
+		for i in st:
+			if i == ':':
+				temp = temp +'_'
+			else:
+			 	temp = temp + str(i)
+		#...............................................
+		
+		
+		
+		served_Location = '/media/' + temp + '.png'
+		inputdic = {'grayscale':served_Location}
+		return render_to_response('uploadfail_demensions.html',inputdic)
+	
+
 	data = image_in.getdata()
 	
 	bands = image_in.getbands()
@@ -3020,6 +3044,7 @@ def traffic(request):
 		tmplst.append(str(i.username))
 		tmplst.append(str(i.institution_name))
 		tmplst.append(str(i.sessionticker))
+		tmplst.append(str(len(i.account_models.all())))
 		tmplst.append(str(i.completedtests))
 		
 		inputlst.append(tmplst)
@@ -3030,6 +3055,7 @@ def traffic(request):
 		tmplst.append(str(i.username))
 		tmplst.append(str(i.institution_name))
 		tmplst.append(str(i.sessionticker))
+		tmplst.append(str(i.models))
 		tmplst.append(str(i.completedtests))
 		
 		deletedlst.append(tmplst)
@@ -3088,6 +3114,7 @@ def deleteaccount_confirm(request):
 		t.sessionticker = str(account.sessionticker)
 		t.completedtests = str(account.completedtests)
 		t.institution_name = str(account.institution_name)
+		t.models = str(len(account.account_models.all()))
 		t.save()
 		
 		
@@ -3222,6 +3249,7 @@ def adminterminate_account(request):
 	t.sessionticker = str(account.sessionticker)
 	t.completedtests = str(account.completedtests)
 	t.institution_name = str(account.institution_name)
+	t.models = str(len(account.account_models.all()))
 	t.save()
 		
 		
