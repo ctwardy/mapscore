@@ -24,7 +24,8 @@ from framework.models import terminated_accounts
 import time
 import re
 import os
-from PIL import Image
+#from PIL import Image
+import Image
 
 from django.core.context_processors import csrf
 
@@ -276,14 +277,16 @@ def create_account(request):
 	account.photourl = stringurl
 	
 	
-	stringlocation = 'C:\Users\Nathan Jones\Django Website\MapRateWeb\media\profpic_' + str(ID2) + '.png'
+	stringlocation = 'media/profpic_' + str(ID2) + '.png'
+	#'C:\Users\Nathan Jones\Django Website\MapRateWeb\media\profpic_' + str(ID2) + '.png'
 	account.photolocation = stringlocation
 	
 	
 	account.save()
 	
 	# set default profpic
-	shutil.copyfile('C:\Users\Nathan Jones\Django Website\MapRateWeb\in_images\Defaultprofpic.png',stringlocation)
+	#shutil.copyfile('C:\Users\Nathan Jones\Django Website\MapRateWeb\in_images\Defaultprofpic.png',stringlocation)
+	shutil.copyfile('in_images/Defaultprofpic.png',stringlocation)
 	
 	request.session['active_account'] =  account	
 	return redirect('/uploadprofpic/')
@@ -1375,7 +1378,8 @@ def load_image(request):
 	#---------------------------------------------------------------------
 	
 	#******************** Alter for server
-	string = 'C:/Users/Nathan Jones/Django Website/MapRateWeb/media/'
+	#string = 'C:/Users/Nathan Jones/Django Website/MapRateWeb/media/'
+	string = 'media/'
 	
 	 # reformat ID2
 	#..................................................
@@ -1575,7 +1579,8 @@ def acceptgrayscale_confirm(request):
 		
 	#---------------------------------------------------------------------
 	
-	string = 'C:/Users/Nathan Jones/Django Website/MapRateWeb/user_grayscale/'
+	#string = 'C:/Users/Nathan Jones/Django Website/MapRateWeb/user_grayscale/'
+	string = 'user_grayscale/'
 	
 	 # reformat ID2
 	#..................................................
@@ -2326,7 +2331,8 @@ def upload_casefile(request):
 	#---------------------------------------------------------------------
 	
 	# Take in file - save to server
-	string = 'C:\Users\Nathan Jones\Django Website\MapRateWeb\case_in\input_unsorted.txt'
+	#string = 'C:\Users\Nathan Jones\Django Website\MapRateWeb\case_in\input_unsorted.txt'
+	string = 'case_in/input_unsorted.txt'
 	destination = open(string,'wb+')
 	
 	for chunk in request.FILES['casetxt'].chunks():
@@ -2410,7 +2416,7 @@ def upload_casefile(request):
 	
 	
 	# Save filtered file
-	sortedaddress = 'C:\Users\Nathan Jones\Django Website\MapRateWeb\case_in\input_srt.txt'
+	sortedaddress = 'case_in/input_srt.txt'
 	file2 = open(sortedaddress,'wb+')
 	
 	file2.write(finalstring)
@@ -2510,7 +2516,8 @@ def exportcaselibrary(request):
 	#---------------------------------------------------------------------
 	
 	
-	string = 'C:\Users\Nathan Jones\Django Website\MapRateWeb\case_in\exported_case_Library.txt'
+	#string = 'C:\Users\Nathan Jones\Django Website\MapRateWeb\case_in\exported_case_Library.txt'
+	string = 'case_in/exported_case_Library.txt'
 	file = open(string,'w')
 	
 	outputstr = ''
@@ -2896,7 +2903,8 @@ def confirm_prof_pic(request):
 def denyprofpic_confirm(request):
 	account = request.session['active_account']
 	
-	shutil.copyfile('C:\Users\Nathan Jones\Django Website\MapRateWeb\in_images\Defaultprofpic.png',account.photolocation)
+	#shutil.copyfile('C:\Users\Nathan Jones\Django Website\MapRateWeb\in_images\Defaultprofpic.png',account.photolocation)
+	shutil.copyfile('in_images/Defaultprofpic.png',account.photolocation)
 	
 	return redirect('/uploadprofpic/')
 
@@ -2939,7 +2947,8 @@ def remove_profpic(request):
 	
 	account = request.session['active_account']
 	
-	shutil.copyfile('C:\Users\Nathan Jones\Django Website\MapRateWeb\in_images\Defaultprofpic.png',account.photolocation)
+	#shutil.copyfile('C:\Users\Nathan Jones\Django Website\MapRateWeb\in_images\Defaultprofpic.png',account.photolocation)
+	shutil.copyfile('in_images\Defaultprofpic.png',account.photolocation)
 	time.sleep(2)
 	
 	return redirect('/edit_picture/')

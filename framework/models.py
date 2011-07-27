@@ -1,7 +1,8 @@
 from django.db import models
 import math
 import random
-from PIL import Image
+#from PIL import Image
+import Image
 from django import forms
 
 # Create your models here.
@@ -744,7 +745,8 @@ class Test(models.Model):
 		# Build Image
 		
 		# ****** Update Path ********
-		im = Image.open('C:/Users/Nathan Jones/Django Website/MapRateWeb/in_images/base_grid.png')
+		#im = Image.open('C:/Users/Nathan Jones/Django Website/MapRateWeb/in_images/base_grid.png')
+		im = Image.open('in_images/base_grid.png')
 		pix = im.load()
 		
 		pt1x_plot = round(float(self.pt1x)/10)
@@ -914,7 +916,8 @@ class Test(models.Model):
 			else:
 				temp = temp + str(i)
 				
-		string = 'C:/Users/Nathan Jones/Django Website/MapRateWeb/media'
+		#string = 'C:/Users/Nathan Jones/Django Website/MapRateWeb/media'
+		string = 'media'
 		string = string + '/t_' + str(temp) + '.png'
 		
 		string2 = '/media'+ '/t_' + str(temp) + '.png'
