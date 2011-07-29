@@ -1,6 +1,6 @@
 # Main Views File 
-
-
+#edddditttttt
+import math
 # Import statements
 from django.http import HttpResponse
 from django.shortcuts import render_to_response
@@ -2211,7 +2211,7 @@ def caseref_return(request):
 	
 	inputdic = request.session['inputdic'] 
 		
-	return render_to_response('leaderboard_test.html',inputdic)
+	return render_to_response('Leaderboard_test.html',inputdic)
 		
 #---------------------------------------------------------------------------------------------------------------------
 
@@ -2432,9 +2432,17 @@ def upload_casefile(request):
 	
 	while line != '':
 		items = ''
+		
+		#Accounting for server adding \r after \n		
+		if line[0] =='\\' and line[1] == 'r':
+			line = line[2:]
+		
+		if line == '':
+			
+			break
+
 		items = line.split('|')
-		print '\n\n\nItemOne:   ' + items[0]
-		print '\n\n\nItemtwo:   ' + items[1]
+	
 		
 		
 		name = str(re.match(pattern,items[0]).group(1))
@@ -2948,7 +2956,7 @@ def remove_profpic(request):
 	account = request.session['active_account']
 	
 	#shutil.copyfile('C:\Users\Nathan Jones\Django Website\MapRateWeb\in_images\Defaultprofpic.png',account.photolocation)
-	shutil.copyfile('in_images\Defaultprofpic.png',account.photolocation)
+	shutil.copyfile('in_images/Defaultprofpic.png',account.photolocation)
 	time.sleep(2)
 	
 	return redirect('/edit_picture/')
@@ -3082,7 +3090,7 @@ def delete_account(request):
 	#------------------------------------------------------------------
 	# Token Verification
 	try:
-		if request.session['admintoken'] == False:
+		if request.session['usertoken'] == False:
 			return render_to_response('noaccess.html',{})
 	except: 
 		return render_to_response('noaccess.html',{})
@@ -3097,7 +3105,7 @@ def deleteaccount_confirm(request):
 	#------------------------------------------------------------------
 	# Token Verification
 	try:
-		if request.session['admintoken'] == False:
+		if request.session['usertoken'] == False:
 			return render_to_response('noaccess.html',{})
 	except: 
 		return render_to_response('noaccess.html',{})
