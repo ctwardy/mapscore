@@ -153,7 +153,7 @@ def create_account(request):
 	
 	Firstname_r = '^.+$'
 	Lastname_r  = '^.+$'
-	Email_in_r  = '^[a-zA-z0-9\.]+@[a-zA-z0-9]+\.[a-zA-z0-9]+$'
+	Email_in_r  = '^[a-zA-z0-9\.]+@[a-zA-z0-9]+[\.a-zA-z0-9]+$'
 	Institution_r = "^[a-zA-z\s:0-9']+$"
 	Username_r = '^[a-zA-z0-9_]+$'
 	Password1_r ='^.+$'
