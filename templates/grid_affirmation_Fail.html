@@ -50,7 +50,7 @@
 
 <center>
 <h1> <b> Grid Alignment Verification Results</b> </h1>
-<br><br> <h1 style ='color:red'> FAIL </h1>
+<br><br> <h1 style ='color:red'> <u>FAIL</u> </h1>
 </center>
 
 <br><br>
@@ -83,59 +83,208 @@
     
 <div style = 'padding-left:75px'>
 
-<b> Point 1 ({{status.0}}): <br>
+{% if status.0 == 'Pass' %}
+<div style = 'color:green'>
+<b> Point 1  <i> ({{status.0}}) </i>  <br>
 {{pt_latlon.0}}<br>
 Actual Grid cell location: {{pt_agrid.0}}<br>
 Your submitted Grid Location: {{pt_sgrid.0}}
-<br><br>
+</div>
+<br>
+{% endif %}
 
-<b> Point 2 ({{status.1}}): <br>
+
+{% if status.0 == 'Fail' %} 
+<div style = 'color:red'>
+<b> Point 1  <i> ({{status.0}}) </i>  <br>
+{{pt_latlon.0}}<br>
+Actual Grid cell location: {{pt_agrid.0}}<br>
+Your submitted Grid Location: {{pt_sgrid.0}}
+</div>
+<br>
+{% endif %}
+
+
+{% if status.1 == 'Pass' %}
+<div style = 'color:green'>
+<b> Point 2  <i> ({{status.1}}) </i>: <br>
 {{pt_latlon.1}}<br>
 Actual Grid cell location: {{pt_agrid.1}}<br>
 Your submitted Grid Location: {{pt_sgrid.1}}
 <br><br>
+</div>
+{% endif %}
 
-<b> Point 3 ({{status.2}}): <br>
+{% if status.1 == 'Fail' %}
+<div style = 'color:red'>
+<b> Point 2  <i> ({{status.1}}) </i>: <br>
+{{pt_latlon.1}}<br>
+Actual Grid cell location: {{pt_agrid.1}}<br>
+Your submitted Grid Location: {{pt_sgrid.1}}
+<br><br>
+</div>
+{% endif %}
+
+
+
+
+
+
+{% if status.2 == 'Pass' %}
+<div style = 'color:green'>
+<b> Point 3  <i> ({{status.2}}) </i> : <br>
 {{pt_latlon.2}}<br>
 Actual Grid cell location: {{pt_agrid.2}}<br>
 Your submitted Grid Location: {{pt_sgrid.2}}
 <br><br>
+</div>
+{% endif %}
 
-<b> Point 4 ({{status.3}}): <br>
+
+
+{% if status.2 == 'Fail' %}
+<div style = 'color:red'>
+<b> Point 3  <i> ({{status.2}}) </i> : <br>
+{{pt_latlon.2}}<br>
+Actual Grid cell location: {{pt_agrid.2}}<br>
+Your submitted Grid Location: {{pt_sgrid.2}}
+<br><br>
+</div>
+{% endif %}
+
+
+
+{% if status.3 == 'Pass' %}
+<div style = 'color:green'>
+<b> Point 4  <i> ({{status.3}}) </i>: <br>
 {{pt_latlon.3}}<br>
 Actual Grid cell location: {{pt_agrid.3}}<br>
 Your submitted Grid Location: {{pt_sgrid.3}}
 <br><br>
+</div>
+{% endif %}
 
-<b> Point 5 ({{status.4}}): <br>
+{% if status.3 == 'Fail' %}
+<div style = 'color:red'>
+<b> Point 4  <i> ({{status.3}}) </i>: <br>
+{{pt_latlon.3}}<br>
+Actual Grid cell location: {{pt_agrid.3}}<br>
+Your submitted Grid Location: {{pt_sgrid.3}}
+<br><br>
+</div>
+{% endif %}
+
+
+
+
+{% if status.4 == 'Pass' %}
+<div style = 'color:green'>
+<b> Point 5  <i> ({{status.4}}) </i>: <br>
 {{pt_latlon.4}}<br>
 Actual Grid cell location: {{pt_agrid.4}}<br>
 Your submitted Grid Location: {{pt_sgrid.4}}
 <br><br>
+</div>
+{% endif %}
 
-<b> Point 6 ({{status.5}}): <br>
+
+{% if status.4 == 'Fail' %}
+<div style = 'color:red'>
+<b> Point 5  <i> ({{status.4}}) </i>: <br>
+{{pt_latlon.4}}<br>
+Actual Grid cell location: {{pt_agrid.4}}<br>
+Your submitted Grid Location: {{pt_sgrid.4}}
+<br><br>
+</div>
+{% endif %}
+
+
+
+{% if status.5 == 'Pass' %}
+<div style = 'color:green'>
+<b> Point 6  <i> ({{status.5}}) </i>: <br>
 {{pt_latlon.5}}<br>
 Actual Grid cell location: {{pt_agrid.5}}<br>
 Your submitted Grid Location: {{pt_sgrid.5}}
 <br><br>
+</div>
+{% endif %}
 
-<b> Point 7 ({{status.6}}): <br>
+{% if status.5 == 'Fail' %}
+<div style = 'color:red'>
+<b> Point 6  <i> ({{status.5}}) </i>: <br>
+{{pt_latlon.5}}<br>
+Actual Grid cell location: {{pt_agrid.5}}<br>
+Your submitted Grid Location: {{pt_sgrid.5}}
+<br><br>
+</div>
+{% endif %}
+
+
+{% if status.6 == 'Pass' %}
+<div style = 'color:green'>
+<b> Point 7  <i> ({{status.6}}) </i>: <br>
 {{pt_latlon.6}}<br>
 Actual Grid cell location: {{pt_agrid.6}}<br>
 Your submitted Grid Location: {{pt_sgrid.6}}
 <br><br>
+</div>
+{% endif %}
 
-<b> Point 8 ({{status.7}}): <br>
+{% if status.6 == 'Fail' %}
+<div style = 'color:red'>
+<b> Point 7  <i> ({{status.6}}) </i>: <br>
+{{pt_latlon.6}}<br>
+Actual Grid cell location: {{pt_agrid.6}}<br>
+Your submitted Grid Location: {{pt_sgrid.6}}
+<br><br>
+</div>
+{% endif %}
+
+{% if status.7 == 'Pass' %}
+<div style = 'color:green'>
+<b> Point 8  <i> ({{status.7}}) </i>  : <br>
 {{pt_latlon.7}}<br>
 Actual Grid cell location: {{pt_agrid.7}}<br>
 Your submitted Grid Location: {{pt_sgrid.7}}
 <br><br>
+</div>
+{% endif %}
 
-<b> Point 9 ({{status.8}}): <br>
+{% if status.7 == 'Fail' %}
+<div style = 'color:red'>
+<b> Point 8  <i> ({{status.7}}) </i>  : <br>
+{{pt_latlon.7}}<br>
+Actual Grid cell location: {{pt_agrid.7}}<br>
+Your submitted Grid Location: {{pt_sgrid.7}}
+<br><br>
+</div>
+{% endif %}
+
+
+
+{% if status.8 == "Pass" %}
+<div style = 'color:green'>
+<b> Point 9  <i> ({{status.8}}) </i>: <br>
 {{pt_latlon.8}}<br>
 Actual Grid cell location: {{pt_agrid.8}}<br>
 Your submitted Grid Location: {{pt_sgrid.8}}
 <br><br>
+</div>
+{% endif %}
+
+{% if status.8 == "Fail" %}
+<div style = 'color:red'>
+<b> Point 9  <i> ({{status.8}}) </i>: <br>
+{{pt_latlon.8}}<br>
+Actual Grid cell location: {{pt_agrid.8}}<br>
+Your submitted Grid Location: {{pt_sgrid.8}}
+<br><br>
+</div>
+{% endif %}
+
+
+
 
 <br><br><br><br><br>
 
@@ -188,7 +337,7 @@ Your submitted Grid Location: {{pt_sgrid.8}}
 	<hr color = 'Navy'>
 	<p>
 	
-		 <center ><i>GMU: C4I Center --- Mr. Nathan Jones (njonesh@gmu.edu) -- Dr. Charles Twardy</i></center>
+		 <center ><i><b>GMU: C4I Center --- Mr. Nathan Jones (njonesh@gmu.edu) -- Dr. Charles Twardy ----- (Funded by the National Science Foundation)</b></i></center>
 	</p>
 	<br>
 	

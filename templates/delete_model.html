@@ -18,7 +18,7 @@
 		George Mason University:<br>
 		Lost Person Model Rating System<br>
 		<div style = 'margin-top:18px'>
-		<div style ='font-size:14px; position:absolute; width:95%'><i>*Traffic*</i></div>
+		<div style ='font-size:14px; position:absolute; width:95%'><i>*Delete Model*</i></div>
 		</div>
 		<center>	
 				
@@ -30,91 +30,76 @@
 
 <div style =' margin-left: 0% ; margin-top: 130px; margin-right: 0%; margin-bottom: 0px; color:black; overflow-y:hidden; overflow-x:hidden;'  >
 
-<center><div>
+<div style ='padding-left:200px'>
 
-	<br><br>
-
-		<br>
-		<h1 style = 'color:navy'><b><u>Administration: Traffic Menu</b> </u></h1><br><br>
+<br><br>
+<h1 style = 'color:red'><b style ='padding-left:225px'>
+		Delete Model
 		
-	
-		<br>
-		<b style ='font-size:20px'> Main Menu hits: {{mainhits}} </b>
+	</b></h1>
+	<br><br>
+	<div style='padding-left:100px'>
 
+	<b> 	In order to delete your model, please select your model from the<br>
+		drop down list, enter your password,and select submit. Once <br>
+		submitted, your account will be permanently removed from <br>
+		your system. </b>
 	
-		<br><br><br>
-	
-	<h1>
-		<b><i>Account Access Breakdown: </i> </b><br>
-	</h1>
-	<br>
-		<i style = 'color:navy' >Blue indicates that the account is active </i> <br>
-		<i style = 'color:#780000' >Red indicates that the account was deleted </i> <br>
-	
+		</div>
 	<br><br>
 	
-	
-	<table border = "1" style = " font-size:20px; width:1000px"  bgcolor = '#FFFF99'>
-	<tr>
-	<th> Username </th>
-	<th> Institution </th>
-	<th> Login Sessions </th>
-	<th> Active <br> Models </th>
-	<th> Deleted <br>Models </th>
-	<th> Total (Act + Del)<br> Completed Cases </th>
-	</tr>
-	
-	
-	{% for i in inputlst %}
-	<tr style = " font-size:18px;color:navy" >
-		{% for j in i %}
-			<td>
-		<center>	{{j}} </center>
-			</td>
-		{% endfor %}
-	</tr>
-	
-	{% endfor %}
-	
-
-	{% for i in deletedlst %}
-	<tr style = " font-size:18px;color:#780000" >
-		{% for j in i %}
-			<td>
-		<center>	{{j}} </center>
-			</td>
-		{% endfor %}
-	</tr>
-	
-	{% endfor %}
-	
-	</table>
-
-
-	<br>
-	<br>
-	
-	
+<div style ='width:500px;height:auto;border:double;background-color:#FFFF99;margin-left:70px'>	
 	
 	
 	<br><br>
 	
 	
+
+	<form action = "/deletemodel_confirm/" method = "get" name = "deletemodel" >
 	
-	<form action = "/admin_account/" method = "get" name = "Return to Admin Menu">
+		<center>
+		<select name = 'model_in'>
+			<option value= '0' >-- Please select your model --</option>
+			
+			{% for i in modelname_list %}
+				<option> {{i}} </option>
+			 {% endfor %}
+		</select>
+		</center>
 		
+		<br><br>
+	
+	
+		<div style = 'padding-left:80px'>Password: &nbsp;&nbsp;&nbsp;
+		<Input maxlength = '30' type = "password" name = "Password"> </div>
+		{% if passfail %}<br> <i style ='color:red;font-size:15px'> <center> Invalid Password </center> </i> {% endif %}
+		<br><br>
+		<center><input type = "Submit">	</center>
 		
-		<button name = "Return To Admin Menu" type = "submit" value = "HTML">
-		Return To Admin Menu
-		</button>
+
+		
 		
 	</form>
 	
-	<br>
-
+	
+	
+	<br><br>
+	
+	</div>
+	
+	</div>
+	<br><br>
+	<div style = 'margin-left:175px'>
+	<form action = "/Manage_Account/" method = "get" name = "Return to Main Menu" style ='padding-left:325px'>
+	
+		<button name = "Return To Main Menu" type = "submit" value = "HTML">
+		Return 
+		</button>
+	</form>
+	</div>
+	<br><br>	
+	
 </div>
-
-
 
 	
 	<hr color = 'Navy'>

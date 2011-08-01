@@ -786,7 +786,7 @@ class Test(models.Model):
 		for i in range (pixelwidth):
 			for j in range(pixelwidth):
 
-				pix[pt1x_plot - halfwidth + j,pt1y_plot + halfwidth -i] = (0,255,0,255)
+				pix[pt1x_plot - halfwidth + j,pt1y_plot + halfwidth -i] = (173,255,47,255)
 
 		self.plot1xplot = int(pt1x_plot)
 		self.plot1yplot = int(pt1y_plot)
@@ -802,7 +802,7 @@ class Test(models.Model):
 		for i in range (pixelwidth):
 			for j in range(pixelwidth):
 
-				pix[pt2x_plot - halfwidth + j,pt2y_plot + halfwidth -i] = (0,255,0,255)
+				pix[pt2x_plot - halfwidth + j,pt2y_plot + halfwidth -i] = (173,255,47,255)
 
 		self.plot2xplot = int(pt2x_plot)
 		self.plot2yplot = int(pt2y_plot)
@@ -818,7 +818,7 @@ class Test(models.Model):
 		for i in range (pixelwidth):
 			for j in range(pixelwidth):
 
-				pix[pt3x_plot - halfwidth + j,pt3y_plot + halfwidth -i] = (0,255,0,255)
+				pix[pt3x_plot - halfwidth + j,pt3y_plot + halfwidth -i] = (173,255,47,255)
 
 		self.plot3xplot = int(pt3x_plot)
 		self.plot3yplot = int(pt3y_plot)
@@ -832,7 +832,7 @@ class Test(models.Model):
 		for i in range (pixelwidth):
 			for j in range(pixelwidth):
 
-				pix[pt4x_plot - halfwidth + j,pt4y_plot + halfwidth -i] = (0,255,0,255)
+				pix[pt4x_plot - halfwidth + j,pt4y_plot + halfwidth -i] = (173,255,47,255)
 
 
 		self.plot4xplot = int(pt4x_plot)
@@ -844,7 +844,7 @@ class Test(models.Model):
 		for i in range (pixelwidth):
 			for j in range(pixelwidth):
 
-				pix[pt5x_plot - halfwidth + j,pt5y_plot + halfwidth -i] = (0,255,0,255)
+				pix[pt5x_plot - halfwidth + j,pt5y_plot + halfwidth -i] = (173,255,47,255)
 
 		self.plot5xplot = int(pt5x_plot)
 		self.plot5yplot = int(pt5y_plot)
@@ -857,7 +857,7 @@ class Test(models.Model):
 		for i in range (pixelwidth):
 			for j in range(pixelwidth):
 
-				pix[pt6x_plot - halfwidth + j,pt6y_plot + halfwidth -i] = (0,255,0,255)
+				pix[pt6x_plot - halfwidth + j,pt6y_plot + halfwidth -i] = (173,255,47,255)
 
 		self.plot6xplot = int(pt6x_plot)
 		self.plot6yplot = int(pt6y_plot)
@@ -873,7 +873,7 @@ class Test(models.Model):
 		for i in range (pixelwidth):
 			for j in range(pixelwidth):
 
-				pix[pt7x_plot - halfwidth + j,pt7y_plot + halfwidth -i] = (0,255,0,255)
+				pix[pt7x_plot - halfwidth + j,pt7y_plot + halfwidth -i] = (173,255,47,255)
 
 		self.plot7xplot = int(pt7x_plot)
 		self.plot7yplot = int(pt7y_plot)
@@ -886,7 +886,7 @@ class Test(models.Model):
 		for i in range (pixelwidth):
 			for j in range(pixelwidth):
 
-				pix[pt8x_plot - halfwidth + j,pt8y_plot + halfwidth -i] = (0,255,0,255)
+				pix[pt8x_plot - halfwidth + j,pt8y_plot + halfwidth -i] = (173,255,47,255)
 
 		self.plot8xplot = int(pt8x_plot)
 		self.plot8yplot = int(pt8y_plot)
@@ -902,7 +902,7 @@ class Test(models.Model):
 		for i in range (pixelwidth):
 			for j in range(pixelwidth):
 
-				pix[pt9x_plot - halfwidth + j,pt9y_plot + halfwidth -i] = (0,255,0,255)
+				pix[pt9x_plot - halfwidth + j,pt9y_plot + halfwidth -i] = (173,255,47,255)
 
 		self.plot9xplot = int(pt9x_plot)
 		self.plot9yplot = int(pt9y_plot)
@@ -1255,7 +1255,9 @@ class Account(models.Model):
 	Email = models.EmailField()
 	Website = models.URLField()
 	ID2 = models.CharField(max_length = 100)
-
+	photosizex = models.CharField(max_length = 10)
+	photosizey = models.CharField(max_length = 10)
+	deleted_models = models.CharField(max_length = 10)
 
 #----------------------------------------------------------------------------------
 
@@ -1285,5 +1287,6 @@ class terminated_accounts(models.Model):
 	sessionticker = models.CharField(max_length = 30)
 	completedtests = models.CharField(max_length = 30)
 	institution_name = models.CharField(max_length = 30)
-	models = models.CharField(max_length = 30)
+	modelsi = models.CharField(max_length = 30)
+	deleted_models = models.CharField(max_length = 10)
 

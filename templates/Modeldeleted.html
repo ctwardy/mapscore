@@ -18,7 +18,7 @@
 		George Mason University:<br>
 		Lost Person Model Rating System<br>
 		<div style = 'margin-top:18px'>
-		<div style ='font-size:14px; position:absolute; width:95%'><i>*Traffic*</i></div>
+		<div style ='font-size:14px; position:absolute; width:95%'><i>*Account Deleted*</i></div>
 		</div>
 		<center>	
 				
@@ -32,88 +32,32 @@
 
 <center><div>
 
-	<br><br>
 
-		<br>
-		<h1 style = 'color:navy'><b><u>Administration: Traffic Menu</b> </u></h1><br><br>
+	<h1 style ="color: #780000"> 
+		<i>
+		Your model has been sucessfully deleted<br>
 		
-	
-		<br>
-		<b style ='font-size:20px'> Main Menu hits: {{mainhits}} </b>
-
-	
-		<br><br><br>
-	
-	<h1>
-		<b><i>Account Access Breakdown: </i> </b><br>
+		</i>
 	</h1>
-	<br>
-		<i style = 'color:navy' >Blue indicates that the account is active </i> <br>
-		<i style = 'color:#780000' >Red indicates that the account was deleted </i> <br>
 	
-	<br><br>
-	
-	
-	<table border = "1" style = " font-size:20px; width:1000px"  bgcolor = '#FFFF99'>
-	<tr>
-	<th> Username </th>
-	<th> Institution </th>
-	<th> Login Sessions </th>
-	<th> Active <br> Models </th>
-	<th> Deleted <br>Models </th>
-	<th> Total (Act + Del)<br> Completed Cases </th>
-	</tr>
-	
-	
-	{% for i in inputlst %}
-	<tr style = " font-size:18px;color:navy" >
-		{% for j in i %}
-			<td>
-		<center>	{{j}} </center>
-			</td>
-		{% endfor %}
-	</tr>
-	
-	{% endfor %}
-	
-
-	{% for i in deletedlst %}
-	<tr style = " font-size:18px;color:#780000" >
-		{% for j in i %}
-			<td>
-		<center>	{{j}} </center>
-			</td>
-		{% endfor %}
-	</tr>
-	
-	{% endfor %}
-	
-	</table>
-
-
-	<br>
 	<br>
 	
-	
-	
-	
-	<br><br>
-	
-	
-	
-	<form action = "/admin_account/" method = "get" name = "Return to Admin Menu">
+	<form action = "/Manage_Account/" method = "get" name = "Return to admin Menu">
 		
-		
-		<button name = "Return To Admin Menu" type = "submit" value = "HTML">
-		Return To Admin Menu
+	
+		<button name = "Return To admin Menu" type = "submit" value = "HTML">
+		Return 
 		</button>
 		
 	</form>
 	
 	<br>
+	
+
+</div>	</center>
+
 
 </div>
-
 
 
 	
