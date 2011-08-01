@@ -271,7 +271,8 @@ def create_account(request):
 			ID2 = Username,
 			Website = Websitein,
 			sessionticker = 0,
-			completedtests = 0
+			completedtests = 0,
+			deleted_models = 0,
 
 				)
 	account.save()
@@ -298,7 +299,18 @@ def create_account(request):
 	# set default profpic
 	#shutil.copyfile('C:\Users\Nathan Jones\Django Website\MapRateWeb\in_images\Defaultprofpic.png',stringlocation)
 	shutil.copyfile('in_images/Defaultprofpic.png',stringlocation)
-
+	
+	
+	# Save image size parameters
+	im = Image.open(account.photolocation)
+	size = im.size
+	xsize = size[0]
+	ysize = size[1]
+	
+	account.photosizex = int(xsize)
+	account.photosizey = int(ysize)
+	account.save()
+	
 	request.session['active_account'] =  account	
 	return redirect('/uploadprofpic/')
 #-------------------------------------------------------------
@@ -355,8 +367,15 @@ def account_access(request):
 
 			profpic = request.session['active_account'].photourl
 
-
-			return render_to_response('AccountScreen.html',{'Name':request.session['active_account'].institution_name,'modelname_list':model_list ,'profpic':profpic})
+			inputdic = {'Name':request.session['active_account'].institution_name,'modelname_list':model_list ,'profpic':profpic}
+			
+			account = request.session['active_account']
+			
+			inputdic['xsize'] = account.photosizex
+			inputdic['ysize'] = account.photosizey
+	
+	
+			return render_to_response('AccountScreen.html',inputdic)
 
 		# User does not exist
 		else:
@@ -378,7 +397,14 @@ def account_access(request):
 
 		profpic = request.session['active_account'].photourl
 
-		return render_to_response('AccountScreen.html',{'Name':request.session['active_account'].institution_name,'modelname_list':model_list,'profpic':profpic })
+		inputdic = {'Name':request.session['active_account'].institution_name,'modelname_list':model_list,'profpic':profpic }
+		
+		account = request.session['active_account']
+		
+		inputdic['xsize'] = account.photosizex
+		inputdic['ysize'] = account.photosizey
+		
+		return render_to_response('AccountScreen.html',inputdic)
 
 #-----------------------------------------------------------------
 def model_regform(request):
@@ -2253,7 +2279,9 @@ def Account_Profile(request):
 	if website !='none':
 		inputdic['websitexists'] = True
 
-
+	inputdic['xsize'] = account.photosizex
+	inputdic['ysize'] = account.photosizey
+			
 	return render_to_response('Account_Profile.html',inputdic)
 #--------------------------------------------------------------------------------------------------------------------
 def returnfrom_profile(request):
@@ -2568,6 +2596,8 @@ def Manage_Account(request):
 
 	#---------------------------------------------------------------------
 
+	request.session['active_model'] = 'none'
+	
 	return render_to_response('Account_manage.html')
 
 #----------------------------------------------------------------------------------------------------------------------------
@@ -2915,6 +2945,19 @@ def confirm_prof_pic(request):
 
 	#----------------------------------------------------------------------------------
 	inputdic = {'account_photo':account.photourl}
+	
+	# Save image size parameters
+	im = Image.open(account.photolocation)
+	size = im.size
+	xsize = size[0]
+	ysize = size[1]
+	
+	account.photosizex = int(xsize)
+	account.photosizey = int(ysize)
+	account.save()
+	
+	inputdic['xsize'] = account.photosizex
+	inputdic['ysize'] = account.photosizey
 
 	return 	render_to_response('profpic_confirm.html',inputdic)
 
@@ -2924,6 +2967,16 @@ def denyprofpic_confirm(request):
 
 	#shutil.copyfile('C:\Users\Nathan Jones\Django Website\MapRateWeb\in_images\Defaultprofpic.png',account.photolocation)
 	shutil.copyfile('in_images/Defaultprofpic.png',account.photolocation)
+	
+	# Save image size parameters
+	im = Image.open(account.photolocation)
+	size = im.size
+	xsize = size[0]
+	ysize = size[1]
+	
+	account.photosizex = int(xsize)
+	account.photosizey = int(ysize)
+	account.save()
 
 	return redirect('/uploadprofpic/')
 
@@ -2948,6 +3001,9 @@ def edit_picture(request):
 
 	account = request.session['active_account']
 	inputdic = {'account_photo':account.photourl}
+	
+	inputdic['xsize'] = account.photosizex
+	inputdic['ysize'] = account.photosizey
 
 	return 	render_to_response('edit_profpic.html',inputdic)
 
@@ -2969,6 +3025,16 @@ def remove_profpic(request):
 	#shutil.copyfile('C:\Users\Nathan Jones\Django Website\MapRateWeb\in_images\Defaultprofpic.png',account.photolocation)
 	shutil.copyfile('in_images/Defaultprofpic.png',account.photolocation)
 	time.sleep(2)
+	
+	# Save image size parameters
+	im = Image.open(account.photolocation)
+	size = im.size
+	xsize = size[0]
+	ysize = size[1]
+	
+	account.photosizex = int(xsize)
+	account.photosizey = int(ysize)
+	account.save()
 
 	return redirect('/edit_picture/')
 
@@ -2988,6 +3054,7 @@ def alterprofpic(request):
 
 	inputdic = {}
 	inputdic.update(csrf(request))
+	
 	return 	render_to_response('change_accountpic.html',inputdic)
 
 #----------------------------------------------------------------------------
@@ -3049,6 +3116,16 @@ def change_accountpic(request):
 	im.save(str(account.photolocation))
 
 	time.sleep(4)
+	
+	# Save image size parameters
+	im = Image.open(account.photolocation)
+	size = im.size
+	xsize = size[0]
+	ysize = size[1]
+	
+	account.photosizex = int(xsize)
+	account.photosizey = int(ysize)
+	account.save()
 
 	return redirect('/edit_picture/')
 #----------------------------------------------------------------------------------
@@ -3073,8 +3150,8 @@ def traffic(request):
 		tmplst.append(str(i.institution_name))
 		tmplst.append(str(i.sessionticker))
 		tmplst.append(str(len(i.account_models.all())))
+		tmplst.append(str(i.deleted_models))
 		tmplst.append(str(i.completedtests))
-
 		inputlst.append(tmplst)
 
 	deletedlst = []
@@ -3083,7 +3160,8 @@ def traffic(request):
 		tmplst.append(str(i.username))
 		tmplst.append(str(i.institution_name))
 		tmplst.append(str(i.sessionticker))
-		tmplst.append(str(i.models))
+		tmplst.append(str(i.modelsi))
+		tmplst.append(str(i.deleted_models))
 		tmplst.append(str(i.completedtests))
 
 		deletedlst.append(tmplst)
@@ -3142,14 +3220,28 @@ def deleteaccount_confirm(request):
 		t.sessionticker = str(account.sessionticker)
 		t.completedtests = str(account.completedtests)
 		t.institution_name = str(account.institution_name)
-		t.models = str(len(account.account_models.all()))
+		t.modelsi = str(len(account.account_models.all()))
+		t.deleted_models = str(account.deleted_models)
 		t.save()
 
 
+		#Delete model account links
+	
+		for i in Model_Account_Link.objects.all():
+			if str(i.account.ID2) == str(account.ID2):
+				i.delete()
+		
+		
+		
 	 	#Delete Tests / models
 
 	 	for i in account.account_models.all():
 
+			# delete all model test links
+			for k in Test_Model_Link.objects.all():
+				if str(k.model.ID2) == str(i.ID2):
+					k.delete()
+	
 	 		for j in i.model_tests.all():
 	 			j.delete()
 
@@ -3277,13 +3369,24 @@ def adminterminate_account(request):
 	t.sessionticker = str(account.sessionticker)
 	t.completedtests = str(account.completedtests)
 	t.institution_name = str(account.institution_name)
-	t.models = str(len(account.account_models.all()))
+	t.modelsi = str(len(account.account_models.all()))
+	t.deleted_models = str(account.deleted_models)
 	t.save()
 
-
+	#Delete model account links
+	
+	for i in Model_Account_Link.objects.all():
+		if str(i.account.ID2) == str(account.ID2):
+			i.delete()
+	
 	 #Delete Tests / models
 
 	for i in account.account_models.all():
+		
+		# delete all model test links
+		for k in Test_Model_Link.objects.all():
+			if str(k.model.ID2) == str(i.ID2):
+				k.delete()
 
 		for j in i.model_tests.all():
 			j.delete()
@@ -3300,4 +3403,90 @@ def adminterminate_account(request):
 
 
 	return 	render_to_response('accountdeleted_admin.html')
+
+#------------------------------------------------------------------------------------
+def delete_model(request):
+	
+	#------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['usertoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+
+	#---------------------------------------------------------------------
+	
+	model_list = []
+	account = request.session['active_account']
+
+	for i in request.session['active_account'].account_models.all():
+		model_list.append(i.model_nameID)
+		
+
+	inputdic = {'modelname_list':model_list}
+	
+	return 	render_to_response('delete_model.html',inputdic)
+	
+	
+#------------------------------------------------------------------------------------
+def deletemodel_confirm(request):
+	
+	#------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['usertoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+
+	#---------------------------------------------------------------------
+	
+	selection = request.GET['model_in']
+	if selection == '0':
+		return redirect('/delete_model/')
+	
+	pw = request.GET['Password']
+	if pw != str(request.session['active_account'].password):
+		model_list = []
+		account = request.session['active_account']
+
+		for i in request.session['active_account'].account_models.all():
+			model_list.append(i.model_nameID)
+
+		inputdic = {'modelname_list':model_list, 'passfail':True}
+		return render_to_response('delete_model.html',inputdic)
+		
+	
+	
+	# Retrieve active model	
+	request.session['active_model'] = Model.objects.get(ID2 = str(request.session['active_account'].ID2) + ':' + str(selection))
+	model = request.session['active_model']
+	
+	# delete Test Model Links
+	for i in Test_Model_Link.objects.all():
+		if str(i.model.ID2) == str(model.ID2):
+			i.delete()
+	
+	# delete Account Model Links
+	for i in Model_Account_Link.objects.all():
+		if str(i.model.ID2) == str(model.ID2):
+			i.delete() 
+	
+	# Delete all tests
+	
+	for j in model.model_tests.all():
+		j.delete()
+	
+	# Delete Model
+	
+	model.delete()
+	
+	# move along deleted models
+	
+	account = request.session['active_account']
+	account.deleted_models = int(account.deleted_models) + 1
+	account.save()
+	
+	return 	render_to_response('Modeldeleted.html')
 
