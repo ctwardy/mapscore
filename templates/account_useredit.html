@@ -57,7 +57,7 @@
 		
 		
 		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;First Name:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
-		{% if fail or fail2 %} <Input type = "text" name = "FirstName" value ='{{Firstname}}'> {% else %} <Input type = "text" name = "FirstName" value ='{{Firstname_in}}'>  {% endif %}
+		{% if fail or fail2 %} <Input maxlength = '30' type = "text" name = "FirstName" value ='{{Firstname}}'> {% else %} <Input maxlength = '30' type = "text" name = "FirstName" value ='{{Firstname_in}}'>  {% endif %}
 		
 		{% if firstfail %}&nbsp; <i style ='color:red; font-size:12px'> Invalid Entry </i>   {% endif %}
 		<br>
@@ -65,20 +65,20 @@
 		
 		
 		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Last Name:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-		{% if fail or fail2 %} <Input type = "text" name = "LastName" value ='{{Lastname}}'> {% else %} <Input type = "text" name = "LastName" value ='{{Lastname_in}}'>  {% endif %}
+		{% if fail or fail2 %} <Input type = "text" maxlength = '30' name = "LastName" value ='{{Lastname}}'> {% else %} <Input maxlength = '30' type = "text" name = "LastName" value ='{{Lastname_in}}'>  {% endif %}
 		{% if lastfail %}&nbsp; <i style ='color:red;font-size:12px'> Invalid Entry</i>   {% endif %}
 		<br>
 		
 		
 		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Email: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-		{% if fail or fail2 %} <Input type = "text" name = "Email" value ='{{Email_in}}'> {% else %} <Input type = "text" name = "Email" value ='{{Email_in}}'>  {% endif %}
+		{% if fail or fail2 %} <Input type = "text" maxlength = '30' name = "Email" value ='{{Email_in}}'> {% else %} <Input maxlength = '30' type = "text" name = "Email" value ='{{Email_in}}'>  {% endif %}
 		{% if emailfail %}&nbsp; <i style ='color:red;font-size:12px'> Invalid Entry: must only contain leters or numbers in form (_@_._) </i>   {% endif %}
 		<br> <br> <br><br>
 		
 		
 		
 		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Password: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-		<Input type = "text" name = "Password"> 
+		<Input maxlength = '30' type = "password" name = "Password"> 
 		
 		
 		{% if passfail %} <br><br> <i style ='color:red;font-size:15px'> <center> Invalid Password </center> </i> {% endif %}

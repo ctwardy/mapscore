@@ -1246,7 +1246,7 @@ class Account(models.Model):
 	completedtests = models.CharField(max_length = 30)
 	photolocation = models.CharField(max_length = 30)
 	photourl = models.CharField(max_length = 30)
-	institution_name = models.CharField(max_length = 30)
+	institution_name = models.CharField(max_length = 40)
 	firstname_user = models.CharField(max_length = 30)
 	lastname_user = models.CharField(max_length = 30)
 	username = models.CharField(max_length = 30)

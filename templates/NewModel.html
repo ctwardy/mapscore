@@ -47,7 +47,7 @@
 
 		
 		Model Name:
-		{% if Fail or modelnamerepeat %} <Input type = "text" name = "Name" value ='{{namein}}'> {% else %} <Input type = "text" name = "Name">  {% endif %}<br>
+		{% if Fail or modelnamerepeat %} <Input maxlength = '30' type = "text" name = "Name" value ='{{namein}}'> {% else %} <Input maxlength = '30' type = "text" name = "Name">  {% endif %}<br>
 		
 		{% if Fail %} &nbsp; <i style ='color:red; font-size:12px'> Invalid Entry: must contain only letters, numbers, and underscores (no spaces) </i>   {% endif %}
 		

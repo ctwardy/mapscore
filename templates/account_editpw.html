@@ -56,14 +56,14 @@
 		
 	
 		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;New Password:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
-		{% if fail or fail2%} <Input type = "text" name = "Password1" value ='{{Password1}}'> {% else %} <Input type = "text" name = "Password1">  {% endif %}
+		{% if fail or fail2%} <Input maxlength = '30' type = "password" name = "Password1" value ='{{Password1}}'> {% else %} <Input maxlength = '30' type = "password" name = "Password1">  {% endif %}
 		{% if Pass1fail %}&nbsp; <i style ='color:red;font-size:12px'> Invalid Entry </i>   {% endif %}
 		<br>
 		
 		
 		
 		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Repeat New Password: &nbsp;&nbsp;
-		{% if fail or fail2%} <Input type = "text" name = "Password2" value ='{{Password2}}'> {% else %} <Input type = "text" name = "Password2">  {% endif %}
+		{% if fail or fail2%} <Input maxlength = '30' type = "password" name = "Password2" value ='{{Password2}}'> {% else %} <Input maxlength = '30' type = "password" name = "Password2">  {% endif %}
 		{% if Pass2fail %}&nbsp; <i style ='color:red;font-size:12px'> Invalid Entry </i>   {% endif %}
 
 		<br> <br> <br><br>
@@ -73,7 +73,7 @@
 		
 		
 		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Old Password: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-		<Input type = "text" name = "Password"> 
+		<Input maxlength = '30' type = "password" name = "Password"> 
 		{% if passfail %} <br><br> <i style ='color:red;font-size:15px'> <center> Invalid Password </center> </i> {% endif %}
 		<br><br>
 		<center><input type = "Submit">	</center>

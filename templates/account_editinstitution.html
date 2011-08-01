@@ -55,21 +55,21 @@
 		
 		
 		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Institution Name:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-		{% if fail or fail2%} <Input type = "text" name = "Institution" value ='{{Institution}}'> {% else %} <Input type = "text" name = "Institution" value ='{{Institution_in}}' >  {% endif %}
+		{% if fail or fail2%} <Input type = "text" maxlength = '40' name = "Institution" value ='{{Institution}}'> {% else %} <Input maxlength = '40' type = "text" name = "Institution" value ='{{Institution_in}}' >  {% endif %}
 		{% if Institutionfail %}&nbsp; <i style ='color:red;font-size:12px'> Invalid Entry: must only contain leters, numbers, spaces, and colons </i>   {% endif %}
 		<br> 
 		
 		
 		
 		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Website:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;
-		{% if fail or fail2%} <Input type = "text" name = "Website" value ='{{Websitein}}'> {% else %} <Input type = "text" name = "Website" value ='{{Websitein_in}}'>  {% endif %}
+		{% if fail or fail2%} <Input maxlength = '50' type = "text" name = "Website" value ='{{Websitein}}'> {% else %} <Input maxlength = '50'vtype = "text" name = "Website" value ='{{Websitein_in}}'>  {% endif %}
 		{% if Websitein_r %}&nbsp; <i style ='color:red;font-size:12px'> Invalid Entry </i>   {% endif %}
 		<br> <br> <br><br>
 		
 		
 		
 		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Password: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-		<Input type = "text" name = "Password"> 
+		<Input maxlength = '30' type = "password" name = "Password"> 
 		
 		
 		{% if passfail %} <br><br> <i style ='color:red;font-size:15px'> <center> Invalid Password </center> </i> {% endif %}

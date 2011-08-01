@@ -34,7 +34,7 @@
 
 
 	<form action ='/switchboard_totest/' style ='position:absolute; padding-left:580px;padding-top:118px'>
-		{% if caseselection %} <input type ='text' name = 'casename' value ='{{caseselection}}'> {% else %} <input type ='text' name = 'casename'>  {% endif %}
+		{% if caseselection %} <input maxlength = '30' type ='text' name = 'casename' value ='{{caseselection}}'> {% else %} <input maxlength = '30' type ='text' name = 'casename'>  {% endif %}
 		<button name = "send case name" type = "submit" value = "HTML">
 		Submit
 		</button>

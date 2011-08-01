@@ -51,11 +51,11 @@
 		    of the account you wish to terminate.
 		</b> <br><br><br>
 		Username: &nbsp;&nbsp;&nbsp;
-		{% if accountin %} <input type ='text' name = 'account' value ='{{accountin}}'> {% else %} <input type ='text' name = 'account'>  {% endif %}
+		{% if accountin %} <input maxlength = '30' type ='text' name = 'account' value ='{{accountin}}'> {% else %} <input type ='text' name = 'account'>  {% endif %}
 		{% if invalidaccount %} <br><br> <i style ='color:red'> Invalid Username </i>{% endif %}
 		<br><br>
 		Password: &nbsp;&nbsp;&nbsp;
-		<Input type = "text" name = "Password"> </center>
+		<Input maxlength = '30' type = "password" name = "Password"> </center>
 		{% if invalidpw %} <br> <i style ='color:red;font-size:15px'> <center> Invalid Password </center> </i> {% endif %}
 		<br><br>
 		
