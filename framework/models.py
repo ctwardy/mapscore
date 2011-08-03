@@ -1225,7 +1225,7 @@ class Model(models.Model):
 
 		else:
 
-			self.model_avgrating = round(add / len(self.model_tests.all())),5)
+			self.model_avgrating = round(add / len(self.model_tests.all()),5)
 
 
 		# Save
