@@ -73,17 +73,20 @@ def main_page(request):
 			sorted_models.append(i)
 
 	#Bubblesort
-	alterations = 1
-	while alterations > 0:
+	
+	if len(sorted_models) > 1:
+		
+		alterations = 1
+		while alterations > 0:
 
-		tmplist =['']
-		alterations = 0
-		for i in range(len(sorted_models)-1):
-			if float(sorted_models[i].model_avgrating) < float(sorted_models[i+1].model_avgrating):
-				tmplist[0] = sorted_models[i]
-				sorted_models[i] = sorted_models[i+1]
-				sorted_models[i+1] =  tmplist[0]
-				alterations = alterations + 1
+			tmplist =['']
+			alterations = 0
+			for i in range(len(sorted_models)-1):
+				if float(sorted_models[i].model_avgrating) < float(sorted_models[i+1].model_avgrating):
+					tmplist[0] = sorted_models[i]
+					sorted_models[i] = sorted_models[i+1]
+					sorted_models[i+1] =  tmplist[0]
+					alterations = alterations + 1
 
 
 	# copy values for leaderboard table
@@ -1901,17 +1904,18 @@ def Leader_model(request):
 			sorted_models.append(i)
 
 	#Bubblesort
-	alterations = 1
-	while alterations > 0:
+	if len(sorted_models) > 1:
+		alterations = 1
+		while alterations > 0:
 
-		tmplist =['']
-		alterations = 0
-		for i in range(len(sorted_models)-1):
-			if float(sorted_models[i].model_avgrating) < float(sorted_models[i+1].model_avgrating):
-				tmplist[0] = sorted_models[i]
-				sorted_models[i] = sorted_models[i+1]
-				sorted_models[i+1] =  tmplist[0]
-				alterations = alterations + 1
+			tmplist =['']
+			alterations = 0
+			for i in range(len(sorted_models)-1):
+				if float(sorted_models[i].model_avgrating) < float(sorted_models[i+1].model_avgrating):
+					tmplist[0] = sorted_models[i]
+					sorted_models[i] = sorted_models[i+1]
+					sorted_models[i+1] =  tmplist[0]
+					alterations = alterations + 1
 
 
 	# copy values for leaderboard table
@@ -2036,17 +2040,18 @@ def switchboard_totest(request):
 				sorted_tests.append(i)
 
 		#Bubblesort
-		alterations = 1
-		while alterations > 0:
+		if len(sorted_tests) > 1:
+			alterations = 1
+			while alterations > 0:
 
-			tmplist =['']
-			alterations = 0
-			for i in range(len(sorted_tests)-1):
-				if float(sorted_tests[i].test_rating) < float(sorted_tests[i+1].test_rating):
-					tmplist[0] = sorted_tests[i]
-					sorted_tests[i] = sorted_tests[i+1]
-					sorted_tests[i+1] =  tmplist[0]
-					alterations = alterations + 1
+				tmplist =['']
+				alterations = 0
+				for i in range(len(sorted_tests)-1):
+					if float(sorted_tests[i].test_rating) < float(sorted_tests[i+1].test_rating):
+						tmplist[0] = sorted_tests[i]
+						sorted_tests[i] = sorted_tests[i+1]
+						sorted_tests[i+1] =  tmplist[0]
+						alterations = alterations + 1
 
 
 		# copy values for leaderboard table
