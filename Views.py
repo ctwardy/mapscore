@@ -2279,8 +2279,8 @@ def Account_Profile(request):
 	if website !='none':
 		inputdic['websitexists'] = True
 
-	inputdic['xsize'] = Account_in.photosizex
-	inputdic['ysize'] = Account_in.photosizey
+	inputdic['xsize'] = int(Active_account.photosizex)
+	inputdic['ysize'] = int(Active_account.photosizey)
 			
 	return render_to_response('Account_Profile.html',inputdic)
 #--------------------------------------------------------------------------------------------------------------------
