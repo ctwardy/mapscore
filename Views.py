@@ -93,7 +93,7 @@ def main_page(request):
 	inputlist = []
 	sublist = []
 	for i in range(len(sorted_models)):
-		print sorted_models[i].model_nameID
+
 		sublist = []
 		institution = str(sorted_models[i].account_set.all()[0].institution_name)
 		model = str(sorted_models[i].model_nameID)
@@ -3230,31 +3230,31 @@ def deleteaccount_confirm(request):
 		t.deleted_models = str(account.deleted_models)
 		t.save()
 
-
-		#Delete model account links
-	
-		for i in Model_Account_Link.objects.all():
-			if str(i.account.ID2) == str(account.ID2):
-				i.delete()
-		
-		
-		
 	 	#Delete Tests / models
 
 	 	for i in account.account_models.all():
 
-			# delete all model test links
-			for k in Test_Model_Link.objects.all():
-				if str(k.model.ID2) == str(i.ID2):
-					k.delete()
+			
 	
 	 		for j in i.model_tests.all():
 	 			j.delete()
+	 		
+	 		# delete all model test links
+			for k in Test_Model_Link.objects.all():
+				if str(k.model.ID2) == str(i.ID2):
+					k.delete()
 
 	 		i.delete()
 
 	 	 # Delete Picture
 	 	os.remove(account.photolocation)
+	 	
+	 	
+	 	#Delete model account links
+	
+		for i in Model_Account_Link.objects.all():
+			if str(i.account.ID2) == str(account.ID2):
+				i.delete()
 
 	 	# delete account
 
@@ -3379,30 +3379,32 @@ def adminterminate_account(request):
 	t.deleted_models = str(account.deleted_models)
 	t.save()
 
+	
+	 #Delete Tests / models
+	
+	for i in account.account_models.all():
+		
+		for j in i.model_tests.all():
+			j.delete()
+		
+		# delete all model test links
+		for k in Test_Model_Link.objects.all():
+			if str(k.model.ID2) == str(i.ID2):
+				k.delete()
+		
+	 	i.delete()
+
+	 # Delete Picture
+	os.remove(account.photolocation)
+
+	
 	#Delete model account links
 	
 	for i in Model_Account_Link.objects.all():
 		if str(i.account.ID2) == str(account.ID2):
 			i.delete()
 	
-	 #Delete Tests / models
-
-	for i in account.account_models.all():
-		print 'go'
-		# delete all model test links
-		for k in Test_Model_Link.objects.all():
-			if str(k.model.ID2) == str(i.ID2):
-				k.delete()
-
-		for j in i.model_tests.all():
-			j.delete()
-		print 'deleting: ' + str(i.model_nameID)
-	 	i.delete()
-
-	 # Delete Picture
-	os.remove(account.photolocation)
-
-
+	
 	 # delete account
 
 	account.delete()
