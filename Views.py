@@ -3388,7 +3388,7 @@ def adminterminate_account(request):
 	 #Delete Tests / models
 
 	for i in account.account_models.all():
-		
+		print 'go'
 		# delete all model test links
 		for k in Test_Model_Link.objects.all():
 			if str(k.model.ID2) == str(i.ID2):
@@ -3396,7 +3396,7 @@ def adminterminate_account(request):
 
 		for j in i.model_tests.all():
 			j.delete()
-
+		print 'deleting: ' + str(i.model_nameID)
 	 	i.delete()
 
 	 # Delete Picture
