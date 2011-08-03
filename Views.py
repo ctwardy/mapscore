@@ -93,6 +93,7 @@ def main_page(request):
 	inputlist = []
 	sublist = []
 	for i in range(len(sorted_models)):
+		print i.model_nameID
 		sublist = []
 		institution = str(sorted_models[i].account_set.all()[0].institution_name)
 		model = str(sorted_models[i].model_nameID)
