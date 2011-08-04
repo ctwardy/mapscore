@@ -17,7 +17,7 @@ MANAGERS = ADMINS
 DATABASES = {
     'default': {
         'ENGINE': 'sqlite3', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': 'C:\Users\Nathan Jones\Django Website\MapRateWeb\database\website_data.db',# Or path to database file if using sqlite3.
+        'NAME': 'database/website_data.db',# Or path to database file if using sqlite3.
         'USER': '',                      # Not used with sqlite3.
         'PASSWORD': '',                  # Not used with sqlite3.
         'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
@@ -50,7 +50,8 @@ USE_L10N = True
 
 # Absolute filesystem path to the directory that will hold user-uploaded files.
 # Example: "/home/media/media.lawrence.com/media/"
-MEDIA_ROOT = 'C:/Users/Nathan Jones/Django Website/MapRateWeb/media/'
+#MEDIA_ROOT = 'C:/Users/Nathan Jones/Django Website/MapRateWeb/media/'
+MEDIA_ROOT = 'media/'
 
 # URL that handles the media served from MEDIA_ROOT. Make sure to use a
 # trailing slash.
@@ -150,3 +151,4 @@ LOGGING = {
         },
     }
 }
+

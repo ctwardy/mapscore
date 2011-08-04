@@ -5,7 +5,7 @@
 
 <body  marginwidth="0px" marginheight="0px" leftmargin="0px"  topmargin="0px" style ='background : url("/media/background.jpg")' npadding ='0px' height = '100%'  style ='overflow-x: hidden; overflow-y:scroll' >
 
-<div style = 'width: 1050px; margin-left:auto;margin-right:auto; background-color:#ADEFAD ;padding-left:0px'>
+<div style = 'width: 1050px; margin-left:auto;margin-right:auto;  background : url("/media/lightgreen.jpg") ;padding-left:0px'>
 <div style ='border:double; color:black; border-width:10px; position:absolute; top:0; width: 1030px;background-color:#780000;height: 110px; overflow-x:hidden;overflow-y:hidden'>
 <div style = 'margin-left: 30px ; margin-top: 0px;margin-right: 30px; margin-bottom: 0px; font-size:10px'  >
 	<h1 style = 'color :white'>
@@ -17,10 +17,10 @@
 		<center>
 		George Mason University:<br>
 		Lost Person Model Rating System<br>
+		</center>
 		<div style = 'margin-top:18px'>
-		<div style ='font-size:14px; position:absolute; width:95%'><i>*Test Instructions*</i></div>
+		<div style ='font-size:14px; position:absolute;padding-left:435px; width:95%'><i>*Test Instructions*</i>&nbsp;&nbsp;&nbsp;&nbsp;[ <a href="/main/" style ='color:#CCFF33'> Log Out </a> | <a href="https://github.com/ctwardy/Pmap-Score/issues?sort=created&direction=desc&state=open" style ='color:#CCFF33' target="_blank" > Issue Tracker </a> | <a href="/help/" style ='color:#CCFF33' target="_blank"> Help </a>]</div>
 		</div>
-		<center>	
 				
 	</h1>
 </div>	
@@ -40,49 +40,33 @@
 <div style = 'padding-left:10%;' >
 <br>
 
-<div style = 'padding-left:100px'><b><u><h1> Test Instructions </h1></u></b></div><br>
+<div style = 'padding-left:100px'><b><u><h1> Grid Alignment Instructions </h1></u></b></div><br>
 
 <br>
 
+<br>
 
-
-<b> 	<i><b>The following set of procedures will allow you to sucessfully conduct a <br>
-	test of your model. Please follow these procedures precicely in order <br>
-	to allow our system to accurately rate your model.<b></i> <br><br>
+<b> 	
 	
-	A) For each test, you will be given 4 (lat,lon) points governing the boundry<br>
-	of the search region. you will use these points in addition to the provided <br>
-	information regarding number of horizatal and verticle cells to construct a <br>
-	grid of square cells for your search region. Each cell must have the same height <br>
-	and width. In order to verify that this vital step had been performed correctly, <br>
+	For each test, you will be given 4 (lat,lon) points governing the boundary<br>
+	of the search region. You will use these points in addition to the provided  <br>
+	information regarding number of horizontal and vertical cells to construct a  <br>
+	grid of square cells for your search region. Each cell must have the same height  <br>
+	and width. In order to verify that this vital step had been performed correctly,  <br>
 	for each test you must first pass an assessment where we provide you with 9 (lat,lon) <br>
-	coordinates and you return the cooresponding gridcell of those coordinates. This will <br>
-	ensure that both our and your interpretation of the test results are consistent.Grid <br>
-	cells are identified in the following manner: <br><br><br></b>
+	coordinates and you return the corresponding grid cell of those coordinates. This will  <br>
+	ensure that both our and your interpretation of the test results are consistent. Grid  <br>
+	cells are identified in the following manner:  <br><br><br></b>
+	<br>
 	
 	<div style = 'padding-left:100px'> <img src = "/media/grid_example.png" width ='271' height = '270'> </div>
 	<br> <br><br>
 	
-	B) Your model will then rate each respective grid cell based on probability that <br>
-	the lost person will be located in that cell. This process is left to you and your <br>
-	individual model. You are encouraged to use all provided test case information as <br>
-	well as all layers needed as input to your model <br><br>
 	
-	C) Once you have run your model and have developed a rating for each cell, you must <br>
-	then construct a greyscale image representeing your result. Each pixel in your <br>
-	greyscale image will represent a cell in your rated grid. For example, if your <br>
-	grid has 'H' horizantal cells and 'V' vericle cells, you will return a greyscale <br>
-	image with exactly 'H x V' pixels. In your greyscale image, the lighter the pixel<br>
-	shade, the higher the probability that an individual is found in the cooresponding <br>
-	grid cell. Thus, a shade of black representes low probability where a shade of white <br>
-	represents high probability. <br><br>
-	
-	D) Lastly, you will be prompted to submitt your greyscale image for analysis <br>
-	Once submitted, we will rate your image and close out the test case. You will <br>
-	now only be able to view the case and can make no more modifications. The new <br>
-	rating will be added to your model's overall rating and your leaderboard status <br>
-	will be updated. <br><br>
-	
+
+</b>
+
+<br>	
 </div>	
 </div>
 </div>
@@ -91,7 +75,7 @@
 
 <div style = 'padding-left:20%;' >
 <div style = 'padding-left:75px'>
-
+<br>
 <form action = "/test_active/" method = "get" name = "Continue">
 		
 		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
@@ -124,7 +108,7 @@
 	<hr color = 'Navy'>
 	<p>
 	
-		 <center ><i>GMU: C4I Center --- Mr. Nathan Jones (njonesh@gmu.edu) -- Dr. Charles Twardy</i></center>
+		 <center ><i><b>GMU: C4I Center --- Mr. Nathan Jones (njonesh@gmu.edu) -- Dr. Charles Twardy ----- (Funded by the National Science Foundation)</b></i></center>
 	</p>
 	<br>
 	
