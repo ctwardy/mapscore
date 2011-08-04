@@ -40,7 +40,7 @@
 <div style = 'padding-left:10%;' >
 <br>
 
-<div style = 'padding-left:100px'><b><u><h1> Grid Alignment Instructions </h1></u></b></div><br>
+<div style = 'padding-left:100px'><b><u><h1> Grayscale Rating Instructions </h1></u></b></div><br>
 
 <br>
 
@@ -48,18 +48,27 @@
 
 <b> 	
 	
-	For each test, you will be given 4 (lat,lon) points governing the boundary<br>
-	of the search region. You will use these points in addition to the provided  <br>
-	information regarding number of horizontal and vertical cells to construct a  <br>
-	grid of square cells for your search region. Each cell must have the same height  <br>
-	and width. In order to verify that this vital step had been performed correctly,  <br>
-	for each test you must first pass an assessment where we provide you with 9 (lat,lon) <br>
-	coordinates and you return the corresponding grid cell of those coordinates. This will  <br>
-	ensure that both our and your interpretation of the test results are consistent. Grid  <br>
-	cells are identified in the following manner:  <br><br><br></b>
-	<br>
+	Your model will now rate each generated grid cell based on the probability that  <br>
+	the lost person will be located in that cell. This process is left to you and your <br>
+	individual model. You are encouraged to use all provided test case information as  <br>
+	well as all layers needed as input to your model  <br><br>
+
+	Once you have run your model and have developed a rating for each cell, you must  <br>
+	then construct a grayscale image representing your result. Each pixel in your  <br>
+	grayscale image will represent a cell in your rated grid. For example, if your  <br>
+	grid has 'H' horizontal cells and 'V' vertical cells, you will return a grayscale  <br>
+	image with exactly 'H x V' pixels. In your grayscale image, the lighter the pixel<br>
+	shade, the higher the probability that an individual is found in the corresponding <br>
+	grid cell. Thus, a shade of black represents low probability where a shade of white  <br>
+	represents high probability. We request that the grayscale image submitted is in (.png) <br>
+	format with color bands labeled as either 'P' or 'L'<br><br>
+
+	Lastly, you will be prompted to submit your grayscale image for analysis  <br>
+	Once submitted, we will rate your image and close out the test case. You will  <br>
+	now only be able to view the case and can make no more modifications. The new <br>
+	rating will be added to your model's overall rating and your leaderboard status  <br>
+	will be updated.  <br><br>
 	
-	<div style = 'padding-left:100px'> <img src = "/media/grid_example.png" width ='271' height = '270'> </div>
 	<br> <br><br>
 	
 	

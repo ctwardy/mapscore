@@ -62,6 +62,7 @@ def main_page(request):
 	request.session['admin_name'] = ''
 	request.session['usertoken'] = False
 	request.session['admintoken'] = False
+	request.session['createcheck'] = False
 
 	sorted_models = []
 	allmodels = Model.objects.all()
@@ -321,7 +322,7 @@ def create_account(request):
 
 def account_access(request):
 
-
+	request.session['createcheck'] = False
 	request.session['completedtest'] = ''
 	request.session['completedtest_lookup'] = False
 	request.session['failure'] = False
@@ -439,7 +440,10 @@ def model_created(request):
 		return render_to_response('noaccess.html',{})
 
 	#---------------------------------------------------------------------
-
+	# if page refresh
+	if request.session['createcheck'] == True:
+		return render_to_response('ModelRegComplete.html',{})
+	
 	# Verify Model Name
 
 	Model_name = str(request.GET['Name'])
@@ -485,6 +489,8 @@ def model_created(request):
 					account = request.session['active_account'])
 
 	Link.save()
+	
+	request.session['createcheck'] = True
 
 	return render_to_response('ModelRegComplete.html',{})
 
@@ -504,7 +510,7 @@ def model_access(request):
 
 	request.session['active_case_temp'] = 'none'
 	request.session['active_test'] = 'none'
-
+	request.session['createcheck'] = False
 
 	# If not coming from Account 
 	if request.session['active_model'] != 'none':
@@ -777,7 +783,7 @@ def newtest(request):
 
 
 
-
+	
 
 	return render_to_response('TestWelcome.html',inputdic)
 
@@ -793,6 +799,10 @@ def create_test(request):
 		return render_to_response('noaccess.html',{})
 
 	#---------------------------------------------------------------------
+	
+	# If refresh
+	if request.session['createcheck'] == True:
+		return render_to_response('TestCreated.html')
 
 	tempcase = request.session['active_case_temp'] 
 	newtest = Test( test_case = tempcase,
@@ -806,6 +816,8 @@ def create_test(request):
 				model = request.session['active_model'])
 
 	Link.save()
+	
+	request.session['createcheck'] = True
 
 	return render_to_response('TestCreated.html')
 
@@ -864,13 +876,24 @@ def tst_instructions(request):
 		return render_to_response('noaccess.html',{})
 
 	#---------------------------------------------------------------------
-
-	if request.session['active_test'].show_instructions == True:
-		request.session['active_test'].show_instructions = False
-		request.session['active_test'].save()
-		return render_to_response('tst_instructions.html')
+	
+	if int(request.session['active_test'].nav) == 2:
+		
+		if request.session['active_test'].show_instructions == True:
+			request.session['active_test'].show_instructions = False
+			request.session['active_test'].save()
+			return render_to_response('tst_instruct2.html')
+		else:
+			return redirect('/test_active/')
+	
+	
 	else:
-		return redirect('/test_active/')
+		if request.session['active_test'].show_instructions == True:
+			request.session['active_test'].show_instructions = False
+			request.session['active_test'].save()
+			return render_to_response('tst_instructions.html')
+		else:
+			return redirect('/test_active/')
 
 #------------------------------------------------------------------------------------------------
 
@@ -1230,7 +1253,9 @@ def passtest(request):
 	request.session['active_test'].save()
 	os.remove(request.session['active_test'].test_url2)
 
-	return redirect('/test_active/')
+	request.session['active_test'].show_instructions = True
+	request.session['active_test'].save()
+	return redirect('/test_instructions/')
 
 #-----------------------------------------------------------------------------------------------------------
 def Bulkin(request):
@@ -3471,6 +3496,14 @@ def deletemodel_confirm(request):
 	request.session['active_model'] = Model.objects.get(ID2 = str(request.session['active_account'].ID2) + ':' + str(selection))
 	model = request.session['active_model']
 	
+	
+	
+	# Delete all tests
+	
+	for j in model.model_tests.all():
+		j.delete()
+		
+	
 	# delete Test Model Links
 	for i in Test_Model_Link.objects.all():
 		if str(i.model.ID2) == str(model.ID2):
@@ -3480,11 +3513,6 @@ def deletemodel_confirm(request):
 	for i in Model_Account_Link.objects.all():
 		if str(i.model.ID2) == str(model.ID2):
 			i.delete() 
-	
-	# Delete all tests
-	
-	for j in model.model_tests.all():
-		j.delete()
 	
 	# Delete Model
 	
@@ -3497,4 +3525,19 @@ def deletemodel_confirm(request):
 	account.save()
 	
 	return 	render_to_response('Modeldeleted.html')
+
+#-------------------------------------------------------------------------------------------
+def help(request):
+	
+	#------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['usertoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+
+	#---------------------------------------------------------------------
+	
+	return 	render_to_response('help.html')
 
