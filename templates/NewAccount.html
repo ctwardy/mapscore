@@ -5,7 +5,7 @@
 
 <body  marginwidth="0px" marginheight="0px" leftmargin="0px"  topmargin="0px" style ='background : url("/media/background.jpg")' npadding ='0px' height = '100%'  style ='overflow-x: hidden; overflow-y:scroll' >
 
-<div style = 'width: 1050px; margin-left:auto;margin-right:auto; background-color:#ADEFAD ;padding-left:0px'>
+<div style = 'width: 1050px; margin-left:auto;margin-right:auto;  background : url("/media/lightgreen.jpg") ;padding-left:0px'>
 <div style ='border:double; color:black; border-width:10px; position:absolute; top:0; width: 1030px;background-color:#780000;height: 110px; overflow-x:hidden;overflow-y:hidden'>
 <div style = 'margin-left: 30px ; margin-top: 0px;margin-right: 30px; margin-bottom: 0px; font-size:10px'  >
 	<h1 style = 'color :white'>
@@ -65,7 +65,7 @@
 		
 		
 		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;First Name:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
-		{% if fail %} <Input type = "text" name = "FirstName" value ='{{Firstname}}'> {% else %} <Input type = "text" name = "FirstName">  {% endif %}
+		{% if fail %} <Input type = "text" name = "FirstName" maxlength = '30' value ='{{Firstname}}'> {% else %} <Input maxlength = '30' type = "text" name = "FirstName">  {% endif %}
 		
 		{% if firstfail %}&nbsp; <i style ='color:red; font-size:12px'> Invalid Entry </i>   {% endif %}
 		<br>
@@ -73,13 +73,13 @@
 		
 		
 		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;Last Name:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-		{% if fail %} <Input type = "text" name = "LastName" value ='{{Lastname}}'> {% else %} <Input type = "text" name = "LastName">  {% endif %}
+		{% if fail %} <Input type = "text" maxlength = '30' name = "LastName" value ='{{Lastname}}'> {% else %} <Input maxlength = '30' type = "text" name = "LastName">  {% endif %}
 		{% if lastfail %}&nbsp; <i style ='color:red;font-size:12px'> Invalid Entry </i>   {% endif %}
 		<br>
 		
 		
 		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;Email: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-		{% if fail %} <Input type = "text" name = "Email" value ='{{Email_in}}'> {% else %} <Input type = "text" name = "Email">  {% endif %}
+		{% if fail %} <Input type = "text" maxlength = '30' name = "Email" value ='{{Email_in}}'> {% else %} <Input type = "text" maxlength = '30' name = "Email">  {% endif %}
 		{% if emailfail %}&nbsp; <i style ='color:red;font-size:12px'> Invalid Entry: must only contain leters or numbers in form (_@_._) </i>   {% endif %}
 		<br> <br>
 		
@@ -91,14 +91,14 @@
 		
 		
 		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;Institution Name:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-		{% if fail %} <Input type = "text" name = "Institution" value ='{{Institution}}'> {% else %} <Input type = "text" name = "Institution">  {% endif %}
+		{% if fail %} <Input type = "text" maxlength = '40' name = "Institution" value ='{{Institution}}'> {% else %} <Input maxlength = '40' type = "text" name = "Institution">  {% endif %}
 		{% if Institutionfail %}&nbsp; <i style ='color:red;font-size:12px'> Invalid Entry: must only contain leters, numbers, spaces, and colons </i>   {% endif %}
 		<br> 
 		
 		
 		
 		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Website:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;
-		{% if fail %} <Input type = "text" name = "Website" value ='{{Websitein}}'> {% else %} <Input type = "text" name = "Website">  {% endif %}
+		{% if fail %} <Input type = "text" maxlength = '50' name = "Website" value ='{{Websitein}}'> {% else %} <Input maxlength = '50' type = "text" name = "Website">  {% endif %}
 		{% if Websitein_r %}&nbsp; <i style ='color:red;font-size:12px'> Invalid Entry </i>   {% endif %}
 		<br> <br>
 		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
@@ -109,7 +109,7 @@
 		
 		
 		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;Desired Username:&nbsp;&nbsp; 
-		{% if fail %} <Input type = "text" name = "Username" value ='{{Username}}'> {% else %} <Input type = "text" name = "Username">  {% endif %}
+		{% if fail %} <Input type = "text" maxlength = '30' name = "Username" value ='{{Username}}'> {% else %} <Input maxlength = '30' type = "text" name = "Username">  {% endif %}
 		{% if usernamefail %}&nbsp; <i style ='color:red;font-size:12px'> Invalid Entry: must only contain letters and numbers (no spaces) </i>   {% endif %}
 		{% if usernamerepeat %}&nbsp; <i style ='color:red;font-size:12px'> Username is unavailable  </i>   {% endif %}
 		<br>
@@ -117,14 +117,14 @@
 		
 		
 		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;Password:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
-		{% if fail %} <Input type = "text" name = "Password1" value ='{{Password1}}'> {% else %} <Input type = "text" name = "Password1">  {% endif %}
+		{% if fail %} <Input maxlength = '30' type = "password" name = "Password1" value ='{{Password1}}'> {% else %} <Input maxlength = '30' type = "password" name = "Password1">  {% endif %}
 		{% if Pass1fail %}&nbsp; <i style ='color:red;font-size:12px'> Invalid Entry </i>   {% endif %}
 		<br>
 		
 		
 		
 		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;Repeat Password: &nbsp;&nbsp;
-		{% if fail %} <Input type = "text" name = "Password2" value ='{{Password2}}'> {% else %} <Input type = "text" name = "Password2">  {% endif %}
+		{% if fail %} <Input maxlength = '30' type = "password" name = "Password2" value ='{{Password2}}'> {% else %} <Input maxlength = '30' type = "password" name = "Password2">  {% endif %}
 		{% if Pass2fail %}&nbsp; <i style ='color:red;font-size:12px'> Invalid Entry </i>   {% endif %}
 		<br><br>
 		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
@@ -138,6 +138,12 @@
 		
 		
 		<br><br>
+		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;
+		Beta Key: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		&nbsp;&nbsp;&nbsp;&nbsp;
+		<Input maxlength = '30' type = "password" name = "Betakey" > {% if betafail %}&nbsp; <i style ='color:red;font-size:12px'> Invalid Beta Key</i>   {% endif %}
+		<br><br>
+		
 	</form>
 	</div>
 	<br>	
@@ -187,7 +193,7 @@
 	<hr color = 'Navy'>
 	<p>
 	
-		 <center ><i>GMU: C4I Center --- Mr. Nathan Jones (njonesh@gmu.edu) -- Dr. Charles Twardy</i></center>
+		  <center ><i><b>GMU: C4I Center --- Mr. Nathan Jones -- Dr. Charles Twardy ----- (Funded by the National Science Foundation)</b></i></center>
 	</p>
 	<br>
 	
