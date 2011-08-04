@@ -3541,3 +3541,18 @@ def help(request):
 	
 	return 	render_to_response('help.html')
 
+#---------------------------------------------------------------------------------------------
+def help_how_alter_account(request):
+	
+	#------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['usertoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+
+	#---------------------------------------------------------------------
+	
+	return 	render_to_response('help_how_edit_account.html')
+	

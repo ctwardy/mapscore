@@ -73,6 +73,8 @@ from Views import delaccountlink
 from Views import adminterminate_account
 from Views import delete_model
 from Views import deletemodel_confirm
+from Views import help
+from Views import help_how_alter_account
 
 # Uncomment the next two lines to enable the admin:
 # from django.contrib import admin
@@ -150,6 +152,8 @@ urlpatterns = patterns('',
 			  ('^adminterminate_account/$',adminterminate_account),
 			  ('^delete_model/$',delete_model),
 			  ('^deletemodel_confirm/$',deletemodel_confirm),
+			  ('^help/$',help),
+			  ('^help_how_alter_account/$',help_how_alter_account),
 			  
     # Examples:
     # url(r'^$', 'MapRateWeb.views.home', name='home'),
