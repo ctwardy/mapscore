@@ -1952,7 +1952,7 @@ def Leader_model(request):
 		institution = str(sorted_models[i].account_set.all()[0].institution_name)
 		model = str(sorted_models[i].model_nameID)
 		rating = str(sorted_models[i].model_avgrating)
-
+		username = str(sorted_models[i].account_set.all()[0].username)
 		tests = sorted_models[i].model_tests.all()
 
 		count = 0
@@ -1966,6 +1966,7 @@ def Leader_model(request):
 		sublist.append(model)
 		sublist.append(rating)
 		sublist.append(numbertests)
+		sublist.append(username)
 
 		inputlist.append(sublist)
 
@@ -2135,7 +2136,7 @@ def switchboard_totest(request):
 			institution = str(sorted_tests[i].model_set.all()[0].account_set.all()[0].institution_name)
 			model = str(sorted_tests[i].model_set.all()[0].model_nameID)
 			rating = str(sorted_tests[i].test_rating)
-
+			username =  str(sorted_tests[i].model_set.all()[0].account_set.all()[0].username)
 			test = str(sorted_tests[i].test_name)
 
 
@@ -2143,7 +2144,8 @@ def switchboard_totest(request):
 			sublist.append(model)
 			sublist.append(test)
 			sublist.append(rating)
-
+			sublist.append(username)
+			
 			inputlist.append(sublist)
 
 
@@ -2417,7 +2419,7 @@ def Account_Profile(request):
 
 	Account_in = request.GET['Account']
 
-	Active_account = Account.objects.get(institution_name = Account_in)
+	Active_account = Account.objects.get(username = Account_in)
 
 	Name = str(Active_account.institution_name)
 	Email = str(Active_account.Email)
@@ -3725,12 +3727,14 @@ def switchboard_toscenario(request):
 						scenarioclick = scenarioclick + 1
 						ratingsum = ratingsum + float(k.test_rating)
 			if scenarioclick > 0:
+				username = str(i.unsername)
 				avg = ratingsum / float(scenarioclick)
 				entry = []
 				entry.append(str(i.institution_name))
 				entry.append(str(j.model_nameID))
 				entry.append(str(ratingsum))
 				entry.append(str(scenarioclick))
+				entry.append(username)
 				inputlst.append(entry)
 	# Sort Data
 	
