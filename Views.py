@@ -3727,7 +3727,7 @@ def switchboard_toscenario(request):
 						scenarioclick = scenarioclick + 1
 						ratingsum = ratingsum + float(k.test_rating)
 			if scenarioclick > 0:
-				username = str(i.unsername)
+				username = str(i.username)
 				avg = ratingsum / float(scenarioclick)
 				entry = []
 				entry.append(str(i.institution_name))
