@@ -87,20 +87,22 @@
 
 	
 
-	<br><br><br><br>
-	
+	<br><br><br>
+	<center> <h1 style = 'font-size:18px'> <i> Category: {{scenario}} </i> </h1> </center>
+
+	<br>
 	<div style ='padding-left:25px'>
 	<table border = "1" style = " font-size:15px; width:1000px"  bgcolor = '#FFFF99'>
 	<tr style ='color:white;background-color:navy'>
 	<th> <p style ='font-size:15px'> Institution Name </p> </th>
 	<th> <p style ='font-size:15px'> Model Name </p> </th>
-	<th> <p style ='font-size:15px'> Average Rating </p> </th>
-	<th> <p style ='font-size:15px'> Tests Completed </p> </th>
+	<th> <p style ='font-size:15px'> Average <br>Scenario Rating </p> </th>
+	<th> <p style ='font-size:15px'> Category <br>Tests Completed </p> </th>
 	
 	</tr>
 	
 	
-	{% for i in Scorelist %}
+	{% for i in inputlst %}
 	
 	<tr style = " font-size:12px" >
 			<td>

@@ -75,6 +75,13 @@ from Views import delete_model
 from Views import deletemodel_confirm
 from Views import help
 from Views import help_how_alter_account
+from Views import model_to_Scenario_switch
+from Views import switchboard_toscenario
+from Views import test_to_Scenario_switch
+from Views import test_to_test_switch
+from Views import scenario_to_test_switch
+from Views import scenario_to_scenario_switch
+from Views import hyper_leaderboard
 
 # Uncomment the next two lines to enable the admin:
 # from django.contrib import admin
@@ -154,6 +161,14 @@ urlpatterns = patterns('',
 			  ('^deletemodel_confirm/$',deletemodel_confirm),
 			  ('^help/$',help),
 			  ('^help_how_alter_account/$',help_how_alter_account),
+			  ('^model_to_Scenario_switch/$',model_to_Scenario_switch),
+			  ('^switchboard_toscenario/$',switchboard_toscenario),
+			  ('^test_to_Scenario_switch/$',test_to_Scenario_switch),
+			  ('^test_to_test_switch/$',test_to_test_switch),
+			  ('^scenario_to_test_switch/$',scenario_to_test_switch),
+			  ('^scenario_to_scenario_switch/$',scenario_to_scenario_switch),
+			  ('^hyper_leaderboard/$',hyper_leaderboard),
+			  
 			  
     # Examples:
     # url(r'^$', 'MapRateWeb.views.home', name='home'),

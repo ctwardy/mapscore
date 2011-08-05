@@ -1982,6 +1982,18 @@ def Leader_model(request):
 
 #---------------------------------------------------------------------------------------------------
 def switchboard(request):
+	
+#********************************************
+# Switchboard Nav values
+# 1-- Model
+# 2-- model -> test
+# 3-- test
+# 4-- scenario
+# 5-- test -> scenario
+# 6-- model -> scenario
+# 7-- scenario -> test
+#*********************************************
+
 
 	#-------------------------------------------------------------------------------------------------
 	# Token Verification
@@ -1992,13 +2004,38 @@ def switchboard(request):
 		return render_to_response('noaccess.html',{})
 
 	#-------------------------------------------------------------------------------------------------
+	
+	# anything to model
 
 	if request.GET['Sort_by'] == '0':
 		return redirect('/Leader_model/')
-
-	elif request.GET['Sort_by'] == '1':
+		
+	#Model to test
+	
+	elif request.GET['Sort_by'] == '1' and (request.session['nav']	== '1' or request.session['nav'] == '6'):
 		return redirect('/model_to_test_switch/')
-
+	
+	# model to scenario
+		
+	elif request.GET['Sort_by'] == '2' and (request.session['nav']	== '1' or request.session['nav'] == '2'):
+		return redirect('/model_to_Scenario_switch/')
+	
+	#test to scenario 
+	
+	elif request.GET['Sort_by'] == '2' and request.session['nav']	== '3':
+		return redirect('/test_to_Scenario_switch/')
+		
+	#test bottom to test
+	elif request.GET['Sort_by'] == '1' and request.session['nav']	== '5':
+		return redirect('/test_to_test_switch/')
+	
+	# scenario to test
+	elif request.GET['Sort_by'] == '1' and request.session['nav']	== '4':
+		return redirect('/scenario_to_test_switch/')
+	
+	# scenario to scenario
+	elif request.GET['Sort_by'] == '2' and request.session['nav']	== '7':
+		return redirect('/scenario_to_scenario_switch/')
 #----------------------------------------------------------------------------------------------------
 def model_to_test_switch(request):
 
@@ -2050,8 +2087,18 @@ def switchboard_totest(request):
 
 	# If entry is invalid
 	if ticker ==0:
-		inputdic = request.session['inputdic'] 	
-		return render_to_response('Leaderboard_Testfail.html',inputdic)
+		
+		if request.session['nav'] == '3':
+			inputdic = request.session['inputdic'] 	
+			return render_to_response('Leaderboard_Testfail.html',inputdic)
+		
+		elif request.session['nav'] == '7':
+			inputdic = request.session['inputdic'] 	
+			return render_to_response('scenario_to_testfail.html',inputdic)
+			
+		elif request.session['nav'] == '2':
+			inputdic = request.session['inputdic'] 	
+			return render_to_response('Leaderboard_testname_fail.html',inputdic)
 
 	# If entry is valid
 	else:
@@ -2101,6 +2148,7 @@ def switchboard_totest(request):
 
 
 		inputdic ={'Scorelist':inputlist}
+		inputdic['casename'] = casename_raw
 
 		if request.session['active_account'] =='superuser':
 			inputdic['superuser'] = True
@@ -2108,6 +2156,39 @@ def switchboard_totest(request):
 		request.session['inputdic'] = inputdic	
 		request.session['nav']	= '3'
 		return render_to_response('Leaderboard_test.html',inputdic)
+
+
+
+#---------------------------------------------------------------------------------------------------------------
+def model_to_Scenario_switch(request):
+	
+	#-------------------------------------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['admintoken'] == False and request.session['usertoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+
+	#-------------------------------------------------------------------------------------------------
+	
+	
+	inputdic =  request.session['inputdic']  
+	
+	scenario_lst = []
+	for i in Case.objects.all():
+		if str(i.scenario) not in  scenario_lst:
+			scenario_lst.append(str(i.scenario))
+
+	inputdic['scenario_lst'] = scenario_lst
+	
+	request.session['nav']	= '6'
+	
+	request.session['inputdic']  = inputdic
+	
+	return render_to_response('model_to_Scenario.html',inputdic)
+
+
 
 #---------------------------------------------------------------------------------------------------------------
 def testcaseshow(request):
@@ -2180,6 +2261,23 @@ def return_leader(request):
 	elif request.session['nav'] == '2':
 
 		return render_to_response('Leaderboard_testname.html',inputdic)
+
+	elif request.session['nav'] == '1':
+
+		return render_to_response('Leader_Model.html',inputdic)
+	
+	elif request.session['nav'] == '4':
+		
+		return render_to_response('Leaderboard_scenario.html',inputdic)
+	
+	elif request.session['nav'] == '5':
+		return render_to_response('test_to_scenario.html',inputdic)
+	
+	elif request.session['nav'] == '6':
+		return render_to_response('model_to_Scenario.html',inputdic)
+	
+	elif request.session['nav'] == '7':	
+		return render_to_response('scenario_to_test.html',inputdic)
 #-----------------------------------------------------------------------------------------------------------------
 def completedtest_info(request):
 
@@ -2277,10 +2375,32 @@ def caseref_return(request):
 
 	#-------------------------------------------------------------------------------------------------
 
+	
 	inputdic = request.session['inputdic'] 
 
-	return render_to_response('Leaderboard_test.html',inputdic)
+	if request.session['nav'] == '3':
+		return render_to_response('Leaderboard_test.html',inputdic)
 
+	elif request.session['nav'] == '2':
+
+		return render_to_response('Leaderboard_testname.html',inputdic)
+
+	elif request.session['nav'] == '1':
+
+		return render_to_response('Leader_Model.html',inputdic)
+	
+	elif request.session['nav'] == '4':
+		
+		return render_to_response('Leaderboard_scenario.html',inputdic)
+	
+	elif request.session['nav'] == '5':
+		return render_to_response('test_to_scenario.html',inputdic)
+	
+	elif request.session['nav'] == '6':
+		return render_to_response('model_to_Scenario.html',inputdic)
+
+	elif request.session['nav'] == '7':	
+		return render_to_response('scenario_to_test.html',inputdic)
 #---------------------------------------------------------------------------------------------------------------------
 
 def Account_Profile(request):
@@ -2339,6 +2459,19 @@ def returnfrom_profile(request):
 	elif request.session['nav'] == '1':
 
 		return render_to_response('Leader_Model.html',inputdic)
+	
+	elif request.session['nav'] == '4':
+		
+		return render_to_response('Leaderboard_scenario.html',inputdic)
+	
+	elif request.session['nav'] == '5':
+		return render_to_response('test_to_scenario.html',inputdic)
+	
+	elif request.session['nav'] == '6':
+		return render_to_response('model_to_Scenario.html',inputdic)
+		
+	elif request.session['nav'] == '7':	
+		return render_to_response('scenario_to_test.html',inputdic)
 
 #------------------------------------------------------------------------------------------------------------------------
 def completedtest_modellink(request):
@@ -2386,6 +2519,10 @@ def case_hyperin(request):
 	if request.session['nav'] == '3':
 		inputdic['caseselection'] = caseselection
 		return render_to_response('Leaderboard_test.html',inputdic)
+	
+	if request.session['nav'] == '7':
+		inputdic['caseselection'] = caseselection
+		return render_to_response('scenario_to_test.html',inputdic)
 #-----------------------------------------------------------------------------------------------------------------------
 
 def upload_casefile(request):
@@ -3556,3 +3693,200 @@ def help_how_alter_account(request):
 	
 	return 	render_to_response('help_how_edit_account.html')
 	
+#---------------------------------------------------------------------------------
+# Leaderboard Again
+
+def switchboard_toscenario(request):
+	
+	#-------------------------------------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['admintoken'] == False and request.session['usertoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+
+	#-------------------------------------------------------------------------------------------------
+	
+	
+	name = str(request.GET['Scenario_sort'])
+	
+	
+	# Gather data
+	
+	inputlst = []
+	for i in Account.objects.all():
+		for j in i.account_models.all():
+			scenarioclick = 0
+			ratingsum = float(0)
+			for k in j.model_tests.all():
+				if k.Active == False:
+					if str(k.test_case.scenario) == name:
+						scenarioclick = scenarioclick + 1
+						ratingsum = ratingsum + float(k.test_rating)
+			if scenarioclick > 0:
+				avg = ratingsum / float(scenarioclick)
+				entry = []
+				entry.append(str(i.institution_name))
+				entry.append(str(j.model_nameID))
+				entry.append(str(ratingsum))
+				entry.append(str(scenarioclick))
+				inputlst.append(entry)
+	# Sort Data
+	
+	tempterm = ''
+	
+	count = 1
+	while count > 0:
+		
+		count = 0
+		
+		if len(inputlst) < 2:
+			break
+		
+		for s in range(len(inputlst)-1):
+			if inputlst[s][2] < inputlst[s+1][2]:
+				tempterm = inputlst[s]
+				inputlst[s] = inputlst[s+1]
+				inputlst[s+1] = tempterm
+				tempterm = ''
+				count = count + 1
+	
+	
+	
+	inputdic = {'scenario':name,'inputlst':inputlst}
+	
+	
+	
+	request.session['nav'] = '4'
+	
+	scenario_lst = []
+	for i in Case.objects.all():
+		if str(i.scenario) not in  scenario_lst:
+			scenario_lst.append(str(i.scenario))
+
+	inputdic['scenario_lst'] = scenario_lst
+	
+	if request.session['active_account'] =='superuser':
+			inputdic['superuser'] = True
+	
+	request.session['inputdic'] = inputdic
+	
+	return render_to_response('Leaderboard_scenario.html',inputdic)
+
+#------------------------------------------------------------------------------------
+def test_to_Scenario_switch(request):
+	
+	#-------------------------------------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['admintoken'] == False and request.session['usertoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+
+	#-------------------------------------------------------------------------------------------------
+	
+	inputdic = request.session['inputdic']  
+				
+	scenario_lst = []
+	for i in Case.objects.all():
+		if str(i.scenario) not in  scenario_lst:
+			scenario_lst.append(str(i.scenario))
+
+	inputdic['scenario_lst'] = scenario_lst
+	
+	request.session['nav'] = '5'
+	
+	request.session['inputdic'] = inputdic
+	
+	return render_to_response('test_to_scenario.html',inputdic)
+
+#------------------------------------------------------------------------------------
+def test_to_test_switch(request):
+	
+	
+	#-------------------------------------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['admintoken'] == False and request.session['usertoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+
+	#-------------------------------------------------------------------------------------------------		
+	inputdic = request.session['inputdic'] 
+	
+	request.session['nav']	= '3'
+	
+	
+	request.session['inputdic'] = inputdic
+	
+	return render_to_response('Leaderboard_test.html',inputdic)
+
+#-------------------------------------------------------------------------------------
+def scenario_to_test_switch(request):
+	
+	#-------------------------------------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['admintoken'] == False and request.session['usertoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+
+	#-------------------------------------------------------------------------------------------------
+	
+	inputdic = request.session['inputdic'] 
+	
+	request.session['nav']	= '7'
+	
+	return render_to_response('scenario_to_test.html',inputdic)
+
+#-----------------------------------------------------------------------------------
+def scenario_to_scenario_switch(request):
+	
+	#-------------------------------------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['admintoken'] == False and request.session['usertoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+
+	#-------------------------------------------------------------------------------------------------
+	
+	inputdic = request.session['inputdic'] 
+	
+	request.session['nav']	= '4'
+	
+	
+	request.session['inputdic'] = inputdic
+	
+	scenario_lst = []
+	for i in Case.objects.all():
+		if str(i.scenario) not in  scenario_lst:
+			scenario_lst.append(str(i.scenario))
+
+	inputdic['scenario_lst'] = scenario_lst
+	
+	return render_to_response('Leaderboard_scenario.html',inputdic)
+
+#--------------------------------------------------------------------------------------
+def hyper_leaderboard(request):
+	
+	#-------------------------------------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['admintoken'] == False and request.session['usertoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+
+	#-------------------------------------------------------------------------------------------------
+	
+	request.session['inputdic'] = ''
+	
+	return redirect('/Leader_model/')
+	
+
