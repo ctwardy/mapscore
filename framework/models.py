@@ -4,6 +4,7 @@ import random
 #from PIL import Image
 import Image
 from django import forms
+import os
 
 # Create your models here.
 
@@ -1072,8 +1073,10 @@ class Test(models.Model):
 						pix[ptx_plot + 5 - i,pty_plot -5 +j + i] = (255,0,0,255)
 
 
-
-
+		# Remove Old Image
+		os.remove(self.test_url2)
+		
+		# Save New Image
 
 		im.save(self.test_url2)
 
