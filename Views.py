@@ -278,6 +278,7 @@ def create_account(request):
 			sessionticker = 0,
 			completedtests = 0,
 			deleted_models = 0,
+			profpicrefresh = 0,
 
 				)
 	account.save()
@@ -290,11 +291,11 @@ def create_account(request):
 
 	ID2 = account.ID2
 	stringurl = '/media/profpic_'
-	stringurl = stringurl + str(ID2) + '.png'
+	stringurl = stringurl + str(ID2)+'_'+ str(account.profpicrefresh) + '.png'
 	account.photourl = stringurl
 
 
-	stringlocation = 'media/profpic_' + str(ID2) + '.png'
+	stringlocation = 'media/profpic_' + str(ID2) + '_'+ str(account.profpicrefresh) + '.png'
 	#'C:\Users\Nathan Jones\Django Website\MapRateWeb\media\profpic_' + str(ID2) + '.png'
 	account.photolocation = stringlocation
 
@@ -378,7 +379,7 @@ def account_access(request):
 			
 			inputdic['xsize'] = account.photosizex
 			inputdic['ysize'] = account.photosizey
-	
+			
 	
 			return render_to_response('AccountScreen.html',inputdic)
 
@@ -408,6 +409,7 @@ def account_access(request):
 		
 		inputdic['xsize'] = account.photosizex
 		inputdic['ysize'] = account.photosizey
+		
 		
 		return render_to_response('AccountScreen.html',inputdic)
 
@@ -447,14 +449,26 @@ def model_created(request):
 	# Verify Model Name
 
 	Model_name = str(request.GET['Name'])
+	description = str(request.GET['description'])
+	
 	ModelName_r = '^[a-zA-z0-9_]+$'
+	
+	baddescription = '^\s*$'
 
 	count = 0
 	if re.match(ModelName_r,Model_name) == None:
 		count = count + 1
-		inputdic01 ={'namein': Model_name,'Fail':True}
-
-	else:
+		inputdic01 ={'namein': Model_name,'Fail':True,'description':description}
+	
+	if re.match(baddescription,description) != None:
+		count = count + 1
+		inputdic01 ={'namein': Model_name,'Fail1':True,'description':description}
+		
+	
+	
+		
+	if count == 0:
+		
 		for k in request.session['active_account'].account_models.all():
 			counter = 0
 			if Model_name == str(k.model_nameID):
@@ -462,7 +476,7 @@ def model_created(request):
 
 			if counter > 0:
 				count = count + 1
-				inputdic01 = {'namein': Model_name,'modelnamerepeat': True}
+				inputdic01 = {'namein': Model_name,'modelnamerepeat': True, 'description':description}
 
 
 
@@ -479,7 +493,9 @@ def model_created(request):
 	#Create new model
 
 	new_model = Model(model_nameID = Model_name,
-		ID2 = str(request.session['active_account'].ID2) + ':'+ str(Model_name))
+		ID2 = str(request.session['active_account'].ID2) + ':'+ str(Model_name),
+		Description = description)
+	
 	new_model.setup()
 	new_model.save()
 
@@ -930,7 +946,7 @@ def active_test(request):
 		url = active_test.test_url
 
 		inputdic = {'pt1':pt1,'pt2':pt2,'pt3':pt3,'pt4':pt4,'pt5':pt5,'pt6':pt6,'pt7':pt7,'pt8':pt8,'pt9':pt9,'pic':url}
-
+		inputdic['rand'] = str(random.randint(1,1000000000000))
 		return render_to_response('grid_intest.html',inputdic)
 
 	# If you have failed current test
@@ -1134,6 +1150,7 @@ def grid_test_result(request):
 
 			inputdic01['fail'] = True
 
+
 			return render_to_response('grid_intest.html',inputdic01)
 
 
@@ -1204,7 +1221,7 @@ def grid_test_result(request):
 
 		request.session['active_test'].nav = 1
 		request.session['active_test'].save()
-		time.sleep(1)
+
 		return render_to_response('grid_affirmation_Pass.html',inputdic)
 
 	# If you fail, progress
@@ -1212,7 +1229,8 @@ def grid_test_result(request):
 
 		request.session['active_test'].nav = 1
 		request.session['active_test'].save()
-		time.sleep(1)
+		#Prevent Cached image
+		inputdic['rand'] = str(random.randint(1,1000000000000))
 		return render_to_response('grid_affirmation_Fail.html',inputdic)
 
 #---------------------------------------------------------------------------------------------------------
@@ -1229,6 +1247,7 @@ def regen_test(request):
 	#---------------------------------------------------------------------
 
 	request.session['active_test'].nav = 0
+	os.remove(request.session['active_test'].test_url2)
 	request.session['active_test'].generate_testpoints()
 	request.session['active_test'].save()
 	return redirect('/test_active/')
@@ -1457,9 +1476,14 @@ def load_image(request):
 		else:
 			temp = temp + str(i)
 	#...............................................	
+	
+	# iterate counter
+	
+	request.session['active_test'].grayrefresh = int(request.session['active_test'].grayrefresh) + 1
+	request.session['active_test'].save()
 
 	string = string + temp
-	string = string + '.png'
+	string = string + '_' + str(request.session['active_test'].grayrefresh) + '.png'
 
 
 
@@ -1510,8 +1534,9 @@ def confirm_grayscale(request):
 
 
 
-		served_Location = '/media/' + temp + '.png'
+		served_Location = '/media/' + temp + '_' + str(request.session['active_test'].grayrefresh) + '.png'
 		inputdic = {'grayscale':served_Location}
+
 		return render_to_response('uploadfail_demensions.html',inputdic)
 
 
@@ -1540,7 +1565,7 @@ def confirm_grayscale(request):
 					temp = temp + str(i)
 
 
-			served_Location = '/media/' + temp + '.png'
+			served_Location = '/media/' + temp + '_' + str(request.session['active_test'].grayrefresh) + '.png'
 
 			inputdic = {'grayscale':served_Location}
 
@@ -1569,9 +1594,10 @@ def confirm_grayscale(request):
 			 	temp = temp + str(i)
 	#...............................................
 
-		served_Location = '/media/' + temp + '.png'
+		served_Location = '/media/' + temp + '_' + str(request.session['active_test'].grayrefresh)+ '.png'
 
 		inputdic = {'grayscale':served_Location}
+		
 
 		return render_to_response('imageupload_fail.html',inputdic)
 
@@ -1591,9 +1617,10 @@ def confirm_grayscale(request):
 			temp = temp + str(i)
 	#...............................................
 
-	served_Location = '/media/' + temp + '.png'
+	served_Location = '/media/' + temp +'_' + str(request.session['active_test'].grayrefresh) +  '.png'
 
 	inputdic = {'grayscale':served_Location}
+	
 
 	return render_to_response('imageupload_confirm.html',inputdic)
 
@@ -1659,8 +1686,15 @@ def acceptgrayscale_confirm(request):
 			temp = temp + str(i)
 	#...............................................	
 
+	
+	# iterate counter
+	
+	request.session['active_test'].grayrefresh = int(request.session['active_test'].grayrefresh) + 1
+	request.session['active_test'].save()
+	
+
 	string = string + temp
-	string = string + '.jpg'
+	string = string + '_'+ str(request.session['active_test'].grayrefresh) + '.png'
 
 
 	# Remove served Grayscale image
@@ -1977,8 +2011,24 @@ def Leader_model(request):
 	if request.session['active_account'] =='superuser':
 		inputdic['superuser'] = True
 
-	request.session['inputdic'] = inputdic	
+	
 	request.session['nav']	= '1'
+	
+	instname = '0'
+	modelname ='0'
+	avgrating ='1'
+	tstcomplete ='0'
+	
+	sortinfo = []
+	sortinfo.append(instname)
+	sortinfo.append(modelname)
+	sortinfo.append(avgrating)
+	sortinfo.append(tstcomplete)
+	
+	inputdic['sortlst'] = sortinfo
+	
+	request.session['inputdic'] = inputdic	
+	
 	return render_to_response('Leader_Model.html',inputdic)
 
 #---------------------------------------------------------------------------------------------------
@@ -2154,6 +2204,21 @@ def switchboard_totest(request):
 
 		if request.session['active_account'] =='superuser':
 			inputdic['superuser'] = True
+			
+		instname = '0'
+		modelname ='0'
+		tstname ='0'
+		tstrtg ='1'
+	
+		sortinfo = []
+		sortinfo.append(instname)
+		sortinfo.append(modelname)
+		sortinfo.append(tstname)
+		sortinfo.append(tstrtg)
+	
+		inputdic['sortlst'] = sortinfo
+		
+			
 
 		request.session['inputdic'] = inputdic	
 		request.session['nav']	= '3'
@@ -2434,7 +2499,17 @@ def Account_Profile(request):
 
 	inputdic['xsize'] = int(Active_account.photosizex)
 	inputdic['ysize'] = int(Active_account.photosizey)
-			
+	
+	# get model descriptions
+	
+	modellst = []
+	for i in Active_account.account_models.all():
+		templst = []
+		templst.append(i.model_nameID)
+		templst.append(i.Description)
+		modellst.append(templst)
+
+	inputdic['modellst'] = modellst
 	return render_to_response('Account_Profile.html',inputdic)
 #--------------------------------------------------------------------------------------------------------------------
 def returnfrom_profile(request):
@@ -3108,7 +3183,36 @@ def confirm_prof_pic(request):
 
 	elif xsize == ysize:
 
-		im.resize((350,350))
+		im = im.resize((350,350))
+		
+	
+	# Remove old picture
+	
+	os.remove(account.photolocation)
+	
+	# iterate profpic request
+	
+	account.profpicrefresh = int(account.profpicrefresh) + 1
+	account.save()
+	
+	# Set up profile pic locations
+
+	ID2 = account.ID2
+	stringurl = '/media/profpic_'
+	stringurl = stringurl + str(ID2)+'_'+ str(account.profpicrefresh) + '.png'
+	account.photourl = stringurl
+
+
+	stringlocation = 'media/profpic_' + str(ID2) + '_'+ str(account.profpicrefresh) + '.png'
+	#'C:\Users\Nathan Jones\Django Website\MapRateWeb\media\profpic_' + str(ID2) + '.png'
+	account.photolocation = stringlocation
+
+	account.save()
+	
+	
+	
+
+	# Save new profpic
 
 	im.save(str(account.photolocation))
 
@@ -3134,6 +3238,31 @@ def confirm_prof_pic(request):
 #------------------------------------------------------------------------------
 def denyprofpic_confirm(request):
 	account = request.session['active_account']
+	
+	# Remove old picture
+	
+	os.remove(account.photolocation)
+	
+	# iterate profpic request
+	
+	account.profpicrefresh = int(account.profpicrefresh) + 1
+	account.save()
+	
+	# Set up profile pic locations
+
+	ID2 = account.ID2
+	stringurl = '/media/profpic_'
+	stringurl = stringurl + str(ID2)+'_'+ str(account.profpicrefresh) + '.png'
+	account.photourl = stringurl
+
+
+	stringlocation = 'media/profpic_' + str(ID2) + '_'+ str(account.profpicrefresh) + '.png'
+	#'C:\Users\Nathan Jones\Django Website\MapRateWeb\media\profpic_' + str(ID2) + '.png'
+	account.photolocation = stringlocation
+
+	account.save()
+	
+	
 
 	#shutil.copyfile('C:\Users\Nathan Jones\Django Website\MapRateWeb\in_images\Defaultprofpic.png',account.photolocation)
 	shutil.copyfile('in_images/Defaultprofpic.png',account.photolocation)
@@ -3174,6 +3303,7 @@ def edit_picture(request):
 	
 	inputdic['xsize'] = account.photosizex
 	inputdic['ysize'] = account.photosizey
+	
 
 	return 	render_to_response('edit_profpic.html',inputdic)
 
@@ -3192,9 +3322,35 @@ def remove_profpic(request):
 
 	account = request.session['active_account']
 
+	# Remove old picture
+	
+	os.remove(account.photolocation)
+	
+	
+	# iterate profpic request
+	
+	account.profpicrefresh = int(account.profpicrefresh) + 1
+	account.save()
+	
+	# Set up profile pic locations
+
+	ID2 = account.ID2
+	stringurl = '/media/profpic_'
+	stringurl = stringurl + str(ID2)+'_'+ str(account.profpicrefresh) + '.png'
+	account.photourl = stringurl
+
+
+	stringlocation = 'media/profpic_' + str(ID2) + '_'+ str(account.profpicrefresh) + '.png'
+	#'C:\Users\Nathan Jones\Django Website\MapRateWeb\media\profpic_' + str(ID2) + '.png'
+	account.photolocation = stringlocation
+
+	account.save()
+	
+	
+
 	#shutil.copyfile('C:\Users\Nathan Jones\Django Website\MapRateWeb\in_images\Defaultprofpic.png',account.photolocation)
 	shutil.copyfile('in_images/Defaultprofpic.png',account.photolocation)
-	time.sleep(2)
+	
 	
 	# Save image size parameters
 	im = Image.open(account.photolocation)
@@ -3281,11 +3437,35 @@ def change_accountpic(request):
 
 	elif xsize == ysize:
 
-		im.resize((350,350))
+		im = im.resize((350,350))
+		
+	
+	# Remove raw image
+		
+	os.remove(account.photolocation)
+	
+	# iterate profpic request
+	
+	account.profpicrefresh = int(account.profpicrefresh) + 1
+	account.save()
+	
+	# Set up profile pic locations
+
+	ID2 = account.ID2
+	stringurl = '/media/profpic_'
+	stringurl = stringurl + str(ID2)+'_'+ str(account.profpicrefresh) + '.png'
+	account.photourl = stringurl
+
+
+	stringlocation = 'media/profpic_' + str(ID2) + '_'+ str(account.profpicrefresh) + '.png'
+	#'C:\Users\Nathan Jones\Django Website\MapRateWeb\media\profpic_' + str(ID2) + '.png'
+	account.photolocation = stringlocation
+
+	account.save()
+	
+	# Save image
 
 	im.save(str(account.photolocation))
-
-	time.sleep(4)
 	
 	# Save image size parameters
 	im = Image.open(account.photolocation)
@@ -3773,6 +3953,20 @@ def switchboard_toscenario(request):
 	
 	if request.session['active_account'] =='superuser':
 			inputdic['superuser'] = True
+			
+			
+	instname = '0'
+	modelname ='0'
+	catrating ='1'
+	catcompleted ='0'
+	
+	sortinfo = []
+	sortinfo.append(instname)
+	sortinfo.append(modelname)
+	sortinfo.append(catrating)
+	sortinfo.append(catcompleted)
+	
+	inputdic['sortlst'] = sortinfo
 	
 	request.session['inputdic'] = inputdic
 	
@@ -3893,4 +4087,1407 @@ def hyper_leaderboard(request):
 	
 	return redirect('/Leader_model/')
 	
+#-----------------------------------------------------------------------------------------
+def model_inst_sort(request):
+	
+	# extract data
+	instname = str(request.GET['instname'])
+	modelname = str(request.GET['modelname'])
+	avgrating = str(request.GET['avgrating'])
+	tstcomplete = str(request.GET['tstcomplete'])
+	page = str(request.GET['page'])
+	
+	modelname = '0'
+	avgrating = '0'
+	tstcomplete = '0'
+	
+	inputdic = request.session['inputdic']
+	
+	scorelist = inputdic['Scorelist']
+	
+	if 'caseselection' in inputdic.keys():
+		caseselection = inputdic['caseselection']
+	else:
+		caseselection = None
+	
+	# sort depending on various circumstances
+	
+	if instname == '0':
+		instname = '1'
+		
+		count = 1
+		temp = ''
+		while count > 0:
+			count = 0
+			for i in range(len(scorelist)-1):
+				temp = ''
+				if scorelist[i][0] > scorelist[i+1][0] :
+					temp = scorelist[i]
+					scorelist[i] = scorelist[i+1]
+					scorelist[i+1] = temp
+					count = count + 1
+						
+		
 
+	elif instname == '1':
+		instname = '2'
+		
+		count = 1
+		temp = ''
+		while count > 0:
+			count = 0
+			for i in range(len(scorelist)-1):
+				temp = ''
+				if scorelist[i][0] < scorelist[i+1][0] :
+					temp = scorelist[i]
+					scorelist[i] = scorelist[i+1]
+					scorelist[i+1] = temp
+					count = count + 1
+		
+	
+	elif instname == '2':
+		instname = '1'
+		
+		count = 1
+		temp = ''
+		while count > 0:
+			count = 0
+			for i in range(len(scorelist)-1):
+				temp = ''
+				if scorelist[i][0] > scorelist[i+1][0] :
+					temp = scorelist[i]
+					scorelist[i] = scorelist[i+1]
+					scorelist[i+1] = temp
+					count = count + 1
+	
+		
+		
+	
+	sortinfo = []
+	sortinfo.append(instname)
+	sortinfo.append(modelname)
+	sortinfo.append(avgrating)
+	sortinfo.append(tstcomplete)
+	
+	inputdic = {'Scorelist':scorelist, 'sortlst':sortinfo}
+	
+	if caseselection != None:
+		inputdic['caseselection'] = caseselection
+	
+	request.session['inputdic'] = inputdic
+		
+	if page == 'model_leader':
+		return render_to_response('Leader_Model.html',inputdic)
+	
+	elif page == 'model_to_scenario_move':
+		
+		scenario_lst = []
+		for i in Case.objects.all():
+			if str(i.scenario) not in  scenario_lst:
+				scenario_lst.append(str(i.scenario))
+
+		inputdic['scenario_lst'] = scenario_lst
+		request.session['inputdic'] = inputdic
+		
+		
+		return render_to_response('model_to_scenario.html',inputdic)
+	
+	elif page == 'model_to_test':
+		return render_to_response('Leaderboard_testname.html',inputdic)
+	
+	elif page == 'model_to_test_fail':
+		return render_to_response('Leaderboard_testname_fail.html',inputdic)
+		
+#------------------------------------------------------------------------------------
+def model_name_sort(request):
+	
+	# extract data
+	instname = str(request.GET['instname'])
+	modelname = str(request.GET['modelname'])
+	avgrating = str(request.GET['avgrating'])
+	tstcomplete = str(request.GET['tstcomplete'])
+	page = str(request.GET['page'])
+	
+	instname = '0'
+	avgrating = '0'
+	tstcomplete = '0'
+	
+	inputdic = request.session['inputdic']
+	
+	scorelist = inputdic['Scorelist']
+	
+	if 'caseselection' in inputdic.keys():
+		caseselection = inputdic['caseselection']
+	else:
+		caseselection = None
+	
+	# sort depending on various circumstances
+	
+	if modelname == '0':
+		modelname = '1'
+		
+		count = 1
+		temp = ''
+		while count > 0:
+			count = 0
+			for i in range(len(scorelist)-1):
+				temp = ''
+				if scorelist[i][1] > scorelist[i+1][1] :
+					temp = scorelist[i]
+					scorelist[i] = scorelist[i+1]
+					scorelist[i+1] = temp
+					count = count + 1
+						
+		
+
+	elif modelname == '1':
+		modelname = '2'
+		
+		count = 1
+		temp = ''
+		while count > 0:
+			count = 0
+			for i in range(len(scorelist)-1):
+				temp = ''
+				if scorelist[i][1] < scorelist[i+1][1] :
+					temp = scorelist[i]
+					scorelist[i] = scorelist[i+1]
+					scorelist[i+1] = temp
+					count = count + 1
+		
+	
+	elif modelname == '2':
+		modelname = '1'
+		
+		count = 1
+		temp = ''
+		while count > 0:
+			count = 0
+			for i in range(len(scorelist)-1):
+				temp = ''
+				if scorelist[i][1] > scorelist[i+1][1] :
+					temp = scorelist[i]
+					scorelist[i] = scorelist[i+1]
+					scorelist[i+1] = temp
+					count = count + 1
+	
+		
+		
+	
+	sortinfo = []
+	sortinfo.append(instname)
+	sortinfo.append(modelname)
+	sortinfo.append(avgrating)
+	sortinfo.append(tstcomplete)
+	
+	inputdic = {'Scorelist':scorelist, 'sortlst':sortinfo}
+	
+	if caseselection != None:
+		inputdic['caseselection'] = caseselection
+	
+	request.session['inputdic'] = inputdic
+		
+	if page == 'model_leader':
+		return render_to_response('Leader_Model.html',inputdic)
+	
+	elif page == 'model_to_scenario_move':
+		
+		
+		scenario_lst = []
+		for i in Case.objects.all():
+			if str(i.scenario) not in  scenario_lst:
+				scenario_lst.append(str(i.scenario))
+
+		inputdic['scenario_lst'] = scenario_lst
+		request.session['inputdic'] = inputdic
+		
+		return render_to_response('model_to_scenario.html',inputdic)
+	
+	elif page == 'model_to_test':
+		return render_to_response('Leaderboard_testname.html',inputdic)
+	
+	elif page == 'model_to_test_fail':
+		return render_to_response('Leaderboard_testname_fail.html',inputdic)
+		
+#-----------------------------------------------------------------------------------
+def model_rtg_sort(request):
+	
+	
+	# extract data
+	instname = str(request.GET['instname'])
+	modelname = str(request.GET['modelname'])
+	avgrating = str(request.GET['avgrating'])
+	tstcomplete = str(request.GET['tstcomplete'])
+	page = str(request.GET['page'])
+
+	modelname = '0'
+	instname = '0'
+	tstcomplete = '0'
+	
+	inputdic = request.session['inputdic']
+	
+	scorelist = inputdic['Scorelist']
+	
+	if 'caseselection' in inputdic.keys():
+		caseselection = inputdic['caseselection']
+	else:
+		caseselection = None
+	
+	# sort depending on various circumstances
+	
+	if avgrating == '0':
+		
+		avgrating = '1'
+		
+		count = 1
+		temp = ''
+		while count > 0:
+			count = 0
+			for i in range(len(scorelist)-1):
+				temp = ''
+				if float(scorelist[i][2]) < float(scorelist[i+1][2]) :
+					temp = scorelist[i]
+					scorelist[i] = scorelist[i+1]
+					scorelist[i+1] = temp
+					count = count + 1
+						
+		
+
+	elif avgrating == '1':
+		
+		avgrating = '2'
+		
+		count = 1
+		temp = ''
+		while count > 0:
+			count = 0
+			for i in range(len(scorelist)-1):
+				temp = ''
+				if float(scorelist[i][2]) > float(scorelist[i+1][2]) :
+					temp = scorelist[i]
+					scorelist[i] = scorelist[i+1]
+					scorelist[i+1] = temp
+					count = count + 1
+		
+	
+	elif avgrating == '2':
+		avgrating = '1'
+		
+		count = 1
+		temp = ''
+		while count > 0:
+			count = 0
+			for i in range(len(scorelist)-1):
+				temp = ''
+				if float(scorelist[i][2]) < float(scorelist[i+1][2]) :
+					temp = scorelist[i]
+					scorelist[i] = scorelist[i+1]
+					scorelist[i+1] = temp
+					count = count + 1
+	
+		
+		
+	
+	sortinfo = []
+	sortinfo.append(instname)
+	sortinfo.append(modelname)
+	sortinfo.append(avgrating)
+	sortinfo.append(tstcomplete)
+	
+	inputdic = {'Scorelist':scorelist, 'sortlst':sortinfo}
+	
+	if caseselection != None:
+		inputdic['caseselection'] = caseselection
+	
+	request.session['inputdic'] = inputdic
+		
+	if page == 'model_leader':
+		return render_to_response('Leader_Model.html',inputdic)
+	
+	elif page == 'model_to_scenario_move':
+		
+		
+		scenario_lst = []
+		for i in Case.objects.all():
+			if str(i.scenario) not in  scenario_lst:
+				scenario_lst.append(str(i.scenario))
+
+		inputdic['scenario_lst'] = scenario_lst
+		request.session['inputdic'] = inputdic
+		
+		
+		return render_to_response('model_to_scenario.html',inputdic)
+	
+	elif page == 'model_to_test':
+		return render_to_response('Leaderboard_testname.html',inputdic)
+	
+	elif page == 'model_to_test_fail':
+		return render_to_response('Leaderboard_testname_fail.html',inputdic)
+		
+#-------------------------------------------------------------------------------------
+def model_tstscomp_sort(request):
+	
+	
+		# extract data
+	instname = str(request.GET['instname'])
+	modelname = str(request.GET['modelname'])
+	avgrating = str(request.GET['avgrating'])
+	tstcomplete = str(request.GET['tstcomplete'])
+	page = str(request.GET['page'])
+
+	modelname = '0'
+	instname = '0'
+	avgrating = '0'
+	
+	inputdic = request.session['inputdic']
+	
+	scorelist = inputdic['Scorelist']
+	
+	if 'caseselection' in inputdic.keys():
+		caseselection = inputdic['caseselection']
+	else:
+		caseselection = None
+	
+	# sort depending on various circumstances
+	
+	if tstcomplete == '0':
+		
+		tstcomplete = '1'
+		
+		count = 1
+		temp = ''
+		while count > 0:
+			count = 0
+			for i in range(len(scorelist)-1):
+				temp = ''
+				if float(scorelist[i][3]) < float(scorelist[i+1][3]) :
+					temp = scorelist[i]
+					scorelist[i] = scorelist[i+1]
+					scorelist[i+1] = temp
+					count = count + 1
+						
+		
+
+	elif tstcomplete == '1':
+		
+		tstcomplete = '2'
+		
+		count = 1
+		temp = ''
+		while count > 0:
+			count = 0
+			for i in range(len(scorelist)-1):
+				temp = ''
+				if float(scorelist[i][3]) > float(scorelist[i+1][3]) :
+					temp = scorelist[i]
+					scorelist[i] = scorelist[i+1]
+					scorelist[i+1] = temp
+					count = count + 1
+		
+	
+	elif tstcomplete == '2':
+		tstcomplete = '1'
+		
+		count = 1
+		temp = ''
+		while count > 0:
+			count = 0
+			for i in range(len(scorelist)-1):
+				temp = ''
+				if float(scorelist[i][3]) < float(scorelist[i+1][3]) :
+					temp = scorelist[i]
+					scorelist[i] = scorelist[i+1]
+					scorelist[i+1] = temp
+					count = count + 1
+	
+		
+		
+	
+	sortinfo = []
+	sortinfo.append(instname)
+	sortinfo.append(modelname)
+	sortinfo.append(avgrating)
+	sortinfo.append(tstcomplete)
+	
+	inputdic = {'Scorelist':scorelist, 'sortlst':sortinfo}
+	
+	if caseselection != None:
+		inputdic['caseselection'] = caseselection
+	
+	request.session['inputdic'] = inputdic
+		
+	if page == 'model_leader':
+		return render_to_response('Leader_Model.html',inputdic)
+		
+	
+	elif page == 'model_to_scenario_move':
+		
+		scenario_lst = []
+		for i in Case.objects.all():
+			if str(i.scenario) not in  scenario_lst:
+				scenario_lst.append(str(i.scenario))
+
+		inputdic['scenario_lst'] = scenario_lst
+		request.session['inputdic'] = inputdic
+		
+		return render_to_response('model_to_scenario.html',inputdic)
+		
+	elif page == 'model_to_test':
+		return render_to_response('Leaderboard_testname.html',inputdic)
+	
+	elif page == 'model_to_test_fail':
+		return render_to_response('Leaderboard_testname_fail.html',inputdic)
+	
+#---------------------------------------------------------------------------------------
+def test_inst_sort(request):
+	
+	
+	
+	# extract data
+	instname = str(request.GET['instname'])
+	modelname = str(request.GET['modelname'])
+	testname = str(request.GET['testname'])
+	tstrating = str(request.GET['tstrating'])
+	page = str(request.GET['page'])
+	
+	modelname = '0'
+	testname = '0'
+	tstrating = '0'
+	
+	inputdic = request.session['inputdic']
+	
+	scorelist = inputdic['Scorelist']
+	
+	casename = inputdic['casename']
+	
+	if 'caseselection' in inputdic.keys():
+		caseselection = inputdic['caseselection']
+	else:
+		caseselection = None
+		
+	# sort depending on various circumstances
+	
+	if instname == '0':
+		instname = '1'
+		
+		count = 1
+		temp = ''
+		while count > 0:
+			count = 0
+			for i in range(len(scorelist)-1):
+				temp = ''
+				if scorelist[i][0] > scorelist[i+1][0] :
+					temp = scorelist[i]
+					scorelist[i] = scorelist[i+1]
+					scorelist[i+1] = temp
+					count = count + 1
+						
+		
+
+	elif instname == '1':
+		instname = '2'
+		
+		count = 1
+		temp = ''
+		while count > 0:
+			count = 0
+			for i in range(len(scorelist)-1):
+				temp = ''
+				if scorelist[i][0] < scorelist[i+1][0] :
+					temp = scorelist[i]
+					scorelist[i] = scorelist[i+1]
+					scorelist[i+1] = temp
+					count = count + 1
+		
+	
+	elif instname == '2':
+		instname = '1'
+		
+		count = 1
+		temp = ''
+		while count > 0:
+			count = 0
+			for i in range(len(scorelist)-1):
+				temp = ''
+				if scorelist[i][0] > scorelist[i+1][0] :
+					temp = scorelist[i]
+					scorelist[i] = scorelist[i+1]
+					scorelist[i+1] = temp
+					count = count + 1
+	
+		
+		
+	
+	sortinfo = []
+	sortinfo.append(instname)
+	sortinfo.append(modelname)
+	sortinfo.append(testname)
+	sortinfo.append(tstrating)
+	
+	inputdic = {'Scorelist':scorelist, 'sortlst':sortinfo}
+	inputdic['casename'] = casename
+	
+	if caseselection != None:
+		inputdic['caseselection'] = caseselection
+		
+	
+	request.session['inputdic'] = inputdic
+		
+	if page == 'test_leader':
+		return render_to_response('Leaderboard_test.html',inputdic)
+	
+	elif page =='test_leader_fail':
+		return render_to_response('Leaderboard_Testfail.html',inputdic)
+		
+	elif page =='TEST_TOSCENARIO_MOVE':
+		
+		scenario_lst = []
+		for i in Case.objects.all():
+			if str(i.scenario) not in  scenario_lst:
+				scenario_lst.append(str(i.scenario))
+
+		inputdic['scenario_lst'] = scenario_lst
+		request.session['inputdic'] = inputdic
+		
+		return render_to_response('test_to_scenario.html',inputdic)
+	
+	
+		
+#---------------------------------------------------------------------------------------
+def test_modelname_sort(request):
+	
+	# extract data
+	instname = str(request.GET['instname'])
+	modelname = str(request.GET['modelname'])
+	testname = str(request.GET['testname'])
+	tstrating = str(request.GET['tstrating'])
+	page = str(request.GET['page'])
+	
+	instname = '0'
+	testname = '0'
+	tstrating = '0'
+	
+	inputdic = request.session['inputdic']
+	
+	scorelist = inputdic['Scorelist']
+	
+	casename = inputdic['casename']
+	
+	if 'caseselection' in inputdic.keys():
+		caseselection = inputdic['caseselection']
+	else:
+		caseselection = None
+		
+	# sort depending on various circumstances
+	
+	if modelname == '0':
+		modelname = '1'
+		
+		count = 1
+		temp = ''
+		while count > 0:
+			count = 0
+			for i in range(len(scorelist)-1):
+				temp = ''
+				if scorelist[i][1] > scorelist[i+1][1] :
+					temp = scorelist[i]
+					scorelist[i] = scorelist[i+1]
+					scorelist[i+1] = temp
+					count = count + 1
+						
+		
+
+	elif modelname == '1':
+		modelname = '2'
+		
+		count = 1
+		temp = ''
+		while count > 0:
+			count = 0
+			for i in range(len(scorelist)-1):
+				temp = ''
+				if scorelist[i][1] < scorelist[i+1][1] :
+					temp = scorelist[i]
+					scorelist[i] = scorelist[i+1]
+					scorelist[i+1] = temp
+					count = count + 1
+		
+	
+	elif modelname == '2':
+		modelname = '1'
+		
+		count = 1
+		temp = ''
+		while count > 0:
+			count = 0
+			for i in range(len(scorelist)-1):
+				temp = ''
+				if scorelist[i][1] > scorelist[i+1][1] :
+					temp = scorelist[i]
+					scorelist[i] = scorelist[i+1]
+					scorelist[i+1] = temp
+					count = count + 1
+	
+		
+		
+	
+	sortinfo = []
+	sortinfo.append(instname)
+	sortinfo.append(modelname)
+	sortinfo.append(testname)
+	sortinfo.append(tstrating)
+	
+	inputdic = {'Scorelist':scorelist, 'sortlst':sortinfo}
+	inputdic['casename'] = casename
+	
+	if caseselection != None:
+		inputdic['caseselection'] = caseselection
+	
+	request.session['inputdic'] = inputdic
+		
+	if page == 'test_leader':
+		return render_to_response('Leaderboard_test.html',inputdic)
+	
+	elif page =='test_leader_fail':
+		return render_to_response('Leaderboard_Testfail.html',inputdic)
+	
+	elif page =='TEST_TOSCENARIO_MOVE':
+		
+		scenario_lst = []
+		for i in Case.objects.all():
+			if str(i.scenario) not in  scenario_lst:
+				scenario_lst.append(str(i.scenario))
+
+		inputdic['scenario_lst'] = scenario_lst
+		request.session['inputdic'] = inputdic
+		
+		return render_to_response('test_to_scenario.html',inputdic)
+
+#------------------------------------------------------------------------------------
+def test_name_sort(request):
+	
+	# extract data
+	instname = str(request.GET['instname'])
+	modelname = str(request.GET['modelname'])
+	testname = str(request.GET['testname'])
+	tstrating = str(request.GET['tstrating'])
+	page = str(request.GET['page'])
+	
+	instname = '0'
+	modelname = '0'
+	tstrating = '0'
+	
+	inputdic = request.session['inputdic']
+	
+	scorelist = inputdic['Scorelist']
+	
+	casename = inputdic['casename']
+	
+	if 'caseselection' in inputdic.keys():
+		caseselection = inputdic['caseselection']
+	else:
+		caseselection = None
+		
+	# sort depending on various circumstances
+	
+	if testname == '0':
+		testname = '1'
+		
+		count = 1
+		temp = ''
+		while count > 0:
+			count = 0
+			for i in range(len(scorelist)-1):
+				temp = ''
+				if scorelist[i][2] > scorelist[i+1][2] :
+					temp = scorelist[i]
+					scorelist[i] = scorelist[i+1]
+					scorelist[i+1] = temp
+					count = count + 1
+						
+		
+
+	elif testname == '1':
+		testname = '2'
+		
+		count = 1
+		temp = ''
+		while count > 0:
+			count = 0
+			for i in range(len(scorelist)-1):
+				temp = ''
+				if scorelist[i][2] < scorelist[i+1][2] :
+					temp = scorelist[i]
+					scorelist[i] = scorelist[i+1]
+					scorelist[i+1] = temp
+					count = count + 1
+		
+	
+	elif testname == '2':
+		testname = '1'
+		
+		count = 1
+		temp = ''
+		while count > 0:
+			count = 0
+			for i in range(len(scorelist)-1):
+				temp = ''
+				if scorelist[i][2] > scorelist[i+1][2] :
+					temp = scorelist[i]
+					scorelist[i] = scorelist[i+1]
+					scorelist[i+1] = temp
+					count = count + 1
+	
+		
+		
+	
+	sortinfo = []
+	sortinfo.append(instname)
+	sortinfo.append(modelname)
+	sortinfo.append(testname)
+	sortinfo.append(tstrating)
+	
+	inputdic = {'Scorelist':scorelist, 'sortlst':sortinfo}
+	inputdic['casename'] = casename
+	
+	if caseselection != None:
+		inputdic['caseselection'] = caseselection
+	
+	request.session['inputdic'] = inputdic
+		
+	if page == 'test_leader':
+		return render_to_response('Leaderboard_test.html',inputdic)
+	
+	elif page =='test_leader_fail':
+		return render_to_response('Leaderboard_Testfail.html',inputdic)
+	
+	elif page =='TEST_TOSCENARIO_MOVE':
+		
+		scenario_lst = []
+		for i in Case.objects.all():
+			if str(i.scenario) not in  scenario_lst:
+				scenario_lst.append(str(i.scenario))
+
+		inputdic['scenario_lst'] = scenario_lst
+		request.session['inputdic'] = inputdic
+		
+		return render_to_response('test_to_scenario.html',inputdic)
+		
+#-------------------------------------------------------------------------------------
+def test_rating_sort(request):
+	
+	# extract data
+	instname = str(request.GET['instname'])
+	modelname = str(request.GET['modelname'])
+	testname = str(request.GET['testname'])
+	tstrating = str(request.GET['tstrating'])
+	page = str(request.GET['page'])
+	
+	instname = '0'
+	modelname = '0'
+	testname = '0'
+	
+	inputdic = request.session['inputdic']
+	
+	scorelist = inputdic['Scorelist']
+	
+	casename = inputdic['casename']
+	
+	if 'caseselection' in inputdic.keys():
+		caseselection = inputdic['caseselection']
+	else:
+		caseselection = None
+		
+	# sort depending on various circumstances
+	
+	if tstrating == '0':
+		tstrating = '1'
+		
+		count = 1
+		temp = ''
+		while count > 0:
+			count = 0
+			for i in range(len(scorelist)-1):
+				temp = ''
+				if float(scorelist[i][3]) < float(scorelist[i+1][3] ):
+					temp = scorelist[i]
+					scorelist[i] = scorelist[i+1]
+					scorelist[i+1] = temp
+					count = count + 1
+						
+		
+
+	elif tstrating == '1':
+		tstrating = '2'
+		
+		count = 1
+		temp = ''
+		while count > 0:
+			count = 0
+			for i in range(len(scorelist)-1):
+				temp = ''
+				if float(scorelist[i][3]) > float(scorelist[i+1][3]) :
+					temp = scorelist[i]
+					scorelist[i] = scorelist[i+1]
+					scorelist[i+1] = temp
+					count = count + 1
+		
+	
+	elif tstrating == '2':
+		tstrating = '1'
+		
+		count = 1
+		temp = ''
+		while count > 0:
+			count = 0
+			for i in range(len(scorelist)-1):
+				temp = ''
+				if float(scorelist[i][3]) < float(scorelist[i+1][3]) :
+					temp = scorelist[i]
+					scorelist[i] = scorelist[i+1]
+					scorelist[i+1] = temp
+					count = count + 1
+	
+		
+		
+	
+	sortinfo = []
+	sortinfo.append(instname)
+	sortinfo.append(modelname)
+	sortinfo.append(testname)
+	sortinfo.append(tstrating)
+	
+	inputdic = {'Scorelist':scorelist, 'sortlst':sortinfo}
+	inputdic['casename'] = casename
+	
+	if caseselection != None:
+		inputdic['caseselection'] = caseselection
+	
+	request.session['inputdic'] = inputdic
+		
+	if page == 'test_leader':
+		return render_to_response('Leaderboard_test.html',inputdic)
+	
+	elif page =='test_leader_fail':
+		return render_to_response('Leaderboard_Testfail.html',inputdic)
+	
+	elif page =='TEST_TOSCENARIO_MOVE':
+		
+		scenario_lst = []
+		for i in Case.objects.all():
+			if str(i.scenario) not in  scenario_lst:
+				scenario_lst.append(str(i.scenario))
+
+		inputdic['scenario_lst'] = scenario_lst
+		request.session['inputdic'] = inputdic
+		
+		return render_to_response('test_to_scenario.html',inputdic)
+		
+
+#-----------------------------------------------------------------------------------
+def cat_inst_sort(request):
+	
+	# extract data
+	instname = str(request.GET['instname'])
+	modelname = str(request.GET['modelname'])
+	catrating = str(request.GET['catrating'])
+	catcompleted = str(request.GET['catcompleted'])
+	page = str(request.GET['page'])
+	
+	modelname = '0'
+	catrating = '0'
+	catcompleted = '0'
+	
+	inputdic = request.session['inputdic']
+	
+	scorelist = inputdic['inputlst']
+	
+	name = inputdic['scenario']
+	
+	if 'caseselection' in inputdic.keys():
+		caseselection = inputdic['caseselection']
+	else:
+		caseselection = None
+	
+	# sort depending on various circumstances
+	
+	if instname == '0':
+		instname = '1'
+		
+		count = 1
+		temp = ''
+		while count > 0:
+			count = 0
+			for i in range(len(scorelist)-1):
+				temp = ''
+				if scorelist[i][0] > scorelist[i+1][0] :
+					temp = scorelist[i]
+					scorelist[i] = scorelist[i+1]
+					scorelist[i+1] = temp
+					count = count + 1
+						
+		
+
+	elif instname == '1':
+		instname = '2'
+		
+		count = 1
+		temp = ''
+		while count > 0:
+			count = 0
+			for i in range(len(scorelist)-1):
+				temp = ''
+				if scorelist[i][0] < scorelist[i+1][0] :
+					temp = scorelist[i]
+					scorelist[i] = scorelist[i+1]
+					scorelist[i+1] = temp
+					count = count + 1
+		
+	
+	elif instname == '2':
+		instname = '1'
+		
+		count = 1
+		temp = ''
+		while count > 0:
+			count = 0
+			for i in range(len(scorelist)-1):
+				temp = ''
+				if scorelist[i][0] > scorelist[i+1][0] :
+					temp = scorelist[i]
+					scorelist[i] = scorelist[i+1]
+					scorelist[i+1] = temp
+					count = count + 1
+	
+		
+		
+	
+	sortinfo = []
+	sortinfo.append(instname)
+	sortinfo.append(modelname)
+	sortinfo.append(catrating)
+	sortinfo.append(catcompleted)
+	
+	inputdic = {'inputlst':scorelist, 'sortlst':sortinfo}
+	
+	
+	if caseselection != None:
+		inputdic['caseselection'] = caseselection
+	
+	request.session['inputdic'] = inputdic
+	
+
+		
+	if page == 'category_leader':
+		
+		scenario_lst = []
+		for i in Case.objects.all():
+			if str(i.scenario) not in  scenario_lst:
+				scenario_lst.append(str(i.scenario))
+
+		inputdic['scenario_lst'] = scenario_lst
+		inputdic['scenario'] = name
+	
+	
+		request.session['inputdic'] = inputdic
+		
+		
+		return render_to_response('Leaderboard_scenario.html',inputdic)
+	
+	elif page == 'scenario_to_test':
+		
+		inputdic['scenario'] = name
+		request.session['inputdic'] = inputdic
+		
+		return render_to_response('scenario_to_test.html',inputdic)
+	
+	elif page =='scenario_to_test_fail':
+	
+		inputdic['scenario'] = name
+		request.session['inputdic'] = inputdic
+		
+		return render_to_response('scenario_to_testfail.html',inputdic)
+
+#---------------------------------------------------------------------------------
+def cat_modelname_sort(request):
+	
+	
+	# extract data
+	instname = str(request.GET['instname'])
+	modelname = str(request.GET['modelname'])
+	catrating = str(request.GET['catrating'])
+	catcompleted = str(request.GET['catcompleted'])
+	page = str(request.GET['page'])
+	
+	instname = '0'
+	catrating = '0'
+	catcompleted = '0'
+	
+	inputdic = request.session['inputdic']
+	
+	scorelist = inputdic['inputlst']
+	
+	name = inputdic['scenario']
+	
+	if 'caseselection' in inputdic.keys():
+		caseselection = inputdic['caseselection']
+	else:
+		caseselection = None
+	
+	# sort depending on various circumstances
+	
+	if modelname == '0':
+		modelname = '1'
+		
+		count = 1
+		temp = ''
+		while count > 0:
+			count = 0
+			for i in range(len(scorelist)-1):
+				temp = ''
+				if scorelist[i][1] > scorelist[i+1][1] :
+					temp = scorelist[i]
+					scorelist[i] = scorelist[i+1]
+					scorelist[i+1] = temp
+					count = count + 1
+						
+		
+
+	elif modelname == '1':
+		modelname = '2'
+		
+		count = 1
+		temp = ''
+		while count > 0:
+			count = 0
+			for i in range(len(scorelist)-1):
+				temp = ''
+				if scorelist[i][1] < scorelist[i+1][1] :
+					temp = scorelist[i]
+					scorelist[i] = scorelist[i+1]
+					scorelist[i+1] = temp
+					count = count + 1
+		
+	
+	elif modelname == '2':
+		modelname = '1'
+		
+		count = 1
+		temp = ''
+		while count > 0:
+			count = 0
+			for i in range(len(scorelist)-1):
+				temp = ''
+				if scorelist[i][1] > scorelist[i+1][1] :
+					temp = scorelist[i]
+					scorelist[i] = scorelist[i+1]
+					scorelist[i+1] = temp
+					count = count + 1
+	
+		
+		
+	
+	sortinfo = []
+	sortinfo.append(instname)
+	sortinfo.append(modelname)
+	sortinfo.append(catrating)
+	sortinfo.append(catcompleted)
+	
+	inputdic = {'inputlst':scorelist, 'sortlst':sortinfo}
+	
+	
+	if caseselection != None:
+		inputdic['caseselection'] = caseselection
+	
+	request.session['inputdic'] = inputdic
+	
+
+		
+	if page == 'category_leader':
+		
+		scenario_lst = []
+		for i in Case.objects.all():
+			if str(i.scenario) not in  scenario_lst:
+				scenario_lst.append(str(i.scenario))
+
+		inputdic['scenario_lst'] = scenario_lst
+		inputdic['scenario'] = name
+	
+	
+		request.session['inputdic'] = inputdic
+		
+		
+		return render_to_response('Leaderboard_scenario.html',inputdic)
+	
+	elif page == 'scenario_to_test':
+		
+		inputdic['scenario'] = name
+		request.session['inputdic'] = inputdic
+		
+		return render_to_response('scenario_to_test.html',inputdic)
+		
+	elif page =='scenario_to_test_fail':
+	
+		inputdic['scenario'] = name
+		request.session['inputdic'] = inputdic
+		
+		return render_to_response('scenario_to_testfail.html',inputdic)
+
+
+#----------------------------------------------------------------------------------
+def catrating_sort(request):
+	
+	
+	
+	# extract data
+	instname = str(request.GET['instname'])
+	modelname = str(request.GET['modelname'])
+	catrating = str(request.GET['catrating'])
+	catcompleted = str(request.GET['catcompleted'])
+	page = str(request.GET['page'])
+	
+	instname = '0'
+	modelname = '0'
+	catcompleted = '0'
+	
+	inputdic = request.session['inputdic']
+	
+	scorelist = inputdic['inputlst']
+	
+	name = inputdic['scenario']
+	
+	if 'caseselection' in inputdic.keys():
+		caseselection = inputdic['caseselection']
+	else:
+		caseselection = None
+	
+	# sort depending on various circumstances
+	
+	if catrating == '0':
+		catrating = '1'
+		
+		count = 1
+		temp = ''
+		while count > 0:
+			count = 0
+			for i in range(len(scorelist)-1):
+				temp = ''
+				if float(scorelist[i][2]) < float(scorelist[i+1][2]) :
+					temp = scorelist[i]
+					scorelist[i] = scorelist[i+1]
+					scorelist[i+1] = temp
+					count = count + 1
+						
+		
+
+	elif catrating == '1':
+		catrating = '2'
+		
+		count = 1
+		temp = ''
+		while count > 0:
+			count = 0
+			for i in range(len(scorelist)-1):
+				temp = ''
+				if float(scorelist[i][2]) > float(scorelist[i+1][2]) :
+					temp = scorelist[i]
+					scorelist[i] = scorelist[i+1]
+					scorelist[i+1] = temp
+					count = count + 1
+		
+	
+	elif catrating == '2':
+		catrating = '1'
+		
+		count = 1
+		temp = ''
+		while count > 0:
+			count = 0
+			for i in range(len(scorelist)-1):
+				temp = ''
+				if float(scorelist[i][2]) < float(scorelist[i+1][2]) :
+					temp = scorelist[i]
+					scorelist[i] = scorelist[i+1]
+					scorelist[i+1] = temp
+					count = count + 1
+	
+		
+		
+	
+	sortinfo = []
+	sortinfo.append(instname)
+	sortinfo.append(modelname)
+	sortinfo.append(catrating)
+	sortinfo.append(catcompleted)
+	
+	inputdic = {'inputlst':scorelist, 'sortlst':sortinfo}
+
+	
+	if caseselection != None:
+		inputdic['caseselection'] = caseselection
+	
+	
+	request.session['inputdic'] = inputdic
+	
+
+		
+	if page == 'category_leader':
+		
+		scenario_lst = []
+		for i in Case.objects.all():
+			if str(i.scenario) not in  scenario_lst:
+				scenario_lst.append(str(i.scenario))
+
+		inputdic['scenario_lst'] = scenario_lst
+		inputdic['scenario'] = name
+	
+	
+		request.session['inputdic'] = inputdic
+		
+		
+		return render_to_response('Leaderboard_scenario.html',inputdic)
+	
+	elif page == 'scenario_to_test':
+		
+		inputdic['scenario'] = name
+		request.session['inputdic'] = inputdic
+		
+		return render_to_response('scenario_to_test.html',inputdic)
+	
+	elif page =='scenario_to_test_fail':
+	
+		inputdic['scenario'] = name
+		request.session['inputdic'] = inputdic
+		
+		return render_to_response('scenario_to_testfail.html',inputdic)
+
+
+#------------------------------------------------------------------------------------
+def catcompleted_sort(request):
+	
+	# extract data
+	instname = str(request.GET['instname'])
+	modelname = str(request.GET['modelname'])
+	catrating = str(request.GET['catrating'])
+	catcompleted = str(request.GET['catcompleted'])
+	page = str(request.GET['page'])
+	
+	instname = '0'
+	catrating = '0'
+	modelname = '0'
+	
+	inputdic = request.session['inputdic']
+	
+	scorelist = inputdic['inputlst']
+	
+	name = inputdic['scenario']
+	if 'caseselection' in inputdic.keys():
+		caseselection = inputdic['caseselection']
+	else:
+		caseselection = None
+	
+	
+	# sort depending on various circumstances
+	
+	if catcompleted == '0':
+		catcompleted = '1'
+		
+		count = 1
+		temp = ''
+		while count > 0:
+			count = 0
+			for i in range(len(scorelist)-1):
+				temp = ''
+				if float(scorelist[i][3]) < float(scorelist[i+1][3]) :
+					temp = scorelist[i]
+					scorelist[i] = scorelist[i+1]
+					scorelist[i+1] = temp
+					count = count + 1
+						
+		
+
+	elif catcompleted == '1':
+		catcompleted = '2'
+		
+		count = 1
+		temp = ''
+		while count > 0:
+			count = 0
+			for i in range(len(scorelist)-1):
+				temp = ''
+				if float(scorelist[i][3]) > float(scorelist[i+1][3]) :
+					temp = scorelist[i]
+					scorelist[i] = scorelist[i+1]
+					scorelist[i+1] = temp
+					count = count + 1
+		
+	
+	elif catcompleted == '2':
+		catcompleted = '1'
+		
+		count = 1
+		temp = ''
+		while count > 0:
+			count = 0
+			for i in range(len(scorelist)-1):
+				temp = ''
+				if float(scorelist[i][3]) < float(scorelist[i+1][3]) :
+					temp = scorelist[i]
+					scorelist[i] = scorelist[i+1]
+					scorelist[i+1] = temp
+					count = count + 1
+	
+		
+		
+	
+	sortinfo = []
+	sortinfo.append(instname)
+	sortinfo.append(modelname)
+	sortinfo.append(catrating)
+	sortinfo.append(catcompleted)
+	
+	inputdic = {'inputlst':scorelist, 'sortlst':sortinfo}
+	
+	
+	if caseselection != None:
+		inputdic['caseselection'] = caseselection
+	
+	
+	request.session['inputdic'] = inputdic
+	
+
+		
+	if page == 'category_leader':
+		
+		scenario_lst = []
+		for i in Case.objects.all():
+			if str(i.scenario) not in  scenario_lst:
+				scenario_lst.append(str(i.scenario))
+
+		inputdic['scenario_lst'] = scenario_lst
+		inputdic['scenario'] = name
+	
+	
+		request.session['inputdic'] = inputdic
+		
+		
+		return render_to_response('Leaderboard_scenario.html',inputdic)
+	
+	elif page == 'scenario_to_test':
+		
+		inputdic['scenario'] = name
+		request.session['inputdic'] = inputdic
+		
+		return render_to_response('scenario_to_test.html',inputdic)
+	
+	elif page =='scenario_to_test_fail':
+	
+		inputdic['scenario'] = name
+		request.session['inputdic'] = inputdic
+		
+		return render_to_response('scenario_to_testfail.html',inputdic)
+
+		
+	
+	
+		

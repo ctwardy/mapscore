@@ -73,9 +73,9 @@
 	</center>
 	<br>
 	
-	<center>
-	<b> Sort By: </b>
-	</center>
+	<div style ='padding-left:490px'>
+	<b> Select Table: </b>
+	</div>
 	
 	
 
@@ -89,10 +89,109 @@
 	<div style ='padding-left:25px'>
 	<table border = "1" style = " font-size:15px; width:1000px"  bgcolor = '#FFFF99'>
 	<tr style ='color:white;background-color:navy'>
-	<th> <p style ='font-size:15px'> Institution Name </p> </th>
-	<th> <p style ='font-size:15px'> Model Name </p> </th>
-	<th> <p style ='font-size:15px'> Test Name </p> </th>
-	<th> <p style ='font-size:15px'> Test Rating </p> </th>
+	<th style= 'height:50px'> <form  name ='data' action = "/test_inst_sort/">
+	<Input  type = 'hidden' name = "instname" value ='{{sortlst.0}}'>
+	<Input  type = 'hidden' name = "modelname" value ='{{sortlst.1}}'>
+	<Input  type = 'hidden' name = "testname" value ='{{sortlst.2}}'>
+	<Input  type = 'hidden' name = "tstrating" value ='{{sortlst.3}}'>
+	<Input  type = 'hidden' name = "page" value ='TEST_TOSCENARIO_MOVE'>
+	<button  type = 'submit' style ='font-size:17px;border:0px; background-color:navy;color:white;cursor:pointer'>
+	Institution Name  
+	{% if sortlst.0 == '1' %}
+	&nbsp;&nbsp; ^
+	{% endif %}
+	
+	{% if sortlst.0 == '2' %}
+	&nbsp;&nbsp; v
+	{% endif %}
+	
+	{% if sortlst.0 == '0' %}
+	&nbsp;&nbsp;-
+	{% endif %}
+	
+	</button> </form>
+	</th>
+	
+	
+	
+	
+	
+	<th style= 'height:50px'> <form  name ='data' action = "/test_modelname_sort/">
+	<Input  type = 'hidden' name = "instname" value ='{{sortlst.0}}'>
+	<Input  type = 'hidden' name = "modelname" value ='{{sortlst.1}}'>
+	<Input  type = 'hidden' name = "testname" value ='{{sortlst.2}}'>
+	<Input  type = 'hidden' name = "tstrating" value ='{{sortlst.3}}'>
+	<Input  type = 'hidden' name = "page" value ='TEST_TOSCENARIO_MOVE'>
+	<button  type = 'submit' style ='font-size:17px;border:0px; background-color:navy;color:white;cursor:pointer'>
+	Model Name 
+	{% if sortlst.1 == '1' %}
+	&nbsp;&nbsp; ^
+	{% endif %}
+	
+	{% if sortlst.1 == '2' %}
+	&nbsp;&nbsp; v
+	{% endif %}
+	
+	{% if sortlst.1 == '0' %}
+	&nbsp;&nbsp;-
+	{% endif %}
+	
+	</button> </form>
+	</th>
+	
+	
+
+	
+	<th style= 'height:50px'> <form  name ='data' action = "/test_name_sort/">
+	<Input  type = 'hidden' name = "instname" value ='{{sortlst.0}}'>
+	<Input  type = 'hidden' name = "modelname" value ='{{sortlst.1}}'>
+	<Input  type = 'hidden' name = "testname" value ='{{sortlst.2}}'>
+	<Input  type = 'hidden' name = "tstrating" value ='{{sortlst.3}}'>
+	<Input  type = 'hidden' name = "page" value ='TEST_TOSCENARIO_MOVE'>
+	<button  type = 'submit' style ='font-size:17px;border:0px; background-color:navy;color:white;cursor:pointer'>
+	Test Name
+	{% if sortlst.2 == '1' %}
+	&nbsp;&nbsp; ^
+	{% endif %}
+	
+	{% if sortlst.2 == '2' %}
+	&nbsp;&nbsp; v
+	{% endif %}
+	
+	{% if sortlst.2 == '0' %}
+	&nbsp;&nbsp;-
+	{% endif %}
+	
+	</button> </form>
+	</th>
+	
+	
+	
+	
+	
+	<th style= 'height:50px'> <form  name ='data' action = "/test_rating_sort/">
+	<Input  type = 'hidden' name = "instname" value ='{{sortlst.0}}'>
+	<Input  type = 'hidden' name = "modelname" value ='{{sortlst.1}}'>
+	<Input  type = 'hidden' name = "testname" value ='{{sortlst.2}}'>
+	<Input  type = 'hidden' name = "tstrating" value ='{{sortlst.3}}'>
+	<Input  type = 'hidden' name = "page" value ='TEST_TOSCENARIO_MOVE'>
+	<button  type = 'submit' style ='font-size:17px;border:0px; background-color:navy;color:white;cursor:pointer'>
+	Test Rating 
+	{% if sortlst.3 == '1' %}
+	&nbsp;&nbsp; ^
+	{% endif %}
+	
+	{% if sortlst.3 == '2' %}
+	&nbsp;&nbsp; v
+	{% endif %}
+	
+	{% if sortlst.3 == '0' %}
+	&nbsp;&nbsp;-
+	{% endif %}
+	
+	</button> </form>
+	</th>
+	
 	
 	</tr>
 	

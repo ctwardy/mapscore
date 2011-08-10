@@ -45,7 +45,7 @@
 	
 	<br><br>
 	
-	<image src = '{{profpic}}?random={{rand}}' style = 'border:solid; border-width:5px;border-color:black;' width = '{{xsize}}'  height = '{{ysize}}' >
+	<image src = '{{profpic}}' style = 'border:solid; border-width:5px;border-color:black;' width = '{{xsize}}'  height = '{{ysize}}' >
 	
 	<br><br><br>
 	
@@ -68,6 +68,24 @@
 <b><u>Website of Research Organization:</u>&nbsp;&nbsp;&nbsp;</b> <a href="http://{{website}}" target ="_blank">{{website}}</a>
 {% endif %}
 <br><br>
+<br>
+<center> <i style ='font-size:18px'> <b><u>Active Account Models:</u></b> </i></center><br>
+
+{% for i in modellst %}
+<center><b> {{i.0}} </b></center>
+<br>
+{{i.1}}
+
+<br><br>
+
+{% endfor %}
+
+
+
+
+
+
+
 </div>
 
 </div>

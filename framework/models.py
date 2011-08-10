@@ -339,16 +339,19 @@ class Test(models.Model):
 	usr_p8y = models.CharField(max_length = 10)
 	usr_p9x = models.CharField(max_length = 10)
 	usr_p9y = models.CharField(max_length = 10)
-
-
+	gridfresh =  models.CharField(max_length = 10)
+	grayrefresh =  models.CharField(max_length = 10)
 
 	def setup(self):
+		self.gridfresh = 0
+		self.grayrefresh = 0
 		self.test_rating = 'unrated'
 		self.Active = True
 		self.Validated = False
 		self.generate_testpoints()
 		self.nav = 0
 		self.show_instructions = True
+		
 
 		# Save
 		self.save()
@@ -916,12 +919,16 @@ class Test(models.Model):
 				temp = temp +'_'
 			else:
 				temp = temp + str(i)
+		
+		# Iterate counter
+		self.gridfresh = int(self.gridfresh) + 1
+		self.save()
 
 		#string = 'C:/Users/Nathan Jones/Django Website/MapRateWeb/media'
 		string = 'media'
-		string = string + '/t_' + str(temp) + '.png'
+		string = string + '/t_' + str(temp) + '_' + str(self.gridfresh) +  '.png'
 
-		string2 = '/media'+ '/t_' + str(temp) + '.png'
+		string2 = '/media'+ '/t_' + str(temp) + '_' + str(self.gridfresh) +'.png'
 		self.test_url = string2
 		self.test_url2 = string
 		im.save(string)
@@ -1076,9 +1083,29 @@ class Test(models.Model):
 		# Remove Old Image
 		os.remove(self.test_url2)
 		
-		# Save New Image
+		
+		# reformat ID2
+		st = str(self.ID2)
+		temp = ''
+		for i in st:
+			if i == ':':
+				temp = temp +'_'
+			else:
+				temp = temp + str(i)
+		
+		
+		# Iterate counter
+		self.gridfresh = int(self.gridfresh) + 1
+		self.save()
 
-		im.save(self.test_url2)
+		#string = 'C:/Users/Nathan Jones/Django Website/MapRateWeb/media'
+		string = 'media'
+		string = string + '/t_' + str(temp) + '_' + str(self.gridfresh) +  '.png'
+
+		string2 = '/media'+ '/t_' + str(temp) + '_' + str(self.gridfresh) +'.png'
+		self.test_url = string2
+		self.test_url2 = string
+		im.save(string)
 
 		# Save
 		self.save()
@@ -1203,7 +1230,9 @@ class Model(models.Model):
 	model_tests = models.ManyToManyField(Test, through = 'Test_Model_Link')
 	model_avgrating = models.CharField(max_length = 10)
 	ID2 = models.CharField(max_length = 100)
-
+	Description = models.TextField()
+	
+	
 	def setup(self):
 		self.model_avgrating = 'unrated'
 		self.Completed_cases = 0
@@ -1261,6 +1290,7 @@ class Account(models.Model):
 	photosizex = models.CharField(max_length = 10)
 	photosizey = models.CharField(max_length = 10)
 	deleted_models = models.CharField(max_length = 10)
+	profpicrefresh =  models.CharField(max_length = 10)
 
 #----------------------------------------------------------------------------------
 
