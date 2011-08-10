@@ -82,6 +82,18 @@ from Views import test_to_test_switch
 from Views import scenario_to_test_switch
 from Views import scenario_to_scenario_switch
 from Views import hyper_leaderboard
+from Views import model_inst_sort
+from Views import model_name_sort
+from Views import model_rtg_sort
+from Views import model_tstscomp_sort
+from Views import test_inst_sort
+from Views import test_modelname_sort
+from Views import test_name_sort
+from Views import test_rating_sort
+from Views import cat_inst_sort
+from Views import cat_modelname_sort
+from Views import catrating_sort
+from Views import catcompleted_sort
 
 # Uncomment the next two lines to enable the admin:
 # from django.contrib import admin
@@ -168,6 +180,18 @@ urlpatterns = patterns('',
 			  ('^scenario_to_test_switch/$',scenario_to_test_switch),
 			  ('^scenario_to_scenario_switch/$',scenario_to_scenario_switch),
 			  ('^hyper_leaderboard/$',hyper_leaderboard),
+			  ('^model_inst_sort/$',model_inst_sort),
+			  ('^model_name_sort/$',model_name_sort),
+			  ('^model_rtg_sort/$',model_rtg_sort),
+			  ('^model_tstscomp_sort/$',model_tstscomp_sort),
+			  ('^test_inst_sort/$',test_inst_sort),
+			  ('^test_modelname_sort/$',test_modelname_sort),
+			  ('^test_name_sort/$',test_name_sort),
+			  ('^test_rating_sort/$',test_rating_sort),
+			  ('^cat_inst_sort/$',cat_inst_sort),
+			  ('^cat_modelname_sort/$',cat_modelname_sort),
+			  ('^catrating_sort/$',catrating_sort),
+			  ('^catcompleted_sort/$',catcompleted_sort),
 			  
 			  
     # Examples:
