@@ -4091,6 +4091,16 @@ def hyper_leaderboard(request):
 #-----------------------------------------------------------------------------------------
 def model_inst_sort(request):
 	
+	#-------------------------------------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['admintoken'] == False and request.session['usertoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+
+	#-------------------------------------------------------------------------------------------------
+	
 	# extract data
 	instname = str(request.GET['instname'])
 	modelname = str(request.GET['modelname'])
@@ -4202,6 +4212,17 @@ def model_inst_sort(request):
 #------------------------------------------------------------------------------------
 def model_name_sort(request):
 	
+	
+	#-------------------------------------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['admintoken'] == False and request.session['usertoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+
+	#-------------------------------------------------------------------------------------------------
+	
 	# extract data
 	instname = str(request.GET['instname'])
 	modelname = str(request.GET['modelname'])
@@ -4312,6 +4333,16 @@ def model_name_sort(request):
 		
 #-----------------------------------------------------------------------------------
 def model_rtg_sort(request):
+	
+	#-------------------------------------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['admintoken'] == False and request.session['usertoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+
+	#-------------------------------------------------------------------------------------------------
 	
 	
 	# extract data
@@ -4428,6 +4459,16 @@ def model_rtg_sort(request):
 #-------------------------------------------------------------------------------------
 def model_tstscomp_sort(request):
 	
+	#-------------------------------------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['admintoken'] == False and request.session['usertoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+
+	#-------------------------------------------------------------------------------------------------
+	
 	
 		# extract data
 	instname = str(request.GET['instname'])
@@ -4541,6 +4582,16 @@ def model_tstscomp_sort(request):
 	
 #---------------------------------------------------------------------------------------
 def test_inst_sort(request):
+	
+	#-------------------------------------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['admintoken'] == False and request.session['usertoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+
+	#-------------------------------------------------------------------------------------------------
 	
 	
 	
@@ -4657,6 +4708,17 @@ def test_inst_sort(request):
 #---------------------------------------------------------------------------------------
 def test_modelname_sort(request):
 	
+	
+	#-------------------------------------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['admintoken'] == False and request.session['usertoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+
+	#-------------------------------------------------------------------------------------------------
+	
 	# extract data
 	instname = str(request.GET['instname'])
 	modelname = str(request.GET['modelname'])
@@ -4766,6 +4828,16 @@ def test_modelname_sort(request):
 
 #------------------------------------------------------------------------------------
 def test_name_sort(request):
+	
+	#-------------------------------------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['admintoken'] == False and request.session['usertoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+
+	#-------------------------------------------------------------------------------------------------
 	
 	# extract data
 	instname = str(request.GET['instname'])
@@ -4877,6 +4949,16 @@ def test_name_sort(request):
 #-------------------------------------------------------------------------------------
 def test_rating_sort(request):
 	
+	#-------------------------------------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['admintoken'] == False and request.session['usertoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+
+	#-------------------------------------------------------------------------------------------------
+	
 	# extract data
 	instname = str(request.GET['instname'])
 	modelname = str(request.GET['modelname'])
@@ -4987,6 +5069,16 @@ def test_rating_sort(request):
 
 #-----------------------------------------------------------------------------------
 def cat_inst_sort(request):
+	
+	#-------------------------------------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['admintoken'] == False and request.session['usertoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+
+	#-------------------------------------------------------------------------------------------------
 	
 	# extract data
 	instname = str(request.GET['instname'])
@@ -5111,6 +5203,16 @@ def cat_inst_sort(request):
 
 #---------------------------------------------------------------------------------
 def cat_modelname_sort(request):
+	
+	#-------------------------------------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['admintoken'] == False and request.session['usertoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+
+	#-------------------------------------------------------------------------------------------------
 	
 	
 	# extract data
@@ -5238,6 +5340,15 @@ def cat_modelname_sort(request):
 #----------------------------------------------------------------------------------
 def catrating_sort(request):
 	
+	#-------------------------------------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['admintoken'] == False and request.session['usertoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+
+	#-------------------------------------------------------------------------------------------------
 	
 	
 	# extract data
@@ -5366,6 +5477,16 @@ def catrating_sort(request):
 #------------------------------------------------------------------------------------
 def catcompleted_sort(request):
 	
+	#-------------------------------------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['admintoken'] == False and request.session['usertoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+
+	#-------------------------------------------------------------------------------------------------
+	
 	# extract data
 	instname = str(request.GET['instname'])
 	modelname = str(request.GET['modelname'])
@@ -5491,6 +5612,16 @@ def catcompleted_sort(request):
 #----------------------------------------------------------------------------------
 def model_edit_info(request):
 	
+	#------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['usertoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+
+	#---------------------------------------------------------------------
+	
 	description = str(request.session['active_model'].Description)
 	name = request.session['active_model'].model_nameID
 	
@@ -5502,6 +5633,16 @@ def model_edit_info(request):
 
 #---------------------------------------------------------------------------------
 def model_change_info(request):
+	
+	#------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['usertoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+
+	#---------------------------------------------------------------------
 	
 	pw = str(request.GET['Password'])
 	des = str(request.GET['description'])
@@ -5546,6 +5687,16 @@ def model_change_info(request):
 	
 #---------------------------------------------------------------------------------
 def model_Profile(request):
+	
+	#-------------------------------------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['admintoken'] == False and request.session['usertoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+
+	#-------------------------------------------------------------------------------------------------
 	
 	Account_in = str(request.GET['Account'])
 	Model = str(request.GET['Model'])
