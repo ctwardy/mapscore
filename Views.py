@@ -5711,5 +5711,5 @@ def model_Profile(request):
 	
 	modeldic = {'Name':Name,'Accountname':Accountname,'Description':description,'username':username}
 	
-	return render_to_response('model_profile.html',modeldic)
+	return render_to_response('model_Profile.html',modeldic)
 		
