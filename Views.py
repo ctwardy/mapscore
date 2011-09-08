@@ -5486,8 +5486,61 @@ def catcompleted_sort(request):
 		request.session['inputdic'] = inputdic
 		
 		return render_to_response('scenario_to_testfail.html',inputdic)
+		
+#----------------------------------------------------------------------------------
+def model_edit_info(request):
+	
+	description = str(request.session['active_model'].Description)
+	name = request.session['active_model'].model_nameID
+	
+	inputdic = {}
+	inputdic['description'] = description
+	inputdic['model_name'] = name
+	
+	return render_to_response('edit_model_info.html',inputdic)
 
+#---------------------------------------------------------------------------------
+def model_change_info(request):
+	
+	pw = str(request.GET['Password'])
+	des = str(request.GET['description'])
+	name = request.session['active_model'].model_nameID
+	
+	
+	account = request.session['active_account']
+	model = request.session['active_model']
+		
+	password = str(account.password)
+	
+	inputdic = {}
+	inputdic['description'] = des
+	inputdic['model_name'] = name
+	
+	count = 0
+	if pw != password:
+		count = count + 1
+		inputdic['passfail'] = True
+	
+	
+	baddescription = '^\s*$'
+	
+	if re.match(baddescription,des) != None:
+		count = count + 1
+		inputdic['Fail1'] = True
 		
 	
+	if count > 0:
+		return render_to_response('edit_model_info.html',inputdic)
+	
+	
+	
+	
+	
+	# If everything works out
+	
+	model.Description = des
+	model.save()
+	
+	return render_to_response('model_info_updated.html')
 	
 		
