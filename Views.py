@@ -5712,4 +5712,50 @@ def model_Profile(request):
 	modeldic = {'Name':Name,'Accountname':Accountname,'Description':description,'username':username}
 	
 	return render_to_response('model_Profile.html',modeldic)
+
+#-----------------------------------------------------------------------------------
+def metric_description (request):
+	
+	#------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['usertoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+
+	#---------------------------------------------------------------------
+	
+	return render_to_response('metric_description.html')
+	
+#-----------------------------------------------------------------------------------
+def metric_description_nonactive (request):
+	
+	#------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['usertoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+
+	#---------------------------------------------------------------------
+	
+	return render_to_response('metric_description_nonactive.html')
+	
+#-----------------------------------------------------------------------------------
+def metric_description_submissionreview (request):
+	
+	#------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['usertoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+
+	#---------------------------------------------------------------------
+	
+	return render_to_response('metric_description_submissionreview.html')
+	
 		

@@ -97,6 +97,9 @@ from Views import catcompleted_sort
 from Views import model_edit_info
 from Views import model_change_info
 from Views import model_Profile
+from Views import metric_description
+from Views import metric_description_nonactive
+from Views import metric_description_submissionreview
 
 # Uncomment the next two lines to enable the admin:
 # from django.contrib import admin
@@ -198,6 +201,9 @@ urlpatterns = patterns('',
 			  ('^model_edit_info/$',model_edit_info),
 			  ('^model_change_info/$',model_change_info),
 			  ('^model_Profile/$',model_Profile),
+			  ('^metric_description/$',metric_description),
+			  ('^metric_description_nonactive/$',metric_description_nonactive),
+			  ('^metric_description_submissionreview/$',metric_description_submissionreview),
 			  
 			  
     # Examples:
