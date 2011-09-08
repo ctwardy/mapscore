@@ -96,6 +96,7 @@ from Views import catrating_sort
 from Views import catcompleted_sort
 from Views import model_edit_info
 from Views import model_change_info
+from Views import model_Profile
 
 # Uncomment the next two lines to enable the admin:
 # from django.contrib import admin
@@ -196,6 +197,7 @@ urlpatterns = patterns('',
 			  ('^catcompleted_sort/$',catcompleted_sort),
 			  ('^model_edit_info/$',model_edit_info),
 			  ('^model_change_info/$',model_change_info),
+			  ('^model_Profile/$',model_Profile),
 			  
 			  
     # Examples:

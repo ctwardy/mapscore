@@ -22,7 +22,7 @@
 		<div style = 'margin-top:18px'>
 		<div style ='font-size:14px;padding-left:265px; position:absolute; width:95%'>
 		[<a href="/main/" style ='color:white'> Log Out </a> | <a href="/hyper_leaderboard/" style ='color:white'> Leaderboard </a> ]
-		&nbsp;&nbsp;&nbsp;&nbsp;<i>*Account Profile*</i>&nbsp;&nbsp;&nbsp;&nbsp;
+		&nbsp;&nbsp;&nbsp;&nbsp;<i>*Model Description*</i>&nbsp;&nbsp;&nbsp;&nbsp;
 		[  <a href="https://github.com/ctwardy/Pmap-Score/issues?sort=created&direction=desc&state=open" style ='color:white' target="_blank" > Issue Tracker </a> | <a href="/help/" style ='color:white' target="_blank"> Help </a>]</div>
 		</div>
 
@@ -36,53 +36,22 @@
 <div style =' margin-left: 0% ; margin-top: 130px; margin-right: 0%; margin-bottom: 0px; color:black; overflow-y:hidden; overflow-x:hidden;'  >
 <br><br>
 
-<center><h1 style ='color:#330066'><b> {{Name}} </b></h1></center>
+<center><h1 style ='color:#330066'><b> Model Name:  {{Name}} </b></h1></center>
 <br><br>
 
-<center>
-	<div style = 'width:500px;height:auto;border:double;border-color:black;border-width:5px;background-image:url("/media/blueframe.jpg")'>
-
-	
-	<br><br>
-	
-	<image src = '{{profpic}}' style = 'border:solid; border-width:5px;border-color:black;' width = '{{xsize}}'  height = '{{ysize}}' >
-	
-	<br><br><br>
-	
-	</div>
-</center>
-
-	<br><br><br>
 <div style ='margin-left:175px; padding-left:20px; background-color:#FFFF99 ; border:double; width:700px'>
-<br>
-
-<b><u>Name of Registerd Researcher:</u>&nbsp;&nbsp;&nbsp; {{RegisteredUser}}</b>
-
+<br><br>
+<b>&nbsp;&nbsp;Research Institution:</b> <br><br>
+			<form action ='/Account_Profile/' name = 'inputform1'>
+			<input type = 'hidden' name ='Account' value = '{{username}}'>
+			<button type = 'submit' style ='border:0px; background-color:#FFFF99;color:blue;cursor:pointer'> <u><b> {{Accountname}} </b></u> </button>
+			</form>
+			
 <br><br>
 
-<b><u>Email of Registerd Researcher:</u>&nbsp;&nbsp;&nbsp; {{Email}}</b>
-
-
-{% if websitexists %}
+<b>Model Description:</b> <br><br> {{Description}}
 <br><br>
-<b><u>Website of Research Organization:</u>&nbsp;&nbsp;&nbsp;</b> <a href="http://{{website}}" target ="_blank">{{website}}</a>
-{% endif %}
-<br><br>
-<br>
-<center> <i style ='font-size:18px'> <b><u>Active Account Models:</u></b> </i></center><br>
-
-{% for i in modellst %}
-<center><b> <form action ='/model_Profile/' name = 'inputform2'>
-			<input type = 'hidden' name ='Account' value = '{{i.2}}'>
-			<input type = 'hidden' name ='Model' value = '{{i.0}}'>
-			<button type = 'submit' style ='border:0px; background-color:#FFFF99;color:blue;cursor:pointer'> <u><b> {{i.0}} </b></u> </button>
-			</form> </b></center>
-<br>
-{{i.1}}
-
-<br><br>
-
-{% endfor %}
+</div>	
 
 
 
@@ -90,7 +59,7 @@
 
 
 
-</div>
+
 
 </div>
 <br><br>
@@ -99,7 +68,7 @@
 		
 		
 		<button name = "Return To from Profile" type = "submit" value = "HTML">
-		Return to Leaderbaord
+		Return to Leaderboard
 		</button>
 		
 	</form>

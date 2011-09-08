@@ -221,7 +221,13 @@
 			</td>
 			
 			<td>
-			<p style =' font-size:15px'> <center><b>{{i.1}}</b></center></p>
+			<center>
+			<form action ='/model_Profile/' name = 'inputform2'>
+			<input type = 'hidden' name ='Account' value = '{{i.4}}'>
+			<input type = 'hidden' name ='Model' value = '{{i.1}}'>
+			<button type = 'submit' style ='border:0px; background-color:#FFFF99;color:blue;cursor:pointer'> <u><b> {{i.1}} </b></u> </button>
+			</form>
+			</center>
 			</td>
 			
 			<td>

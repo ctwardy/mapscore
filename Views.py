@@ -2507,6 +2507,7 @@ def Account_Profile(request):
 		templst = []
 		templst.append(i.model_nameID)
 		templst.append(i.Description)
+		templst.append(Account_in)
 		modellst.append(templst)
 
 	inputdic['modellst'] = modellst
@@ -5543,4 +5544,21 @@ def model_change_info(request):
 	
 	return render_to_response('model_info_updated.html')
 	
+#---------------------------------------------------------------------------------
+def model_Profile(request):
+	
+	Account_in = str(request.GET['Account'])
+	Model = str(request.GET['Model'])
+	
+	Active_account = Account.objects.get(username = Account_in)
+	Active_model = Active_account.account_models.get(model_nameID = Model)
+	
+	Name = str(Active_model.model_nameID)
+	Accountname = str(Active_account.institution_name)
+	description = str(Active_model.Description)
+	username = str(Active_account.username)
+	
+	modeldic = {'Name':Name,'Accountname':Accountname,'Description':description,'username':username}
+	
+	return render_to_response('model_profile.html',modeldic)
 		
