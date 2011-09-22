@@ -355,6 +355,11 @@ class Test(models.Model):
 
 		# Save
 		self.save()
+		
+		if self.model_set.all()[0].gridvalidated == True:
+			self.Validated = True
+			self.nav = 2
+			self.save()
 
 	def generate_testpoints(self):
 
@@ -1233,6 +1238,7 @@ class Model(models.Model):
 	# Define Database Table Fields
 	Completed_cases = models.CharField(max_length = 30)
 	model_nameID = models.CharField(max_length = 30)
+	gridvalidated = models.BooleanField()
 	model_tests = models.ManyToManyField(Test, through = 'Test_Model_Link')
 	model_avgrating = models.CharField(max_length = 10)
 	ID2 = models.CharField(max_length = 100)
@@ -1242,6 +1248,7 @@ class Model(models.Model):
 	def setup(self):
 		self.model_avgrating = 'unrated'
 		self.Completed_cases = 0
+		self.gridvalidated = False
 		# Save
 		self.save()
 

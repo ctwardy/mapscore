@@ -833,7 +833,6 @@ def create_test(request):
 	newtest = Test( test_case = tempcase,
 			test_name = tempcase.case_name,
 			ID2 = str(request.session['active_model'].ID2) + ':' +str(tempcase.case_name) )
-	newtest.setup()
 
 	newtest.save()
 
@@ -841,6 +840,10 @@ def create_test(request):
 				model = request.session['active_model'])
 
 	Link.save()
+	
+	newtest.setup()
+	
+	newtest.save()
 	
 	request.session['createcheck'] = True
 
@@ -1283,6 +1286,9 @@ def passtest(request):
 
 	request.session['active_test'].show_instructions = True
 	request.session['active_test'].save()
+	
+	request.session['active_model'].gridvalidated = True
+	request.session['active_model'].save()
 	return redirect('/test_instructions/')
 
 #-----------------------------------------------------------------------------------------------------------
