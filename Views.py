@@ -150,6 +150,7 @@ def create_account(request):
 	Password2 = str(request.GET['Password2'])
 	Websitein = str(request.GET['Website'])
 	betakey = str(request.GET['Betakey'])
+	captchain = str(request.GET['captcha'])
 	
 	#Verify Input
 	
@@ -164,7 +165,7 @@ def create_account(request):
 	Password1_r ='^.+$'
 	Password2_r ='^.+$'
 	Websitein_r ='.*$'   
-
+	actualcaptcha = 'H4bN'
 
 	# Verify input
 	count = 0
@@ -195,12 +196,20 @@ def create_account(request):
 		count = count + 1
 		usernamefail = True
 		inputdic['usernamefail'] = usernamefail
+		
+	if captchain != actualcaptcha:
+		count = count + 1
+		captchafail = True
+		inputdic['captchafail'] = captchafail	
 	
 	if betakey != actualbetakey:
 		count = count + 1
 		betafail = True
 		inputdic['betafail'] = betafail
+		
 	
+
+		
 	# For Beta Testing
 	
 

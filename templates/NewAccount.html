@@ -126,18 +126,33 @@
 		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;Repeat Password: &nbsp;&nbsp;
 		{% if fail %} <Input maxlength = '30' type = "password" name = "Password2" value ='{{Password2}}'> {% else %} <Input maxlength = '30' type = "password" name = "Password2">  {% endif %}
 		{% if Pass2fail %}&nbsp; <i style ='color:red;font-size:12px'> Invalid Entry </i>   {% endif %}
-		<br><br>
-		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-		&nbsp;&nbsp;&nbsp;&nbsp;
-		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type = "Submit">	
+
 		<br><br>
 		
 		<center> {% if passsyncfail %}<i style ='color:red;font-size:12px'> Passwords do not match </i>   {% endif %} </center>
 		
+		<br>
+		
+		<center> <b> User Verification </b> </center>
+		<br>
+		
+		<center>
+		<img src = "/media/Captcha1.png" width ='374' height = '355'  >
+		</center>
+		
+		<br>
+		
+		<center>Please transcribe the image text below:</center><br>
+		
+		<center> <Input maxlength = '30' type = "text" name = "captcha" > </center>
+		{% if captchafail %}&nbsp;<br> <center><i style ='color:red;font-size:12px'> Invalid Image Match</i> </center>  {% endif %}
 		
 		<br><br>
+		
+		<center> <input type = "Submit"> </center>	
+		
+		<br><br>
+		
 		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;
 		Beta Key: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 		&nbsp;&nbsp;&nbsp;&nbsp;
