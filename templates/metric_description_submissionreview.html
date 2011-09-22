@@ -50,10 +50,11 @@ In order to evaluate the submitted probability maps against the actual find <br>
 location, a rating metric developed by Rossmo [1] has been implemented.<br>
 <br>
 The Rossmo metric has gained favor in crime mapping literature. Let p be the <br>
-probability assigned to the actual find location. Rossmo's r is the proportion of <br>
-pixels whose probability is at least p. Chance performance would be 50%, so r can <br>
-be converted to a 0.1 scale using R =(.5 - r)/ 5, with 1 being perfect and negative <br>
-scores denoting worse-than-chance performance. (a)<br>
+probability assigned to the actual find location. Rossmo's r is the proportion of  <br>
+pixels whose probability is greater than p plus one half the proportion of pixels <br>
+whose probability is equal to p . Chance performance would be 50%, so r can be <br>
+converted to a -1 to 1 scale using R =(.5 - r)/ 5, with 1 being perfect and <br>
+negative scores denoting worse-than-chance performance. (a)<br>
 <br>
 The Rossmo r has an operational interpretation. Assume:<br>
 1. All searchers have perfect detection P(D) = 1 in all cells.<br>
