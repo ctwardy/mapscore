@@ -133,30 +133,31 @@
 		
 		<br>
 		
-		<center> <b> User Verification </b> </center>
+		 <b style ='padding-left:175px'> User Verification </b> 
+		<br>
 		<br>
 		
-		<center>
-		<img src = "/media/Captcha1.png" width ='374' height = '355'  >
-		</center>
+		<img style = 'padding-left:50px' src = "/media/Captcha1.png" width ='374' height = '355'  >
 		
-		<br>
-		
-		<center>Please transcribe the image text below:</center><br>
-		
-		<center> <Input maxlength = '30' type = "text" name = "captcha" > </center>
-		{% if captchafail %}&nbsp;<br> <center><i style ='color:red;font-size:12px'> Invalid Image Match</i> </center>  {% endif %}
 		
 		<br><br>
 		
-		<center> <input type = "Submit"> </center>	
+		<div style = 'padding-left:120px'>Please transcribe the image text below:<br> </div>
+		<br>
+		<div style = 'padding-left:160px'> <Input  maxlength = '30' type = "text" name = "captcha" > </div>
+		
+		{% if captchafail %}&nbsp;<i style ='color:red;font-size:12px;padding-left:185px'> Invalid Image Match</i> <br>{% endif %}
+		
+		<br>
+		
+		<div style = 'padding-left:210px'> <input type = "Submit"> </div>
 		
 		<br><br>
 		
 		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;
 		Beta Key: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 		&nbsp;&nbsp;&nbsp;&nbsp;
-		<Input maxlength = '30' type = "password" name = "Betakey" > {% if betafail %}&nbsp; <i style ='color:red;font-size:12px'> Invalid Beta Key</i>   {% endif %}
+		<Input maxlength = '30' type = "password" name = "Betakey" > {% if betafail %}&nbsp; <i style ='color:red;font-size:12px'> Invalid Beta Key</i>    {% endif %}
 		<br><br>
 		
 	</form>
