@@ -1128,7 +1128,7 @@ class Test(models.Model):
 
 		#Determine if ImageRGB 
 
-		if Bands[0] == "R":
+		if Bands[0] == "R" and Bands[1] =="G" and Bands[2] == "B":
 
 			#Ensure Image is Greyscale
 			Check = 0
@@ -1144,14 +1144,17 @@ class Test(models.Model):
 				FindValue = FindArray[1]
 
 				TotalUnits = 0
-				GreaterorEqual = 0
+				Greater = 0
+				Equal = 0
 				for i in AllValues:
 					TotalUnits = TotalUnits + 1
-					if i[1] >= FindValue:
-						GreaterorEqual = GreaterorEqual + 1
+					if i[1] > FindValue:
+						Greater = Greater + 1
+					if i[1] == FindValue:
+						Equal = Equal + 1
 
 				# get r value
-				r = float(GreaterorEqual) / float(TotalUnits)
+				r = (float(Greater)+ (float(Equal)/2)) / float(TotalUnits)
 
 				#Get r value
 				R = (0.5 - r)/0.5
@@ -1184,14 +1187,17 @@ class Test(models.Model):
 			FindValue = FindArray
 
 			TotalUnits = 0
-			GreaterorEqual = 0
+			Greater = 0
+			Equal = 0
 			for i in AllValues:
 				TotalUnits = TotalUnits + 1
-				if i >= FindValue:
-					GreaterorEqual = GreaterorEqual + 1
+				if i > FindValue:
+					Greater = Greater + 1
+				elif i == FindValue:
+					Equal = Equal + 1	
 
 			# get r value
-			r = float(GreaterorEqual) / float(TotalUnits)
+			r = (float(Greater)+ (float(Equal)/2)) / float(TotalUnits)
 
 			#Get r value
 			R = (0.5 - r)/0.5
