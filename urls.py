@@ -1,4 +1,5 @@
 from django.conf.urls.defaults import patterns, include, url
+from django.http import HttpResponse
 from Views import main_page 
 from Views import account_reg
 from Views import create_account
@@ -206,6 +207,7 @@ urlpatterns = patterns('',
 			  ('^metric_description_nonactive/$',metric_description_nonactive),
 			  ('^metric_description_submissionreview/$',metric_description_submissionreview),
 			  ('^reg_conditions/$',reg_conditions),
+			  (r'^robots\.txt$', lambda r: HttpResponse("User-agent: *\nDisallow: /", mimetype="text/plain")),
 			  
 			  
     # Examples:
