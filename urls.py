@@ -100,6 +100,7 @@ from Views import model_Profile
 from Views import metric_description
 from Views import metric_description_nonactive
 from Views import metric_description_submissionreview
+from Views import reg_conditions
 
 # Uncomment the next two lines to enable the admin:
 # from django.contrib import admin
@@ -204,6 +205,7 @@ urlpatterns = patterns('',
 			  ('^metric_description/$',metric_description),
 			  ('^metric_description_nonactive/$',metric_description_nonactive),
 			  ('^metric_description_submissionreview/$',metric_description_submissionreview),
+			  ('^reg_conditions/$',reg_conditions),
 			  
 			  
     # Examples:

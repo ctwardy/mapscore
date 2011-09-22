@@ -5766,5 +5766,10 @@ def metric_description_submissionreview (request):
 	#---------------------------------------------------------------------
 	
 	return render_to_response('metric_description_submissionreview.html')
+
+#-----------------------------------------------------------------------------------
+def reg_conditions(request):
+	
+	return render_to_response('regconditions.html')
 	
 		
