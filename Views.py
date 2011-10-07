@@ -8,6 +8,7 @@ from django.contrib import auth
 from django.shortcuts import redirect
 import random
 import shutil
+import math
 
 # Import Models
 
@@ -2001,6 +2002,28 @@ def Leader_model(request):
 		institution = str(sorted_models[i].account_set.all()[0].institution_name)
 		model = str(sorted_models[i].model_nameID)
 		rating = str(sorted_models[i].model_avgrating)
+		
+		# Create 95% Confidence Interval
+		
+		count = 0
+		sumdeviationsquared = float(0)
+		for k in sorted_models[i].model_tests.all():
+			if k.Active == False:
+					
+				count = count + 1
+				sumdeviationsquared = sumdeviationsquared + math.pow((float(k.test_rating) - float(rating)),2)
+		
+		if count > 1:
+			
+			standarddeviation = math.sqrt(float((sumdeviationsquared / (count - 1))))
+			
+			halfwidth = 1.96 * (standarddeviation) / math.sqrt(count)
+			halfwidth = round(halfwidth,4)
+		
+		
+		# End Confidence Interval
+		
+		
 		username = str(sorted_models[i].account_set.all()[0].username)
 		tests = sorted_models[i].model_tests.all()
 
@@ -2016,6 +2039,14 @@ def Leader_model(request):
 		sublist.append(rating)
 		sublist.append(numbertests)
 		sublist.append(username)
+		if count > 1:
+			sublist.append(halfwidth)
+		else:
+			sublist.append(False)	
+		if numbertests < 10:
+			sublist.append(True)
+		else:
+			sublist.append(False)
 
 		inputlist.append(sublist)
 
@@ -3922,15 +3953,54 @@ def switchboard_toscenario(request):
 					if str(k.test_case.scenario) == name:
 						scenarioclick = scenarioclick + 1
 						ratingsum = ratingsum + float(k.test_rating)
+			
+			
+			
+		
 			if scenarioclick > 0:
-				username = str(i.username)
 				avg = ratingsum / float(scenarioclick)
+				username = str(i.username)
+				
+				# Create 95% Confidence Interval
+		
+				count = 0
+				sumdeviationsquared = float(0)
+				for k in j.model_tests.all():
+					if k.Active == False:
+						if str(k.test_case.scenario) == name:		
+							count = count + 1
+							sumdeviationsquared = sumdeviationsquared + math.pow((float(k.test_rating) - float(avg)),2)
+			
+			
+				if count > 1:
+					
+					standarddeviation = math.sqrt(float((sumdeviationsquared / (count - 1))))
+			
+					halfwidth = 1.96 * (standarddeviation) / math.sqrt(count)
+					halfwidth = round(halfwidth,4)
+		
+		
+				# End Confidence Interval
+				
+				
 				entry = []
 				entry.append(str(i.institution_name))
 				entry.append(str(j.model_nameID))
-				entry.append(str(ratingsum))
+				entry.append(str(avg))
 				entry.append(str(scenarioclick))
 				entry.append(username)
+				if count > 1: 
+					entry.append(halfwidth)
+				else:
+					entry.append(False)
+				
+				if scenarioclick < 10:
+					entry.append(True)
+				else:
+					entry.append(False)
+				
+				
+					
 				inputlst.append(entry)
 	# Sort Data
 	

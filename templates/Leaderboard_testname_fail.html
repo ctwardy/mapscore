@@ -211,7 +211,8 @@
 	
 	{% for i in Scorelist %}
 	<tr style = " font-size:12px" >
-		<td>
+		
+			<td>
 			<center>
 			<form action ='/Account_Profile/' name = 'inputform1'>
 			<input type = 'hidden' name ='Account' value = '{{i.4}}'>
@@ -231,13 +232,32 @@
 			</td>
 			
 			<td>
-			<p style =' font-size:15px'> <center><b>{{i.2}}</b></center></p>
+			{% if i.5 %}
+			<p style =' font-size:15px'> <center><b>{{i.2}} &nbsp; &plusmn; &nbsp; {{i.5}}</b></center></p>
+			{% else %}
+			<p style =' font-size:15px'> <center><b>{{i.2}} </b></center></p>
+			{% endif %}
 			</td>
 			
 			<td>
+			
+			{% if i.6 %}
+			
+			<p style =' font-size:15px'> <center><b style = "color:red" >{{i.3}}</b></center></p>
+			
+			{% else %}
+			
 			<p style =' font-size:15px'> <center><b>{{i.3}}</b></center></p>
+			
+			{% endif %}
+			
+			
 			</td>
-	</tr>	
+			
+			
+			
+			
+	</tr>
 	
 	{% endfor %}
 	
@@ -245,6 +265,9 @@
 	</table>
 	</div>
 
+	<br>
+	<center>  * Average Ratings of multiple tests are reported with 95% confidence intervals
+	<br>
 	<br>
 	<br>
 	

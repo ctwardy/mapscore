@@ -47,7 +47,7 @@
 	
 	{% for j in i %}
 		{% if j == i.0 %}
-		<b>{{j}}</b>
+		<b>{{j}}</b> <br><br>
 		{% else %}
 		<form action ='/case_hyperin/' name = 'inputform1'>
 		<input type = 'hidden' name ='casein' value = '{{j}}'>
