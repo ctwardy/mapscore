@@ -2299,7 +2299,7 @@ def model_to_Scenario_switch(request):
 	
 	request.session['inputdic']  = inputdic
 	
-	return render_to_response('model_to_Scenario.html',inputdic)
+	return render_to_response('model_to_scenario.html',inputdic)
 
 
 
