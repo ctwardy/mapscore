@@ -2019,7 +2019,22 @@ def Leader_model(request):
 			
 			halfwidth = 1.96 * (standarddeviation) / math.sqrt(count)
 			halfwidth = round(halfwidth,4)
-		
+			
+			
+			lowerbound = float(rating) - halfwidth
+			
+			if lowerbound > 1:
+				lowerbound = 1
+			if lowerbound < -1:
+				lowerbound = -1
+			
+			upperbound = float(rating) + halfwidth
+			
+			if upperbound > 1:
+				upperbound = 1
+			if upperbound < -1:
+				upperbound = -1
+				
 		
 		# End Confidence Interval
 		
@@ -2040,7 +2055,8 @@ def Leader_model(request):
 		sublist.append(numbertests)
 		sublist.append(username)
 		if count > 1:
-			sublist.append(halfwidth)
+			sublist.append(lowerbound)
+			sublist.append(upperbound)
 		else:
 			sublist.append(False)	
 		if numbertests < 10:
@@ -3978,6 +3994,20 @@ def switchboard_toscenario(request):
 			
 					halfwidth = 1.96 * (standarddeviation) / math.sqrt(count)
 					halfwidth = round(halfwidth,4)
+					
+					lowerbound = float(avg) - halfwidth
+			
+					if lowerbound > 1:
+						lowerbound = 1
+					if lowerbound < -1:
+						lowerbound = -1
+			
+					upperbound = float(avg) + halfwidth
+			
+					if upperbound > 1:
+						upperbound = 1
+					if upperbound < -1:
+						upperbound = -1
 		
 		
 				# End Confidence Interval
@@ -3990,7 +4020,8 @@ def switchboard_toscenario(request):
 				entry.append(str(scenarioclick))
 				entry.append(username)
 				if count > 1: 
-					entry.append(halfwidth)
+					entry.append(lowerbound)
+					entry.append(upperbound)
 				else:
 					entry.append(False)
 				
