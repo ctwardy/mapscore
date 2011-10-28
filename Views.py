@@ -9,6 +9,7 @@ from django.shortcuts import redirect
 import random
 import shutil
 import math
+import csv
 
 # Import Models
 
@@ -2679,24 +2680,49 @@ def upload_casefile(request):
 
 	# Take in file - save to server
 	#string = 'C:\Users\Nathan Jones\Django Website\MapRateWeb\case_in\input_unsorted.txt'
-	string = 'case_in/input_unsorted.txt'
+	string = 'case_in/input_unsorted.csv'
 	destination = open(string,'wb+')
 
-	for chunk in request.FILES['casetxt'].chunks():
+	for chunk in request.FILES['casecsv'].chunks():
 		destination.write(chunk)
 	destination.close()
 
 	# Filter input file 
-	file1 = open(string,'r')
+	filea = open(string,'rb')
+	csvreader = csv.reader(filea,delimiter = '|')
+	masterlist = []
+	
+	# Write new CSV String, add to masterlist
+	counttotal = 0
+	for csvlist in csvreader:
+		count = 0
+		csvstring = ""
+		
+		if counttotal > 0:
+			
+			for i in csvlist:
+			
+		
+				count = count + 1
+			
+				if count == len(csvlist):
+				
+					csvstring = csvstring + i + "$"
+					
+				else:
+					csvstring = csvstring + i + "|"
+					
+			masterlist.append(csvstring)	
+		
+		counttotal = counttotal + 1
 
-	input1 = file1.readlines()
-
-	file1.close()
-
-	input1 = str(input1)
-
-
-
+	filea.close()
+	
+	input1 = str(masterlist)
+	
+	print "\n\n------------------------------------------------------------\n\n"
+	print masterlist
+	
 	input1 = input1[2:len(input1)-2]
 
 
@@ -2872,22 +2898,21 @@ def exportcaselibrary(request):
 
 
 	#string = 'C:\Users\Nathan Jones\Django Website\MapRateWeb\case_in\exported_case_Library.txt'
-	string = 'case_in/exported_case_Library.txt'
-	file = open(string,'w')
+	string = 'case_in/exported_case_Library.csv'
+	file = open(string,'wb')
 
-	outputstr = ''
+	tempexport = ['Name','Key#','Subject Category','Subject Sub-Category', 'Scenario', 'Subject Activity', 'Age','Sex','Number Lost','Group Type','EcoRegion Domain','EcoRegion Division', 'Terrain','LKP Coord. (N/S)','LKP Coord. (E/W)','Find Coord. (N/S)','Fid Coord. (E/W)','Total Hours','Notify Hours','Search Hours','Comments']
+	writer = csv.writer(file, delimiter = '|')
+	
+	writer.writerow(tempexport)
+
 	for i in Case.objects.all():
-		tempstr = ''
-		tempstr = str(i.case_name) + '|' + str(i.key) + '|' + str(i.subject_category) + '|' + str(i.subject_subcategory) + '|' + str(i.scenario) + '|'
-		tempstr = tempstr + str(i.subject_activity) + '|' + str(i.Age) + '|' + str(i.Sex) + '|' + str(i.number_lost) + '|' + str(i.group_type) + '|'
-		tempstr = tempstr + str(i.ecoregion_domain) +'|' + str(i.ecoregion_division) + '|' + str(i.terrain) + '|' + str(i.lastlat) + '|' + str(i.lastlon) + '|'
-		tempstr = tempstr + str(i.findlat) + '|' + str(i.findlon) + '|' + str(i.total_hours) + '|' + str(i.notify_hours) + '|' + str(i.search_hours) + '|' 
-		tempstr = tempstr + str(i.comments) + '$'
+		
+		tempexport = [str(i.case_name),str(i.key),str(i.subject_category),str(i.subject_subcategory),str(i.scenario),str(i.subject_activity),str(i.Age),str(i.Sex),str(i.number_lost),str(i.group_type),str(i.ecoregion_domain),str(i.ecoregion_division),str(i.terrain),str(i.lastlat),str(i.lastlon),str(i.findlat),str(i.findlon),str(i.total_hours),str(i.notify_hours),str(i.search_hours),str(i.comments)]
+		writer.writerow(tempexport)
 
-		outputstr = outputstr + tempstr
-
-	file.write(outputstr)
-	file.close()
+	
+	file.close
 
 	return render_to_response('casexport_complete.html')
 
