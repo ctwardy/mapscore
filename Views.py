@@ -946,6 +946,9 @@ def active_test(request):
 
 	# If you have not passed  or conducted current test
 	if int(active_test.nav) == 0:
+		
+		active_test = request.session['active_test']
+		active_case = active_test.test_case
 
 		pt1 = '(' + str(active_test.Lat1) + ',' + str(active_test.Lon1) +')'
 		pt2 = '(' + str(active_test.Lat2 )+ ',' + str(active_test.Lon2)+ ')'
@@ -958,8 +961,17 @@ def active_test(request):
 		pt9 = '(' + str(active_test.Lat9 )+ ',' + str(active_test.Lon9)+ ')'
 
 		url = active_test.test_url
-
-		inputdic = {'pt1':pt1,'pt2':pt2,'pt3':pt3,'pt4':pt4,'pt5':pt5,'pt6':pt6,'pt7':pt7,'pt8':pt8,'pt9':pt9,'pic':url}
+		
+		
+		LKP = '('+active_case.lastlat + ',' +active_case.lastlon + ')' 
+		totalcells = active_case.totalcellnumber
+		sidecells = active_case.sidecellnumber
+		upright = '('+active_case.upright_lat  + ',' +active_case.upright_lon + ')'
+		downleft = '('+active_case.downleft_lat  + ',' +active_case.downleft_lon + ')'
+		downright = '('+active_case.downright_lat  + ',' +active_case.downright_lon + ')'
+		upleft = '('+active_case.upleft_lat  + ',' +active_case.upleft_lon + ')'
+		
+		inputdic = {'pt1':pt1,'pt2':pt2,'pt3':pt3,'pt4':pt4,'pt5':pt5,'pt6':pt6,'pt7':pt7,'pt8':pt8,'pt9':pt9,'pic':url,'LKP':LKP,'totalcells':totalcells,'sidecells':sidecells,'upright':upright,'downleft':downleft,'downright':downright,'upleft':upleft}
 		inputdic['rand'] = str(random.randint(1,1000000000000))
 		return render_to_response('grid_intest.html',inputdic)
 
@@ -1228,7 +1240,17 @@ def grid_test_result(request):
 
 
 	url = request.session['active_test'].test_url
-	inputdic = {'pic':url, 'pt_agrid':pt_agrid,'status':status,'pt_latlon':pt_latlon,'pt_sgrid':pt_sgrid}
+	
+	active_case = active_test.test_case
+	
+	LKP = '('+active_case.lastlat + ',' +active_case.lastlon + ')' 
+	totalcells = active_case.totalcellnumber
+	sidecells = active_case.sidecellnumber
+	upright = '('+active_case.upright_lat  + ',' +active_case.upright_lon + ')'
+	downleft = '('+active_case.downleft_lat  + ',' +active_case.downleft_lon + ')'
+	downright = '('+active_case.downright_lat  + ',' +active_case.downright_lon + ')'
+	upleft = '('+active_case.upleft_lat  + ',' +active_case.upleft_lon + ')'
+	inputdic = {'pic':url, 'pt_agrid':pt_agrid,'status':status,'pt_latlon':pt_latlon,'pt_sgrid':pt_sgrid,'LKP':LKP,'totalcells':totalcells,'sidecells':sidecells,'upright':upright,'downleft':downleft,'downright':downright,'upleft':upleft}
 
 	# If you passed, mark on test
 	if False not in result:
