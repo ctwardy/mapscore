@@ -1050,7 +1050,7 @@ def grid_test_result(request):
 	#---------------------------------------------------------------------
 
 	active_test = request.session['active_test']
-
+	active_case = active_test.test_case
 
 	# If test already run; not regenerated
 
@@ -1109,9 +1109,17 @@ def grid_test_result(request):
 		pattern ='^[0-9]+$'
 
 		count = 0
+		
+		LKP = '('+active_case.lastlat + ',' +active_case.lastlon + ')' 
+		totalcells = active_case.totalcellnumber
+		sidecells = active_case.sidecellnumber
+		upright = '('+active_case.upright_lat  + ',' +active_case.upright_lon + ')'
+		downleft = '('+active_case.downleft_lat  + ',' +active_case.downleft_lon + ')'
+		downright = '('+active_case.downright_lat  + ',' +active_case.downright_lon + ')'
+		upleft = '('+active_case.upleft_lat  + ',' +active_case.upleft_lon + ')'
 
 
-		inputdic01 ={'pt1x_i':pt1x,'pt1y_i':pt1y,'pt2x_i':pt2x,'pt2y_i':pt2y,'pt3x_i':pt3x,'pt3y_i':pt3y,'pt4x_i':pt4x,'pt4y_i':pt4y,'pt5x_i':pt5x,'pt6x_i':pt6x,'pt6y_i':pt6y,'pt7x_i':pt7x,'pt7y_i':pt7y,'pt8x_i':pt8x,'pt8y_i':pt8y,'pt9x_i':pt9x,'pt9y_i':pt9y}
+		inputdic01 ={'pt1x_i':pt1x,'pt1y_i':pt1y,'pt2x_i':pt2x,'pt2y_i':pt2y,'pt3x_i':pt3x,'pt3y_i':pt3y,'pt4x_i':pt4x,'pt4y_i':pt4y,'pt5x_i':pt5x,'pt6x_i':pt6x,'pt6y_i':pt6y,'pt7x_i':pt7x,'pt7y_i':pt7y,'pt8x_i':pt8x,'pt8y_i':pt8y,'pt9x_i':pt9x,'pt9y_i':pt9y,'LKP':LKP,'totalcells':totalcells,'sidecells':sidecells,'upright':upright,'downleft':downleft,'downright':downright,'upleft':upleft}
 		if re.match(pattern,pt1x) == None or re.match(pattern,pt1y) == None:
 			inputdic01['fail1'] = True
 			count = count + 1
@@ -1175,6 +1183,9 @@ def grid_test_result(request):
 			inputdic01['pic'] = url
 
 			inputdic01['fail'] = True
+			
+			
+			
 
 
 			return render_to_response('grid_intest.html',inputdic01)
@@ -1331,13 +1342,21 @@ def Bulkin(request):
 	active_test = request.session['active_test']
 	inall = request.GET['Bulkin']
 	stringlst = request.GET['Bulkin'].split()
-
+	active_case = active_test.test_case
 
 	# Verify input
 	pattern ='^[0-9]+$'
+	
+	LKP = '('+active_case.lastlat + ',' +active_case.lastlon + ')' 
+	totalcells = active_case.totalcellnumber
+	sidecells = active_case.sidecellnumber
+	upright = '('+active_case.upright_lat  + ',' +active_case.upright_lon + ')'
+	downleft = '('+active_case.downleft_lat  + ',' +active_case.downleft_lon + ')'
+	downright = '('+active_case.downright_lat  + ',' +active_case.downright_lon + ')'
+	upleft = '('+active_case.upleft_lat  + ',' +active_case.upleft_lon + ')'
 
 
-	inputdic01 ={'inall':inall}
+	inputdic01 ={'inall':inall,'LKP':LKP,'totalcells':totalcells,'sidecells':sidecells,'upright':upright,'downleft':downleft,'downright':downright,'upleft':upleft}
 
 	count01 = 0
 	if len(stringlst) > 18:
