@@ -2722,6 +2722,7 @@ def case_hyperin(request):
 		return render_to_response('Leaderboard_testname.html',inputdic)
 
 	if request.session['nav'] == '3':
+		
 		inputdic['caseselection'] = caseselection
 		return render_to_response('Leaderboard_test.html',inputdic)
 	
