@@ -67,24 +67,29 @@
 	
 	<table border = "1" style = " font-size:15px; width:1000px"  bgcolor = '#FFFF99'>
 	<tr>
-	<th> Name </th>
 	<th> ID </th>
+	<th> Name </th>
 	<th> Age </th>
 	<th> Sex </th>
-	<th> LKP (Lat, Lon)</th>
-	<th> Find (Lat, Lon) </th>
 	<th> Boundary Points (Lat, Lon) </th>
 	<th> Find Cell (X,Y)</th>
+	<th> Layers Uploaded</th>
 	</tr>
 	
 	
 	{% for i in case_list %}
 	<tr style = " font-size:12px" >
-		{% for j in i %}
-			<td>
-			{{j}}
-			</td>
-		{% endfor %}
+	
+	<td>{{i.0}}</td> 
+	<td>{{i.1}}</td>
+	<td>{{i.2}}</td>
+	<td>{{i.3}}</td>
+	<td>{{i.4}}</td>
+	<td>{{i.5}}</td> 
+	<form  name ='data' action = "/UploadLayers/">
+	<Input  type = 'hidden' name = "id" value = {{i.0}} >
+	<td><button type = 'submit' style ='border:0px; background-color:#FFFF99;color:blue;cursor:pointer'> <u><b> {{i.6}} </b></u> </button></td>
+	</form>
 	</tr>
 	
 	{% endfor %}

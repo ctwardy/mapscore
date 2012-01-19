@@ -38,7 +38,8 @@ class Case(models.Model):
 	notify_hours = models.CharField(max_length = 50)
 	search_hours = models.CharField(max_length = 50)
 	comments = models.CharField(max_length = 5000)
-
+	LayerField = models.CharField(max_length = 50)
+	UploadedLayers = models.BooleanField()
 
 
 
@@ -212,6 +213,8 @@ class Case(models.Model):
 		self.URLfind = URLfind
 
 		#show find location for first 20 trials
+		
+		print self.id
 		if self.id <= 20:
 			self.showfind = True
 
@@ -240,6 +243,11 @@ class Case(models.Model):
 				stringout = str(total_hours) + ':' + str(total_min)
 
 				self.total_hours = stringout
+		
+		
+		# Set Layer Location
+		self.LayerField  = "Layers/" + str(self.id) +'_' + str(self.case_name) + ".zip"
+		self.UploadedLayers = False
 
 #----------------------------------------------------------------------------------	
 

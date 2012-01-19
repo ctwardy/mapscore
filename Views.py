@@ -10,6 +10,8 @@ import random
 import shutil
 import math
 import csv
+import os.path
+
 
 # Import Models
 
@@ -21,12 +23,17 @@ from framework.models import Model_Account_Link
 from framework.models import Test_Model_Link
 from framework.models import Mainhits
 from framework.models import terminated_accounts
-
+import cStringIO
 import time
 import re
 import os
 #from PIL import Image
 import Image
+import zipfile
+from django.core.servers.basehttp import FileWrapper
+
+
+
 
 from django.core.context_processors import csrf
 
@@ -65,7 +72,8 @@ def main_page(request):
 	request.session['usertoken'] = False
 	request.session['admintoken'] = False
 	request.session['createcheck'] = False
-
+	request.session['ActiveAdminCase'] = 'none'
+	
 	sorted_models = []
 	allmodels = Model.objects.all()
 
@@ -686,21 +694,34 @@ def testcase_admin(request):
 		return render_to_response('noaccess.html',{})
 
 	#---------------------------------------------------------------------
-
+	
+	
+	for case in Case.objects.all():
+		
+		case.UploadedLayers = False
+		case.save()
+		
+		if os.path.exists(str(case.LayerField)):
+			case.UploadedLayers = True
+			case.save()
+	
+	
+	
+	request.session['ActiveAdminCase'] = 'none'
+	
 
 	request.session['inputdic'] = 'none'
 	caselist = []
 
 	for i in Case.objects.all():
 		inputlist = []
-		inputlist.append(i.case_name)
 		inputlist.append(i.id)
+		inputlist.append(i.case_name)
 		inputlist.append(i.Age)
 		inputlist.append(i.Sex)
-		inputlist.append('(' + str(i.lastlat) + ',' + str(i.lastlon ) + ')')
-		inputlist.append('(' + str(i.findlat ) + ',' + str(i.findlon ) + ')')
 		inputlist.append('(' + str(i.upright_lat  ) + ',' + str(i.upright_lon ) + ');'+'(' + str(i.downright_lat) + ',' + str(i.downright_lon ) + ');'+'(' + str(i.upleft_lat) + ',' + str(i.upleft_lon ) + ');'+'(' + str(i.downleft_lat ) + ',' + str(i.downleft_lon) + ')')
 		inputlist.append('(' + str(i.findx) + ',' + str(i.findy ) + ')')
+		inputlist.append(str(i.UploadedLayers))
 		caselist.append(inputlist)
 
 
@@ -983,6 +1004,7 @@ def active_test(request):
 
 	# If you passed your test
 	elif int(active_test.nav) == 2 and request.session['active_test'].Validated == True:
+		
 		active_test = request.session['active_test']
 		active_case = active_test.test_case
 
@@ -1030,7 +1052,7 @@ def active_test(request):
 		inputdic['ecoregion_division'] = ecoregion_division
 		inputdic['terrain'] = terrain
 		inputdic['total_hours'] = total_hours
-
+		inputdic['layer'] = active_case.UploadedLayers
 
 		inputdic.update(csrf(request))
 		return render_to_response('file_up.html',inputdic)
@@ -2907,19 +2929,33 @@ def upload_casefile(request):
 			comments = comments,
 
 			)
-
+		New_Case.save()
 		New_Case.initialize()
 
 		# Only save if find location in bounds
-		if New_Case.findx != "Out of Bounds" and New_Case.findy != "Out of Bounds":
+		if New_Case.findx == "Out of Bounds" or New_Case.findy == "Out of Bounds":
 
+			New_Case.delete()
+		else:
 			New_Case.save()
-
+		
 		line = filein.readline()
 
 	filein.close()
 	os.remove(string)
 	os.remove(sortedaddress)
+	
+	for case in Case.objects.all():
+		
+		case.UploadedLayers = False
+		case.save()
+		
+		if os.path.exists(str(case.LayerField)):
+			case.UploadedLayers = True
+			case.save()
+	
+	
+	
 
 	return render_to_response('bulkcasereg_complete.html')
 
@@ -5944,5 +5980,362 @@ def metric_description_submissionreview (request):
 def reg_conditions(request):
 	
 	return render_to_response('regconditions.html')
+
+
+#--------------------------------------------------------------------------------------
+def DownloadGridsync(request):
+	
+	#------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['usertoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+
+	#---------------------------------------------------------------------
+
+	
+	active_test = request.session['active_test']
+	
+	instring =   str(active_test.Lat1) + ',' + str(active_test.Lon1) + '\r\n' + str(active_test.Lat2 )+ ',' + str(active_test.Lon2) + '\r\n'
+	instring = instring  + str(active_test.Lat3 )+ ',' + str(active_test.Lon3) + '\r\n'+ str(active_test.Lat4 )+ ',' + str(active_test.Lon4) + '\r\n'
+	instring = instring  + str(active_test.Lat5 )+ ',' + str(active_test.Lon5) + '\r\n' + str(active_test.Lat6 )+ ',' + str(active_test.Lon6) + '\r\n'
+	instring = instring + str(active_test.Lat7 )+ ',' + str(active_test.Lon7) + '\r\n'+ str(active_test.Lat8 )+ ',' + str(active_test.Lon8)	+ '\r\n'
+	instring = instring + str(active_test.Lat9 )+ ',' + str(active_test.Lon9)
+		
+	
+	#image = Image.open(NameFile)
+	
+	#wrap = FileWrapper(NameFile)
+	
+	resp = HttpResponse(content_type = 'text/plain')
+	
+	#resp['Content-Length'] = os.path.getsize(NameFile)
+	
+	resp['Content-Disposition'] = 'attachment; filename= GridSyncPts.txt'
+	
+	#image.save(resp,'png')
+
+	resp.write(instring)
+	
+	
+	return resp
+	
+
+#---------------------------------------------------------------------------------------------
+def DownloadParam(request):
+	
+	#------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['usertoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+
+	#---------------------------------------------------------------------
+	
+	
+	active_test = request.session['active_test']
+	active_case = active_test.test_case
+	
+	
+	
+	
+	instring =   "Case_Name: " + active_case.case_name + '\r\n'
+	instring = instring + "Coordinate_System: WGS_84" + '\r\n'
+	instring =  instring + "Subject_Age: " +  active_case.Age + '\r\n'
+	instring =  instring +"Subject_Gender: " + active_case.Sex + '\r\n'
+	instring = instring + "Subject_Category: " + active_case.subject_category  + '\r\n'
+	instring = instring + "Subject_Scenario: " + active_case.scenario + '\r\n'
+	instring = instring + "Subject_SubCategory: " + active_case.subject_subcategory + '\r\n'
+	instring = instring + "Subject_Activity: " + active_case.subject_activity + '\r\n'
+	instring = instring + "Group_Type: " + active_case.group_type   + '\r\n'
+	instring = instring + "Number_Lost: " + active_case.number_lost + '\r\n'
+	instring = instring + "Terrain: " + active_case.terrain + '\r\n'
+	instring = instring + "Ecoregion_Domain: " + active_case.ecoregion_domain  + '\r\n'
+	instring = instring + "Ecoregion_Division: " + active_case.ecoregion_division + '\r\n'
+	instring = instring + "Total_Hours_Before_Location: " + active_case.total_hours  + '\r\n'
+	instring = instring +"Last_Known_Position: " + '('+active_case.lastlat + ',' +active_case.lastlon + ')'  + '\r\n'
+	instring = instring + "Number_Horizantal_Cells: " + active_case.sidecellnumber + '\r\n'
+	instring = instring + "Number_Vertical_Cells: " + active_case.sidecellnumber + '\r\n'
+	instring = instring + "Total_Number_Cells: " + active_case.totalcellnumber + '\r\n'
+	instring = instring + "Estimated_Cell_Width: 5 m" + '\r\n'
+	instring = instring + "Estimated_Search_Region_Width: 25 km" + '\r\n'
+	instring = instring + "Search_Region_Upper_Left_Coordinate: " + '(' +active_case.upleft_lat  + ',' +active_case.upleft_lon + ')' + '\r\n'
+	instring = instring + "Search_Region_Upper_Right_Coordinate: " + '('+active_case.upright_lat  + ',' +active_case.upright_lon + ')' + '\r\n'
+	instring = instring + "Search_Region_Lower_Left_Coordinate: " + '('+active_case.downleft_lat  + ',' +active_case.downleft_lon + ')' + '\r\n'
+	instring = instring + "Search_Region_Lower_Right_Coordinate: " + '('+active_case.downright_lat  + ',' +active_case.downright_lon + ')' + '\r\n'
 	
 		
+	
+	#image = Image.open(NameFile)
+	
+	#wrap = FileWrapper(NameFile)
+	
+	resp = HttpResponse(content_type = 'text/plain')
+	
+	#resp['Content-Length'] = os.path.getsize(NameFile)
+	
+	resp['Content-Disposition'] = 'attachment; filename= ScenarioParameters.txt'
+	
+	#image.save(resp,'png')
+
+	resp.write(instring)
+	
+	
+	return resp
+	
+#---------------------------------------------------------------------------------------------------
+def UploadLayers(request):
+	
+	#------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['admintoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+
+	#---------------------------------------------------------------------
+	
+	
+	request.session['ActiveAdminCase'] = int(request.GET['id'])
+	
+	admincase = Case.objects.get(id = request.session['ActiveAdminCase'])
+	
+	inputdic = {}
+	inputdic['id'] = request.session['ActiveAdminCase']
+	inputdic['Name'] =  admincase.case_name
+	inputdic.update(csrf(request))
+	
+	if admincase.UploadedLayers == True:
+		
+		inputdic['layersexist'] = True
+	else:
+		inputdic['layersexist'] = False
+	
+	return render_to_response('UploadLayersMenu.html',inputdic)
+
+#--------------------------------------------------------------------------------------------------
+
+def upload_Layerfile(request):
+	
+	
+	#------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['admintoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+
+	#---------------------------------------------------------------------
+	# Take in file - save to server
+	
+	admincase = Case.objects.get(id = request.session['ActiveAdminCase'])
+	
+	string = str(admincase.LayerField)
+	
+	if admincase.UploadedLayers == True:
+		
+	
+		stream = "Layers/" + str(admincase.id) +'_' + str(admincase.case_name)
+	
+		os.remove(string)
+		shutil.rmtree(stream)
+	
+		admincase.UploadedLayers = False
+		admincase.save()
+	
+	
+	
+	
+	
+	
+	
+	destination = open(string,'wb+')
+
+	for chunk in request.FILES['caselayer'].chunks():
+		destination.write(chunk)
+	destination.close()
+	
+	admincase.UploadedLayers = True
+	admincase.save()
+	
+	
+	
+	zippin = zipfile.ZipFile(string,'r')
+	
+	stream = "Layers/" + str(admincase.id) +'_' + str(admincase.case_name)
+	
+	zippin.extractall(stream)
+	
+	
+	
+	return render_to_response('CaseLayersComplete.html')
+	
+	
+	
+#--------------------------------------------------------------------------------------------------
+def DownloadLayers(request):
+	
+	#------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['usertoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+
+	#---------------------------------------------------------------------
+	
+	
+	active_test = request.session['active_test']
+	active_case = active_test.test_case
+	
+	string = str(active_case.LayerField)
+
+	zippin = zipfile.ZipFile(string,'r')
+	
+	zippinlst = zippin.namelist()
+	
+	zippin.close()
+	
+	buff = cStringIO.StringIO()
+	
+	zippin2 = zipfile.ZipFile(buff,'w',zipfile.ZIP_DEFLATED)
+	
+	
+		
+	for name in zippinlst:
+		
+		stream = "Layers/" + str(active_case.id) +'_' + str(active_case.case_name) + "/" + name
+		
+		for i in range(len(name)-1):
+			if name[i] == '/':
+				term = i
+				break
+		
+		name2 = name[term+1:len(name)]
+			
+		
+		if not stream[len(stream)-1] == '/':
+		
+			filein = open(stream,'rb')
+		
+			zippin2.writestr(name2,filein.read())
+	
+	zippin2.close()
+	
+	buff.flush()
+	
+	writeinfo = buff.getvalue()
+	
+	buff.close()
+	
+	resp = HttpResponse( content_type = 'application/zip')
+	
+	resp['Content-Disposition'] = 'attachment; filename= Layers.zip'
+	
+	resp.write(writeinfo)
+	
+	return resp
+	
+#------------------------------------------------------------------------------------
+def delete_Layers(request):
+	
+	
+	#------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['admintoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+
+	#---------------------------------------------------------------------
+	
+	# Take in file - save to server
+	
+	admincase = Case.objects.get(id = request.session['ActiveAdminCase'])
+	
+	string = str(admincase.LayerField)
+	
+	stream = "Layers/" + str(admincase.id) +'_' + str(admincase.case_name)
+	
+	os.remove(string)
+	shutil.rmtree(stream)
+	
+	admincase.UploadedLayers = False
+	admincase.save()
+	
+	return redirect("/admin_cases/")
+	
+#--------------------------------------------------------------------------------------------------
+def DownloadLayersadmin(request):
+	
+	
+	#------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['admintoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+
+	#---------------------------------------------------------------------
+
+	active_case = Case.objects.get(id = request.session['ActiveAdminCase'])
+	
+	string = str(active_case.LayerField)
+
+	zippin = zipfile.ZipFile(string,'r')
+	
+	zippinlst = zippin.namelist()
+	
+	zippin.close()
+	
+	buff = cStringIO.StringIO()
+	
+	zippin2 = zipfile.ZipFile(buff,'w',zipfile.ZIP_DEFLATED)
+	
+	
+		
+	for name in zippinlst:
+		
+		stream = "Layers/" + str(active_case.id) +'_' + str(active_case.case_name) + "/" + name
+		
+		for i in range(len(name)-1):
+			if name[i] == '/':
+				term = i
+				break
+		
+		name2 = name[term+1:len(name)]
+			
+		
+		if not stream[len(stream)-1] == '/':
+		
+			filein = open(stream,'rb')
+		
+			zippin2.writestr(name2,filein.read())
+	
+	zippin2.close()
+	
+	buff.flush()
+	
+	writeinfo = buff.getvalue()
+	
+	buff.close()
+	
+	resp = HttpResponse( content_type = 'application/zip')
+	
+	resp['Content-Disposition'] = 'attachment; filename= Layers.zip'
+	
+	resp.write(writeinfo)
+	
+	return resp
+	
+#------------------------------------------------------------------------------------
+	

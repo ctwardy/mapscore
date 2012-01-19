@@ -102,6 +102,13 @@ from Views import metric_description
 from Views import metric_description_nonactive
 from Views import metric_description_submissionreview
 from Views import reg_conditions
+from Views import DownloadGridsync
+from Views import DownloadParam
+from Views import UploadLayers
+from Views import upload_Layerfile
+from Views import DownloadLayers
+from Views import delete_Layers
+from Views import DownloadLayersadmin
 
 # Uncomment the next two lines to enable the admin:
 # from django.contrib import admin
@@ -207,6 +214,14 @@ urlpatterns = patterns('',
 			  ('^metric_description_nonactive/$',metric_description_nonactive),
 			  ('^metric_description_submissionreview/$',metric_description_submissionreview),
 			  ('^reg_conditions/$',reg_conditions),
+			  ('^DownloadGridsync/$',DownloadGridsync),
+			  ('^DownloadParam/$',DownloadParam),
+			  ('^UploadLayers/$',UploadLayers),
+			  ('^upload_Layerfile/$',upload_Layerfile),
+			  ('^DownloadLayers/$',DownloadLayers),
+			  ('^delete_Layers/$',delete_Layers),
+			  ('^DownloadLayersadmin/$',DownloadLayersadmin),
+			
 			  (r'^robots\.txt$', lambda r: HttpResponse("User-agent: *\nDisallow: /", mimetype="text/plain")),
 			  
 			  
