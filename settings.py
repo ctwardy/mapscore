@@ -16,10 +16,10 @@ MANAGERS = ADMINS
 
 DATABASES = {
     'default': {
-        'ENGINE': 'mysql', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
+        'ENGINE': 'postgresql', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
         'NAME': 'probmap',# Or path to database file if using sqlite3.
-        'USER': 'probmapusr',                      # Not used with sqlite3.
-        'PASSWORD': 'prob+map',                  # Not used with sqlite3.
+        'USER': 'probmap',                      # Not used with sqlite3.
+        'PASSWORD': '',                  # Not used with sqlite3.
         'HOST': 'localhost',                      # Set to empty string for localhost. Not used with sqlite3.
         'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
     }
