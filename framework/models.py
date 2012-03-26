@@ -236,7 +236,7 @@ class Case(models.Model):
 		if self.total_hours == 'unknown' or self.total_hours == 'Unknown':
 			if self.notify_hours != 'unknown' and self.notify_hours != 'Unknown' and self.search_hours != 'unknown' and self.search_hours != 'Unknown':
 
-				total_hours = notify_hours+search_hours		
+				total_hours = self.notify_hours+self.search_hours		
 
 				stringout = str(total_hours) 
 
@@ -246,6 +246,7 @@ class Case(models.Model):
 		# Set Layer Location
 		self.LayerField  = "Layers/" + str(self.id) +'_' + str(self.case_name) + ".zip"
 		self.UploadedLayers = False
+		
 
 #----------------------------------------------------------------------------------	
 
