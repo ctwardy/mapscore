@@ -17,14 +17,21 @@ class Case(models.Model):
 	# Define Database Table Fields
 
 	#input parameters
-	lastlat = models.CharField(max_length = 30)
-	lastlon = models.CharField(max_length = 30)
-	findlat = models.CharField(max_length = 30)
-	findlon = models.CharField(max_length = 30)
-	case_name = models.CharField(max_length = 30)
-	Age = models.CharField(max_length = 10)
-	Sex = models.CharField(max_length = 10)
-	key = models.CharField(max_length = 30)
+	
+	country = models.CharField(max_length = 50)
+	state =  models.CharField(max_length = 50)
+	county = models.CharField(max_length = 50)
+	populationdensity = models.CharField(max_length = 50)
+	weather = models.CharField(max_length = 50)
+		
+	lastlat = models.CharField(max_length = 50)
+	lastlon = models.CharField(max_length = 50)
+	findlat = models.CharField(max_length = 50)
+	findlon = models.CharField(max_length = 50)
+	case_name = models.CharField(max_length = 50)
+	Age = models.CharField(max_length = 100)
+	Sex = models.CharField(max_length = 100)
+	key = models.CharField(max_length = 50)
 	subject_category = models.CharField(max_length = 50)
 	subject_subcategory = models.CharField(max_length = 50)
 	scenario  = models.CharField(max_length = 50)
@@ -196,10 +203,10 @@ class Case(models.Model):
 		url = url + str(self.downleft_lat) + ',' +str(self.downleft_lon)
 		url = url + '|' + str(self.upleft_lat) + ',' +str(self.upleft_lon) 
 		url = url + "&markers=color:red%7Clabel:L%7c" + str(self.lastlat) + ',' + str(self.lastlon)
-		url = url + "&markers=color:green%7Clabel:A%7c" + str(self.upleft_lat) + ',' +str(self.upleft_lon)
-		url = url + "&markers=color:green%7Clabel:B%7c" + str(self.upright_lat) + ',' +str(self.upright_lon)
-		url = url +   "&markers=color:green%7Clabel:C%7c" + str(self.downright_lat) + ',' +str(self.downright_lon)
-		url = url +   "&markers=color:green%7Clabel:D%7c" + str(self.downleft_lat) + ',' +str(self.downleft_lon)
+		#url = url + "&markers=color:green%7Clabel:A%7c" + str(self.upleft_lat) + ',' +str(self.upleft_lon)
+		#url = url + "&markers=color:green%7Clabel:B%7c" + str(self.upright_lat) + ',' +str(self.upright_lon)
+		#url = url +   "&markers=color:green%7Clabel:C%7c" + str(self.downright_lat) + ',' +str(self.downright_lon)
+		#url = url +   "&markers=color:green%7Clabel:D%7c" + str(self.downleft_lat) + ',' +str(self.downleft_lon)
 
 		URLfind = url +  "&markers=color:yellow%7Clabel:F%7c" + str(self.findlat) + ',' +str(self.findlon)
 
@@ -218,6 +225,10 @@ class Case(models.Model):
 		if self.id <= 20:
 			self.showfind = True
 
+		# Show find always --for now
+		
+		else:
+			self.showfind = True
 
 
 		# Set total time if unknown

@@ -761,29 +761,7 @@ def newtest(request):
 
 	#---------------------------------------------------------------------
 
-	# If all tests completed
-	count2 = 0
-	for i in request.session['active_model'].model_tests.all():
-		if i.Active == False:
-			count2 = count2 +1
-
-	if int(count2) == int(len(Case.objects.all())):
-
-		return render_to_response('nomorecases.html')
-
-	# only one active test at a time
-	count001 = 0
-	for i in request.session['active_model'].model_tests.all():
-		if i.Active == True:
-			count001 = count001 +1
-	if count001 >0:
-		return render_to_response('TestWelcome_alreadyactive.html')
-
-
-
-
-	id_in = int(request.session['active_model'].Completed_cases) +1
-	request.session['active_case_temp'] = Case.objects.get(id = id_in)
+	
 
 	age = request.session['active_case_temp'].Age
 	name = request.session['active_case_temp'].case_name
@@ -791,10 +769,10 @@ def newtest(request):
 	LKP = '('+request.session['active_case_temp'].lastlat + ',' +request.session['active_case_temp'].lastlon + ')' 
 	totalcells = request.session['active_case_temp'].totalcellnumber
 	sidecells = request.session['active_case_temp'].sidecellnumber
-	upright = '('+request.session['active_case_temp'].upright_lat  + ',' +request.session['active_case_temp'].upright_lon + ')'
-	downleft = '('+request.session['active_case_temp'].downleft_lat  + ',' +request.session['active_case_temp'].downleft_lon + ')'
-	downright = '('+request.session['active_case_temp'].downright_lat  + ',' +request.session['active_case_temp'].downright_lon + ')'
-	upleft = '('+request.session['active_case_temp'].upleft_lat  + ',' +request.session['active_case_temp'].upleft_lon + ')'
+	uplat = request.session['active_case_temp'].upright_lat 
+	rightlon = request.session['active_case_temp'].upright_lon
+	downlat = request.session['active_case_temp'].downright_lat
+	leftlon = request.session['active_case_temp'].upleft_lon 
 
 	account_name = request.session['active_account'].institution_name
 	model_name = request.session['active_model'].model_nameID
@@ -817,7 +795,7 @@ def newtest(request):
 
 	# Create Input dictionary
 
-	inputdic = {'Name_act':account_name, 'Name_m':model_name, 'name' :name, 'age':age, 'sex':sex,'LKP':LKP,'horcells':sidecells,'vercells':sidecells,'totcells' : totalcells, 'cellwidth' : 5, 'regionwidth' : 25,'upleft':upleft,'upright':upright,'downleft':downleft,'downright':downright,'MAP':URL}
+	inputdic = {'Name_act':account_name, 'Name_m':model_name, 'name' :name, 'age':age, 'sex':sex,'LKP':LKP,'horcells':sidecells,'vercells':sidecells,'totcells' : totalcells, 'cellwidth' : 5, 'regionwidth' : 25,'uplat':uplat,'rightlon':rightlon,'downlat':downlat,'leftlon':leftlon,'MAP':URL}
 	inputdic['subject_category'] = subject_category
 	inputdic['subject_subcategory'] = subject_subcategory
 	inputdic['scenario'] = scenario
@@ -987,12 +965,12 @@ def active_test(request):
 		LKP = '('+active_case.lastlat + ',' +active_case.lastlon + ')' 
 		totalcells = active_case.totalcellnumber
 		sidecells = active_case.sidecellnumber
-		upright = '('+active_case.upright_lat  + ',' +active_case.upright_lon + ')'
-		downleft = '('+active_case.downleft_lat  + ',' +active_case.downleft_lon + ')'
-		downright = '('+active_case.downright_lat  + ',' +active_case.downright_lon + ')'
-		upleft = '('+active_case.upleft_lat  + ',' +active_case.upleft_lon + ')'
+		uplat = active_case.upright_lat 
+		rightlon = active_case.upright_lon
+		downlat = active_case.downright_lat
+		leftlon = active_case.upleft_lon 
 		
-		inputdic = {'pt1':pt1,'pt2':pt2,'pt3':pt3,'pt4':pt4,'pt5':pt5,'pt6':pt6,'pt7':pt7,'pt8':pt8,'pt9':pt9,'pic':url,'LKP':LKP,'totalcells':totalcells,'sidecells':sidecells,'upright':upright,'downleft':downleft,'downright':downright,'upleft':upleft}
+		inputdic = {'pt1':pt1,'pt2':pt2,'pt3':pt3,'pt4':pt4,'pt5':pt5,'pt6':pt6,'pt7':pt7,'pt8':pt8,'pt9':pt9,'pic':url,'LKP':LKP,'totalcells':totalcells,'sidecells':sidecells,'uplat':uplat,'rightlon':rightlon,'downlat':downlat,'leftlon':leftlon}
 		inputdic['rand'] = str(random.randint(1,1000000000000))
 		return render_to_response('grid_intest.html',inputdic)
 
@@ -1015,10 +993,10 @@ def active_test(request):
 		LKP = '('+active_case.lastlat + ',' +active_case.lastlon + ')' 
 		totalcells = active_case.totalcellnumber
 		sidecells = active_case.sidecellnumber
-		upright = '('+active_case.upright_lat  + ',' +active_case.upright_lon + ')'
-		downleft = '('+active_case.downleft_lat  + ',' +active_case.downleft_lon + ')'
-		downright = '('+active_case.downright_lat  + ',' +active_case.downright_lon + ')'
-		upleft = '('+active_case.upleft_lat  + ',' +active_case.upleft_lon + ')'
+		uplat = active_case.upright_lat 
+		rightlon = active_case.upright_lon
+		downlat = active_case.downright_lat
+		leftlon = active_case.upleft_lon 
 
 		account_name = request.session['active_account'].institution_name
 		model_name = request.session['active_model'].model_nameID
@@ -1041,7 +1019,7 @@ def active_test(request):
 
 	# Create Input dictionary
 
-		inputdic = {'Name_act':account_name, 'Name_m':model_name, 'name' :name, 'age':age, 'sex':sex,'LKP':LKP,'horcells':sidecells,'vercells':sidecells,'totcells' : totalcells, 'cellwidth' : 5, 'regionwidth' : 25,'upleft':upleft,'upright':upright,'downleft':downleft,'downright':downright,'MAP':URL}
+		inputdic = {'Name_act':account_name, 'Name_m':model_name, 'name' :name, 'age':age, 'sex':sex,'LKP':LKP,'horcells':sidecells,'vercells':sidecells,'totcells' : totalcells, 'cellwidth' : 5, 'regionwidth' : 25,'uplat':uplat,'rightlon':rightlon,'downlat':downlat,'leftlon':leftlon,'MAP':URL}
 		inputdic['subject_category'] = subject_category
 		inputdic['subject_subcategory'] = subject_subcategory
 		inputdic['scenario'] = scenario
@@ -1135,13 +1113,13 @@ def grid_test_result(request):
 		LKP = '('+active_case.lastlat + ',' +active_case.lastlon + ')' 
 		totalcells = active_case.totalcellnumber
 		sidecells = active_case.sidecellnumber
-		upright = '('+active_case.upright_lat  + ',' +active_case.upright_lon + ')'
-		downleft = '('+active_case.downleft_lat  + ',' +active_case.downleft_lon + ')'
-		downright = '('+active_case.downright_lat  + ',' +active_case.downright_lon + ')'
-		upleft = '('+active_case.upleft_lat  + ',' +active_case.upleft_lon + ')'
+		uplat = active_case.upright_lat 
+		rightlon = active_case.upright_lon
+		downlat = active_case.downright_lat
+		leftlon = active_case.upleft_lon 
 
 
-		inputdic01 ={'pt1x_i':pt1x,'pt1y_i':pt1y,'pt2x_i':pt2x,'pt2y_i':pt2y,'pt3x_i':pt3x,'pt3y_i':pt3y,'pt4x_i':pt4x,'pt4y_i':pt4y,'pt5x_i':pt5x,'pt6x_i':pt6x,'pt6y_i':pt6y,'pt7x_i':pt7x,'pt7y_i':pt7y,'pt8x_i':pt8x,'pt8y_i':pt8y,'pt9x_i':pt9x,'pt9y_i':pt9y,'LKP':LKP,'totalcells':totalcells,'sidecells':sidecells,'upright':upright,'downleft':downleft,'downright':downright,'upleft':upleft}
+		inputdic01 ={'pt1x_i':pt1x,'pt1y_i':pt1y,'pt2x_i':pt2x,'pt2y_i':pt2y,'pt3x_i':pt3x,'pt3y_i':pt3y,'pt4x_i':pt4x,'pt4y_i':pt4y,'pt5x_i':pt5x,'pt6x_i':pt6x,'pt6y_i':pt6y,'pt7x_i':pt7x,'pt7y_i':pt7y,'pt8x_i':pt8x,'pt8y_i':pt8y,'pt9x_i':pt9x,'pt9y_i':pt9y,'LKP':LKP,'totalcells':totalcells,'sidecells':sidecells,'uplat':uplat,'rightlon':rightlon,'downlat':downlat,'leftlon':leftlon}
 		if re.match(pattern,pt1x) == None or re.match(pattern,pt1y) == None:
 			inputdic01['fail1'] = True
 			count = count + 1
@@ -1279,11 +1257,11 @@ def grid_test_result(request):
 	LKP = '('+active_case.lastlat + ',' +active_case.lastlon + ')' 
 	totalcells = active_case.totalcellnumber
 	sidecells = active_case.sidecellnumber
-	upright = '('+active_case.upright_lat  + ',' +active_case.upright_lon + ')'
-	downleft = '('+active_case.downleft_lat  + ',' +active_case.downleft_lon + ')'
-	downright = '('+active_case.downright_lat  + ',' +active_case.downright_lon + ')'
-	upleft = '('+active_case.upleft_lat  + ',' +active_case.upleft_lon + ')'
-	inputdic = {'pic':url, 'pt_agrid':pt_agrid,'status':status,'pt_latlon':pt_latlon,'pt_sgrid':pt_sgrid,'LKP':LKP,'totalcells':totalcells,'sidecells':sidecells,'upright':upright,'downleft':downleft,'downright':downright,'upleft':upleft}
+	uplat = active_case.upright_lat 
+	rightlon = active_case.upright_lon
+	downlat = active_case.downright_lat
+	leftlon = active_case.upleft_lon 
+	inputdic = {'pic':url, 'pt_agrid':pt_agrid,'status':status,'pt_latlon':pt_latlon,'pt_sgrid':pt_sgrid,'LKP':LKP,'totalcells':totalcells,'sidecells':sidecells,'uplat':uplat,'rightlon':rightlon,'downlat':downlat,'leftlon':leftlon}
 
 	# If you passed, mark on test
 	if False not in result:
@@ -1847,10 +1825,10 @@ def submissionreview(request):
 	LKP = '('+active_case.lastlat + ',' +active_case.lastlon + ')' 
 	totalcells = active_case.totalcellnumber
 	sidecells = active_case.sidecellnumber
-	upright = '('+active_case.upright_lat  + ',' +active_case.upright_lon + ')'
-	downleft = '('+active_case.downleft_lat  + ',' +active_case.downleft_lon + ')'
-	downright = '('+active_case.downright_lat  + ',' +active_case.downright_lon + ')'
-	upleft = '('+active_case.upleft_lat  + ',' +active_case.upleft_lon + ')'
+	uplat = active_case.upright_lat 
+	rightlon = active_case.upright_lon
+	downlat = active_case.downright_lat
+	leftlon = active_case.upleft_lon 
 
 	account_name = request.session['active_account'].institution_name
 	model_name = request.session['active_model'].model_nameID
@@ -1879,7 +1857,7 @@ def submissionreview(request):
 
 	# Create Input dictionary
 
-	inputdic = {'Name_act':account_name, 'Name_m':model_name, 'name' :name, 'age':age, 'sex':sex,'LKP':LKP,'horcells':sidecells,'vercells':sidecells,'totcells' : totalcells, 'cellwidth' : 5, 'regionwidth' : 25,'upleft':upleft,'upright':upright,'downleft':downleft,'downright':downright,'MAP':URL}
+	inputdic = {'Name_act':account_name, 'Name_m':model_name, 'name' :name, 'age':age, 'sex':sex,'LKP':LKP,'horcells':sidecells,'vercells':sidecells,'totcells' : totalcells, 'cellwidth' : 5, 'regionwidth' : 25,'uplat':uplat,'rightlon':rightlon,'downlat':downlat,'leftlon':leftlon,'MAP':URL}
 	inputdic['subject_category'] = subject_category
 	inputdic['subject_subcategory'] = subject_subcategory
 	inputdic['scenario'] = scenario
@@ -1968,10 +1946,10 @@ def nonactivetest(request):
 	LKP = '('+active_case.lastlat + ',' +active_case.lastlon + ')' 
 	totalcells = active_case.totalcellnumber
 	sidecells = active_case.sidecellnumber
-	upright = '('+active_case.upright_lat  + ',' +active_case.upright_lon + ')'
-	downleft = '('+active_case.downleft_lat  + ',' +active_case.downleft_lon + ')'
-	downright = '('+active_case.downright_lat  + ',' +active_case.downright_lon + ')'
-	upleft = '('+active_case.upleft_lat  + ',' +active_case.upleft_lon + ')'
+	uplat = active_case.upright_lat 
+	rightlon = active_case.upright_lon
+	downlat = active_case.downright_lat
+	leftlon = active_case.upleft_lon 
 
 	account_name = request.session['active_account'].institution_name
 	model_name = request.session['active_model'].model_nameID
@@ -2000,7 +1978,7 @@ def nonactivetest(request):
 
 	# Create Input dictionary
 
-	inputdic = {'Name_act':account_name, 'Name_m':model_name, 'name' :name, 'age':age, 'sex':sex,'LKP':LKP,'horcells':sidecells,'vercells':sidecells,'totcells' : totalcells, 'cellwidth' : 5, 'regionwidth' : 25,'upleft':upleft,'upright':upright,'downleft':downleft,'downright':downright,'MAP':URL}
+	inputdic = {'Name_act':account_name, 'Name_m':model_name, 'name' :name, 'age':age, 'sex':sex,'LKP':LKP,'horcells':sidecells,'vercells':sidecells,'totcells' : totalcells, 'cellwidth' : 5, 'regionwidth' : 25,'uplat':uplat,'rightlon':rightlon,'downlat':downlat,'leftlon':leftlon,'MAP':URL}
 	inputdic['subject_category'] = subject_category
 	inputdic['subject_subcategory'] = subject_subcategory
 	inputdic['scenario'] = scenario
@@ -2517,10 +2495,10 @@ def case_ref(request):
 	LKP = '('+active_case.lastlat + ',' +active_case.lastlon + ')' 
 	totalcells = active_case.totalcellnumber
 	sidecells = active_case.sidecellnumber
-	upright = '('+active_case.upright_lat  + ',' +active_case.upright_lon + ')'
-	downleft = '('+active_case.downleft_lat  + ',' +active_case.downleft_lon + ')'
-	downright = '('+active_case.downright_lat  + ',' +active_case.downright_lon + ')'
-	upleft = '('+active_case.upleft_lat  + ',' +active_case.upleft_lon + ')'
+	uplat = active_case.upright_lat 
+	rightlon = active_case.upright_lon
+	downlat = active_case.downright_lat
+	leftlon = active_case.upleft_lon 
 
 	URL = active_case.URL
 
@@ -2539,7 +2517,7 @@ def case_ref(request):
 
 	# Create Input dictionary
 
-	inputdic = { 'name' :name, 'age':age, 'sex':sex,'LKP':LKP,'horcells':sidecells,'vercells':sidecells,'totcells' : totalcells, 'cellwidth' : 5, 'regionwidth' : 25,'upleft':upleft,'upright':upright,'downleft':downleft,'downright':downright,'MAP':URL}
+	inputdic = { 'name' :name, 'age':age, 'sex':sex,'LKP':LKP,'horcells':sidecells,'vercells':sidecells,'totcells' : totalcells, 'cellwidth' : 5, 'regionwidth' : 25,'uplat':uplat,'rightlon':rightlon,'downlat':downlat,'leftlon':leftlon,'MAP':URL}
 	inputdic['subject_category'] = subject_category
 	inputdic['subject_subcategory'] = subject_subcategory
 	inputdic['scenario'] = scenario
@@ -2722,7 +2700,6 @@ def case_hyperin(request):
 		return render_to_response('Leaderboard_testname.html',inputdic)
 
 	if request.session['nav'] == '3':
-		
 		inputdic['caseselection'] = caseselection
 		return render_to_response('Leaderboard_test.html',inputdic)
 	
@@ -2885,25 +2862,32 @@ def upload_casefile(request):
 
 		name = str(re.match(pattern,items[0]).group(1))
 		key = str(re.match(pattern,items[1]).group(1))
-		subject_category = str(re.match(pattern,items[2]).group(1))
-		subject_subcategory = str(re.match(pattern,items[3]).group(1))
-		scenario = str(re.match(pattern,items[4]).group(1))
-		subject_activity = str(re.match(pattern,items[5]).group(1))
-		age = str(re.match(pattern,items[6]).group(1))
-		sex = str(re.match(pattern,items[7]).group(1))
-		number_lost = str(re.match(pattern,items[8]).group(1))
-		group_type = str(re.match(pattern,items[9]).group(1))
-		ecoregion_Domain = str(re.match(pattern,items[10]).group(1))
-		ecoregion_Division = str(re.match(pattern,items[11]).group(1))
-		terrain = str(re.match(pattern,items[12]).group(1))
-		LKP_lat = str(re.match(pattern,items[13]).group(1))
-		LKP_lon = str(re.match(pattern,items[14]).group(1))
-		find_lat = str(re.match(pattern,items[15]).group(1))
-		find_lon = str(re.match(pattern,items[16]).group(1))
-		total_hours = str(re.match(pattern,items[17]).group(1))
-		notify_hours = str(re.match(pattern,items[18]).group(1))
-		search_hours = str(re.match(pattern,items[19]).group(1))
-		comments = str(re.match(pattern,items[20]).group(1))
+		
+		country1 = str(re.match(pattern,items[2]).group(1))
+		state1 =  str(re.match(pattern,items[3]).group(1))
+		county1 = str(re.match(pattern,items[4]).group(1))
+		populationdensity1 = str(re.match(pattern,items[5]).group(1))
+		weather1 = str(re.match(pattern,items[6]).group(1))
+		
+		subject_category = str(re.match(pattern,items[7]).group(1))
+		subject_subcategory = str(re.match(pattern,items[8]).group(1))
+		scenario = str(re.match(pattern,items[9]).group(1))
+		subject_activity = str(re.match(pattern,items[10]).group(1))
+		age = str(re.match(pattern,items[11]).group(1))
+		sex = str(re.match(pattern,items[12]).group(1))
+		number_lost = str(re.match(pattern,items[13]).group(1))
+		group_type = str(re.match(pattern,items[14]).group(1))
+		ecoregion_Domain = str(re.match(pattern,items[15]).group(1))
+		ecoregion_Division = str(re.match(pattern,items[16]).group(1))
+		terrain = str(re.match(pattern,items[17]).group(1))
+		LKP_lat = str(re.match(pattern,items[18]).group(1))
+		LKP_lon = str(re.match(pattern,items[19]).group(1))
+		find_lat = str(re.match(pattern,items[20]).group(1))
+		find_lon = str(re.match(pattern,items[21]).group(1))
+		total_hours = str(re.match(pattern,items[22]).group(1))
+		notify_hours = str(re.match(pattern,items[23]).group(1))
+		search_hours = str(re.match(pattern,items[24]).group(1))
+		comments = str(re.match(pattern,items[25]).group(1))
 
 
 		New_Case = Case( 
@@ -2929,6 +2913,14 @@ def upload_casefile(request):
 			notify_hours = notify_hours,
 			search_hours = search_hours,
 			comments = comments,
+			country = country1,
+			state =  state1,
+			county = county1,
+			populationdensity = populationdensity1,
+			weather = weather1,
+			
+			
+			
 
 			)
 		New_Case.save()
@@ -6065,10 +6057,10 @@ def DownloadParam(request):
 	instring = instring + "Total_Number_Cells: " + active_case.totalcellnumber + '\r\n'
 	instring = instring + "Estimated_Cell_Width: 5 m" + '\r\n'
 	instring = instring + "Estimated_Search_Region_Width: 25 km" + '\r\n'
-	instring = instring + "Search_Region_Upper_Left_Coordinate: " + '(' +active_case.upleft_lat  + ',' +active_case.upleft_lon + ')' + '\r\n'
-	instring = instring + "Search_Region_Upper_Right_Coordinate: " + '('+active_case.upright_lat  + ',' +active_case.upright_lon + ')' + '\r\n'
-	instring = instring + "Search_Region_Lower_Left_Coordinate: " + '('+active_case.downleft_lat  + ',' +active_case.downleft_lon + ')' + '\r\n'
-	instring = instring + "Search_Region_Lower_Right_Coordinate: " + '('+active_case.downright_lat  + ',' +active_case.downright_lon + ')' + '\r\n'
+	instring = instring + "Search_Region_Upper_Lat: " + active_case.upleft_lat  + '\r\n'
+	instring = instring + "Search_Region_Lower_Lat: " + active_case.downleft_lat  + '\r\n'
+	instring = instring + "Search_Region_Right_Lon: " + active_case.downright_lon + '\r\n'
+	instring = instring + "Search_Region_Left_Lon: " + active_case.upleft_lon  + '\r\n'
 	
 		
 	
@@ -6340,4 +6332,129 @@ def DownloadLayersadmin(request):
 	return resp
 	
 #------------------------------------------------------------------------------------
+def casetypeselect(request):
 	
+	
+	#------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['usertoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+
+	#---------------------------------------------------------------------
+	
+	# only one active test at a time
+	count001 = 0
+	for i in request.session['active_model'].model_tests.all():
+		if i.Active == True:
+			count001 = count001 +1
+	if count001 >0:
+		return render_to_response('TestWelcome_alreadyactive.html')
+
+	# If all tests completed
+	count2 = 0
+	for i in request.session['active_model'].model_tests.all():
+		if i.Active == False:
+			count2 = count2 +1
+
+	if int(count2) == int(len(Case.objects.all())):
+
+		return render_to_response('nomorecases.html')
+	
+	
+	type_lst = []
+	for i in Case.objects.all():
+		if str(i.subject_category) not in  type_lst:
+			type_lst.append(str(i.subject_category))
+			
+			
+	return render_to_response('Testselect.html',{'types':type_lst})		
+			
+#-------------------------------------------------------------------------------------
+def NextSequentialTestSwitch(request):
+	
+	#------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['usertoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+
+	#---------------------------------------------------------------------
+
+	
+	for i in Case.objects.all():
+		
+		counter01 = 0
+		havecase = False
+		for j in request.session['active_model'].model_tests.all():
+			
+			if i.case_name == j.test_case.case_name:
+				counter01 = counter01+1
+			
+		if counter01 == 0:
+				
+				request.session['active_case_temp'] = i
+				havecase = True
+				break
+		
+		
+
+	
+	if havecase == False:
+		return render_to_response('nomorecases.html')
+			
+			
+	return redirect("/new_test/")		
+			
+#-------------------------------------------------------------------------------------
+def TesttypeSwitch(request):
+	
+	#------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['usertoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+
+	#---------------------------------------------------------------------
+
+	selection = request.GET['typein2']
+	
+	if selection ==0:
+		
+		return redirect("/casetypeselect/")	
+	
+	for i in Case.objects.all():
+		
+		if i.subject_category==selection:
+		
+			counter01 = 0
+			havecase = False
+			for j in request.session['active_model'].model_tests.all():
+			
+				if i.case_name == j.test_case.case_name:
+					counter01 = counter01+1
+			
+			if counter01 == 0:
+				
+					request.session['active_case_temp'] = i
+					havecase = True
+					break
+		
+		
+
+	
+	if havecase == False:
+		return render_to_response('nomorecasestype.html',{'selection':selection})
+			
+			
+	return redirect("/new_test/")					
+			
+			
+			
+			

@@ -109,6 +109,9 @@ from Views import upload_Layerfile
 from Views import DownloadLayers
 from Views import delete_Layers
 from Views import DownloadLayersadmin
+from Views import casetypeselect
+from Views import NextSequentialTestSwitch
+from Views import TesttypeSwitch
 
 # Uncomment the next two lines to enable the admin:
 # from django.contrib import admin
@@ -221,6 +224,9 @@ urlpatterns = patterns('',
 			  ('^DownloadLayers/$',DownloadLayers),
 			  ('^delete_Layers/$',delete_Layers),
 			  ('^DownloadLayersadmin/$',DownloadLayersadmin),
+			  ('^casetypeselect/$',casetypeselect),
+			  ('^NextSequentialTestSwitch/$',NextSequentialTestSwitch),
+			  ('^TesttypeSwitch/$',TesttypeSwitch),
 			
 			  (r'^robots\.txt$', lambda r: HttpResponse("User-agent: *\nDisallow: /", mimetype="text/plain")),
 			  
