@@ -236,22 +236,9 @@ class Case(models.Model):
 		if self.total_hours == 'unknown' or self.total_hours == 'Unknown':
 			if self.notify_hours != 'unknown' and self.notify_hours != 'Unknown' and self.search_hours != 'unknown' and self.search_hours != 'Unknown':
 
-				notifylst = self.notify_hours .split(':')
-				notify_hours_hr = int(notifylst[0])
-				notify_hours_min = int(notifylst[1])
+				total_hours = notify_hours+search_hours		
 
-				searchlst = self.search_hours.split(':')
-				search_hours_hr = int(searchlst[0])
-				search_hours_min = int(searchlst[1])
-
-				total_hours = notify_hours_hr+search_hours_hr
-				total_min = notify_hours_min + search_hours_min
-
-				while total_min >= 60:
-					total_min = total_min - 60
-					total_hours + total_hours + 1
-
-				stringout = str(total_hours) + ':' + str(total_min)
+				stringout = str(total_hours) 
 
 				self.total_hours = stringout
 		
