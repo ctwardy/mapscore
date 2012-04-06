@@ -1172,7 +1172,7 @@ class Test(models.Model):
 				R = (0.5 - r)/0.5
 
 				# Set rating
-				self.test_rating = R
+				self.test_rating = round(R,8)
 
 				# ping Model
 
