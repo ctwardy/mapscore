@@ -6472,11 +6472,11 @@ def DownloadGridsyncsol(request):
 	
 	active_test = request.session['active_test']
 	
-	instring =   str(active_test.pt1x) + ',' + str(active_test.pt1y) + '\r\n' + str(active_test.pt2x )+ ',' + str(active_test.pt2y) + '\r\n'
-	instring = instring  + str(active_test.pt3x )+ ',' + str(active_test.pt3y) + '\r\n'+ str(active_test.pt4x )+ ',' + str(active_test.pt4y) + '\r\n'
-	instring = instring  + str(active_test.pt5x )+ ',' + str(active_test.pt5y) + '\r\n' + str(active_test.pt6x )+ ',' + str(active_test.pt6y) + '\r\n'
-	instring = instring + str(active_test.pt7x )+ ',' + str(active_test.pt7y) + '\r\n'+ str(active_test.pt8x )+ ',' + str(active_test.pt8y)	+ '\r\n'
-	instring = instring + str(active_test.pt9x )+ ',' + str(active_test.pt9y)
+	instring =   str(active_test.pt1x) + ' ' + str(active_test.pt1y) + '\r\n' + str(active_test.pt2x )+ ' ' + str(active_test.pt2y) + '\r\n'
+	instring = instring  + str(active_test.pt3x )+ ' ' + str(active_test.pt3y) + '\r\n'+ str(active_test.pt4x )+ ' ' + str(active_test.pt4y) + '\r\n'
+	instring = instring  + str(active_test.pt5x )+ ' ' + str(active_test.pt5y) + '\r\n' + str(active_test.pt6x )+ ' ' + str(active_test.pt6y) + '\r\n'
+	instring = instring + str(active_test.pt7x )+ ' ' + str(active_test.pt7y) + '\r\n'+ str(active_test.pt8x )+ ' ' + str(active_test.pt8y)	+ '\r\n'
+	instring = instring + str(active_test.pt9x )+ ' ' + str(active_test.pt9y)
 		
 	
 	#image = Image.open(NameFile)
