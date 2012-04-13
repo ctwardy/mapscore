@@ -6456,5 +6456,46 @@ def TesttypeSwitch(request):
 	return redirect("/new_test/")					
 			
 			
-			
-			
+#--------------------------------------------------------------------------------------
+def DownloadGridsyncsol(request):
+	
+	#------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['usertoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+
+	#---------------------------------------------------------------------
+
+	
+	active_test = request.session['active_test']
+	
+	instring =   str(active_test.pt1x) + ',' + str(active_test.pt1y) + '\r\n' + str(active_test.pt2x )+ ',' + str(active_test.pt2y) + '\r\n'
+	instring = instring  + str(active_test.pt3x )+ ',' + str(active_test.pt3y) + '\r\n'+ str(active_test.pt4x )+ ',' + str(active_test.pt4y) + '\r\n'
+	instring = instring  + str(active_test.pt5x )+ ',' + str(active_test.pt5y) + '\r\n' + str(active_test.pt6x )+ ',' + str(active_test.pt6y) + '\r\n'
+	instring = instring + str(active_test.pt7x )+ ',' + str(active_test.pt7y) + '\r\n'+ str(active_test.pt8x )+ ',' + str(active_test.pt8y)	+ '\r\n'
+	instring = instring + str(active_test.pt9x )+ ',' + str(active_test.pt9y)
+		
+	
+	#image = Image.open(NameFile)
+	
+	#wrap = FileWrapper(NameFile)
+	
+	resp = HttpResponse(content_type = 'text/plain')
+	
+	#resp['Content-Length'] = os.path.getsize(NameFile)
+	
+	resp['Content-Disposition'] = 'attachment; filename= GridSyncPts.txt'
+	
+	#image.save(resp,'png')
+
+	resp.write(instring)
+	
+	
+	return resp
+	
+
+#---------------------------------------------------------------------------------------------
+

@@ -420,7 +420,7 @@ class Test(models.Model):
 		self.Lat5 = ''
 		self.Lon5 = ''
 		self.Lat6 = ''
-		self.LON6 = ''
+		self.Lon6 = ''
 		self.Lat7 = ''
 		self.Lon7 = ''
 		self.Lat8 = ''
