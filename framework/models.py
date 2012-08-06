@@ -4,6 +4,7 @@ import random
 #from PIL import Image
 import Image
 from django import forms
+import os
 
 # Create your models here.
 
@@ -16,14 +17,21 @@ class Case(models.Model):
 	# Define Database Table Fields
 
 	#input parameters
-	lastlat = models.CharField(max_length = 30)
-	lastlon = models.CharField(max_length = 30)
-	findlat = models.CharField(max_length = 30)
-	findlon = models.CharField(max_length = 30)
-	case_name = models.CharField(max_length = 30)
-	Age = models.CharField(max_length = 10)
-	Sex = models.CharField(max_length = 10)
-	key = models.CharField(max_length = 30)
+	
+	country = models.CharField(max_length = 50)
+	state =  models.CharField(max_length = 50)
+	county = models.CharField(max_length = 50)
+	populationdensity = models.CharField(max_length = 50)
+	weather = models.CharField(max_length = 50)
+		
+	lastlat = models.CharField(max_length = 50)
+	lastlon = models.CharField(max_length = 50)
+	findlat = models.CharField(max_length = 50)
+	findlon = models.CharField(max_length = 50)
+	case_name = models.CharField(max_length = 50)
+	Age = models.CharField(max_length = 100)
+	Sex = models.CharField(max_length = 100)
+	key = models.CharField(max_length = 50)
 	subject_category = models.CharField(max_length = 50)
 	subject_subcategory = models.CharField(max_length = 50)
 	scenario  = models.CharField(max_length = 50)
@@ -37,7 +45,8 @@ class Case(models.Model):
 	notify_hours = models.CharField(max_length = 50)
 	search_hours = models.CharField(max_length = 50)
 	comments = models.CharField(max_length = 5000)
-
+	LayerField = models.CharField(max_length = 50)
+	UploadedLayers = models.BooleanField()
 
 
 
@@ -194,10 +203,10 @@ class Case(models.Model):
 		url = url + str(self.downleft_lat) + ',' +str(self.downleft_lon)
 		url = url + '|' + str(self.upleft_lat) + ',' +str(self.upleft_lon) 
 		url = url + "&markers=color:red%7Clabel:L%7c" + str(self.lastlat) + ',' + str(self.lastlon)
-		url = url + "&markers=color:green%7Clabel:A%7c" + str(self.upleft_lat) + ',' +str(self.upleft_lon)
-		url = url + "&markers=color:green%7Clabel:B%7c" + str(self.upright_lat) + ',' +str(self.upright_lon)
-		url = url +   "&markers=color:green%7Clabel:C%7c" + str(self.downright_lat) + ',' +str(self.downright_lon)
-		url = url +   "&markers=color:green%7Clabel:D%7c" + str(self.downleft_lat) + ',' +str(self.downleft_lon)
+		#url = url + "&markers=color:green%7Clabel:A%7c" + str(self.upleft_lat) + ',' +str(self.upleft_lon)
+		#url = url + "&markers=color:green%7Clabel:B%7c" + str(self.upright_lat) + ',' +str(self.upright_lon)
+		#url = url +   "&markers=color:green%7Clabel:C%7c" + str(self.downright_lat) + ',' +str(self.downright_lon)
+		#url = url +   "&markers=color:green%7Clabel:D%7c" + str(self.downleft_lat) + ',' +str(self.downleft_lon)
 
 		URLfind = url +  "&markers=color:yellow%7Clabel:F%7c" + str(self.findlat) + ',' +str(self.findlon)
 
@@ -211,9 +220,15 @@ class Case(models.Model):
 		self.URLfind = URLfind
 
 		#show find location for first 20 trials
+		
+		print self.id
 		if self.id <= 20:
 			self.showfind = True
 
+		# Show find always --for now
+		
+		else:
+			self.showfind = True
 
 
 		# Set total time if unknown
@@ -221,24 +236,17 @@ class Case(models.Model):
 		if self.total_hours == 'unknown' or self.total_hours == 'Unknown':
 			if self.notify_hours != 'unknown' and self.notify_hours != 'Unknown' and self.search_hours != 'unknown' and self.search_hours != 'Unknown':
 
-				notifylst = self.notify_hours .split(':')
-				notify_hours_hr = int(notifylst[0])
-				notify_hours_min = int(notifylst[1])
+				total_hours = self.notify_hours+self.search_hours		
 
-				searchlst = self.search_hours.split(':')
-				search_hours_hr = int(searchlst[0])
-				search_hours_min = int(searchlst[1])
-
-				total_hours = notify_hours_hr+search_hours_hr
-				total_min = notify_hours_min + search_hours_min
-
-				while total_min >= 60:
-					total_min = total_min - 60
-					total_hours + total_hours + 1
-
-				stringout = str(total_hours) + ':' + str(total_min)
+				stringout = str(total_hours) 
 
 				self.total_hours = stringout
+		
+		
+		# Set Layer Location
+		self.LayerField  = "Layers/" + str(self.id) +'_' + str(self.case_name) + ".zip"
+		self.UploadedLayers = False
+		
 
 #----------------------------------------------------------------------------------	
 
@@ -338,19 +346,27 @@ class Test(models.Model):
 	usr_p8y = models.CharField(max_length = 10)
 	usr_p9x = models.CharField(max_length = 10)
 	usr_p9y = models.CharField(max_length = 10)
-
-
+	gridfresh =  models.CharField(max_length = 10)
+	grayrefresh =  models.CharField(max_length = 10)
 
 	def setup(self):
+		self.gridfresh = 0
+		self.grayrefresh = 0
 		self.test_rating = 'unrated'
 		self.Active = True
 		self.Validated = False
 		self.generate_testpoints()
 		self.nav = 0
 		self.show_instructions = True
+		
 
 		# Save
 		self.save()
+		
+		if self.model_set.all()[0].gridvalidated == True:
+			self.Validated = True
+			self.nav = 2
+			self.save()
 
 	def generate_testpoints(self):
 
@@ -404,7 +420,7 @@ class Test(models.Model):
 		self.Lat5 = ''
 		self.Lon5 = ''
 		self.Lat6 = ''
-		self.LON6 = ''
+		self.Lon6 = ''
 		self.Lat7 = ''
 		self.Lon7 = ''
 		self.Lat8 = ''
@@ -915,12 +931,16 @@ class Test(models.Model):
 				temp = temp +'_'
 			else:
 				temp = temp + str(i)
+		
+		# Iterate counter
+		self.gridfresh = int(self.gridfresh) + 1
+		self.save()
 
 		#string = 'C:/Users/Nathan Jones/Django Website/MapRateWeb/media'
 		string = 'media'
-		string = string + '/t_' + str(temp) + '.png'
+		string = string + '/t_' + str(temp) + '_' + str(self.gridfresh) +  '.png'
 
-		string2 = '/media'+ '/t_' + str(temp) + '.png'
+		string2 = '/media'+ '/t_' + str(temp) + '_' + str(self.gridfresh) +'.png'
 		self.test_url = string2
 		self.test_url2 = string
 		im.save(string)
@@ -1072,10 +1092,32 @@ class Test(models.Model):
 						pix[ptx_plot + 5 - i,pty_plot -5 +j + i] = (255,0,0,255)
 
 
+		# Remove Old Image
+		os.remove(self.test_url2)
+		
+		
+		# reformat ID2
+		st = str(self.ID2)
+		temp = ''
+		for i in st:
+			if i == ':':
+				temp = temp +'_'
+			else:
+				temp = temp + str(i)
+		
+		
+		# Iterate counter
+		self.gridfresh = int(self.gridfresh) + 1
+		self.save()
 
+		#string = 'C:/Users/Nathan Jones/Django Website/MapRateWeb/media'
+		string = 'media'
+		string = string + '/t_' + str(temp) + '_' + str(self.gridfresh) +  '.png'
 
-
-		im.save(self.test_url2)
+		string2 = '/media'+ '/t_' + str(temp) + '_' + str(self.gridfresh) +'.png'
+		self.test_url = string2
+		self.test_url2 = string
+		im.save(string)
 
 		# Save
 		self.save()
@@ -1098,7 +1140,7 @@ class Test(models.Model):
 
 		#Determine if ImageRGB 
 
-		if Bands[0] == "R":
+		if Bands[0] == "R" and Bands[1] =="G" and Bands[2] == "B":
 
 			#Ensure Image is Greyscale
 			Check = 0
@@ -1114,20 +1156,23 @@ class Test(models.Model):
 				FindValue = FindArray[1]
 
 				TotalUnits = 0
-				GreaterorEqual = 0
+				Greater = 0
+				Equal = 0
 				for i in AllValues:
 					TotalUnits = TotalUnits + 1
-					if i[1] >= FindValue:
-						GreaterorEqual = GreaterorEqual + 1
+					if i[1] > FindValue:
+						Greater = Greater + 1
+					if i[1] == FindValue:
+						Equal = Equal + 1
 
 				# get r value
-				r = float(GreaterorEqual) / float(TotalUnits)
+				r = (float(Greater)+ (float(Equal)/2)) / float(TotalUnits)
 
 				#Get r value
 				R = (0.5 - r)/0.5
 
 				# Set rating
-				self.test_rating = R
+				self.test_rating = round(R,6)
 
 				# ping Model
 
@@ -1154,14 +1199,17 @@ class Test(models.Model):
 			FindValue = FindArray
 
 			TotalUnits = 0
-			GreaterorEqual = 0
+			Greater = 0
+			Equal = 0
 			for i in AllValues:
 				TotalUnits = TotalUnits + 1
-				if i >= FindValue:
-					GreaterorEqual = GreaterorEqual + 1
+				if i > FindValue:
+					Greater = Greater + 1
+				elif i == FindValue:
+					Equal = Equal + 1	
 
 			# get r value
-			r = float(GreaterorEqual) / float(TotalUnits)
+			r = (float(Greater)+ (float(Equal)/2)) / float(TotalUnits)
 
 			#Get r value
 			R = (0.5 - r)/0.5
@@ -1197,13 +1245,17 @@ class Model(models.Model):
 	# Define Database Table Fields
 	Completed_cases = models.CharField(max_length = 30)
 	model_nameID = models.CharField(max_length = 30)
+	gridvalidated = models.BooleanField()
 	model_tests = models.ManyToManyField(Test, through = 'Test_Model_Link')
 	model_avgrating = models.CharField(max_length = 10)
 	ID2 = models.CharField(max_length = 100)
-
+	Description = models.TextField()
+	
+	
 	def setup(self):
 		self.model_avgrating = 'unrated'
 		self.Completed_cases = 0
+		self.gridvalidated = False
 		# Save
 		self.save()
 
@@ -1258,6 +1310,7 @@ class Account(models.Model):
 	photosizex = models.CharField(max_length = 10)
 	photosizey = models.CharField(max_length = 10)
 	deleted_models = models.CharField(max_length = 10)
+	profpicrefresh =  models.CharField(max_length = 10)
 
 #----------------------------------------------------------------------------------
 

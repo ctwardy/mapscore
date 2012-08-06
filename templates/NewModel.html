@@ -1,6 +1,9 @@
 <!DOCTYPE HTML Public "-//W3C//DTD HTML 4.01//EN">
 <html lang = "en">
 
+<head>
+<META NAME="ROBOTS" CONTENT="NOINDEX, NOFOLLOW">
+</head>
 
 
 <body  marginwidth="0px" marginheight="0px" leftmargin="0px"  topmargin="0px" style ='background : url("/media/background.jpg")' npadding ='0px' height = '100%'  style ='overflow-x: hidden; overflow-y:scroll' >
@@ -19,7 +22,10 @@
 		Lost Person Model Rating System<br>
 		</center>
 		<div style = 'margin-top:18px'>
-		<div style ='font-size:14px; position:absolute;padding-left:425px; width:95%'><i>*Model Registration*</i>&nbsp;&nbsp;&nbsp;&nbsp;[ <a href="/main/" style ='color:#CCFF33'> Log Out </a> | <a href="https://github.com/ctwardy/Pmap-Score/issues?sort=created&direction=desc&state=open" style ='color:#CCFF33' target="_blank" > Issue Tracker </a> | <a href="/help/" style ='color:#CCFF33' target="_blank"> Help </a>]</div>
+		<div style ='font-size:14px;padding-left:250px; position:absolute; width:95%'>
+		[<a href="/main/" style ='color:white'> Log Out </a> | <a href="/hyper_leaderboard/" style ='color:white'> Leaderboard </a> ]
+		&nbsp;&nbsp;&nbsp;&nbsp;<i>*Model Registration*</i>&nbsp;&nbsp;&nbsp;&nbsp;
+		[  <a href="https://github.com/ctwardy/Pmap-Score/issues?sort=created&direction=desc&state=open" style ='color:white' target="_blank" > Issue Tracker </a> | <a href="/help/" style ='color:white' target="_blank"> Help </a>]</div>
 		</div>
 				
 	</h1>
@@ -31,7 +37,7 @@
 <div style =' margin-left: 0% ; margin-top: 130px; margin-right: 0%; margin-bottom: 0px; color:black; overflow-y:hidden; overflow-x:hidden;'  >
 
 <center><div>
-
+<br>
 
 <p><b>
 		Please take a moment to fill out the following model registration. <br>
@@ -47,7 +53,7 @@
 
 		
 		Model Name:
-		{% if Fail or modelnamerepeat %} <Input maxlength = '30' type = "text" name = "Name" value ='{{namein}}'> {% else %} <Input maxlength = '30' type = "text" name = "Name">  {% endif %}<br>
+		{% if Fail or modelnamerepeat or Fail1 %} <Input maxlength = '30' type = "text" name = "Name" value ='{{namein}}'> {% else %} <Input maxlength = '30' type = "text" name = "Name">  {% endif %}<br>
 		
 		{% if Fail %} &nbsp; <i style ='color:red; font-size:12px'> Invalid Entry: must contain only letters, numbers, and underscores (no spaces) </i>   {% endif %}
 		
@@ -55,7 +61,15 @@
 		
 		
 		
+		<br><br><br>
+		
+		<b>Model Description:</b><br><br>
+		
+		{% if Fail or modelnamerepeat or Fail1 %}<textarea type = 'text' name='description' cols = '45' rows = '10'>{{description}} </textarea> {% else %} <textarea type = 'text' name='description' cols = '45' rows = '10'> </textarea>   {% endif %}
 		<br>
+		{% if  Fail1 %} <i style ='color:red; font-size:12px'> You must enter a description of your model </i> {% endif %}
+		<br><br><br>
+		
 		
 		<br>
 		<input type = "Submit">		

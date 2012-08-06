@@ -2,6 +2,9 @@
 <html lang = "en">
 
 
+<head>
+<META NAME="ROBOTS" CONTENT="NOINDEX, NOFOLLOW">
+</head>
 
 <body  marginwidth="0px" marginheight="0px" leftmargin="0px"  topmargin="0px" style ='background : url("/media/background.jpg")' npadding ='0px' height = '100%'  style ='overflow-x: hidden; overflow-y:scroll' >
 
@@ -19,8 +22,12 @@
 		Lost Person Model Rating System<br>
 		</center>
 		<div style = 'margin-top:18px'>
-		<div style ='font-size:14px; position:absolute;padding-left:445px; width:95%'><i>*Model Menu*</i>&nbsp;&nbsp;&nbsp;&nbsp;[ <a href="/main/" style ='color:#CCFF33'> Log Out </a> | <a href="https://github.com/ctwardy/Pmap-Score/issues?sort=created&direction=desc&state=open" style ='color:#CCFF33' target="_blank" > Issue Tracker </a> | <a href="/help/" style ='color:#CCFF33' target="_blank"> Help </a>]</div>
+		<div style ='font-size:14px;padding-left:260px; position:absolute; width:95%'>
+		[<a href="/main/" style ='color:white'> Log Out </a> | <a href="/hyper_leaderboard/" style ='color:white'> Leaderboard </a> ]
+		&nbsp;&nbsp;&nbsp;&nbsp;<i>*Model Menu*</i>&nbsp;&nbsp;&nbsp;&nbsp;
+		[  <a href="https://github.com/ctwardy/Pmap-Score/issues?sort=created&direction=desc&state=open" style ='color:white' target="_blank" > Issue Tracker </a> | <a href="/help/" style ='color:white' target="_blank"> Help </a>]</div>
 		</div>
+
 			
 				
 	</h1>
@@ -42,30 +49,61 @@
 		<b>Model Name:</b>   {{Name_m}} 
 		<p style ='color:red'> <b> Average Model Rating: {{rating}}</b> </p>
 		
+		{% if rating != 'unrated' %}
+			<i style ='font-size:15px; color:Navy'> Metric from -1 (Worst Possible) to 1 (Perfect)</i> <br>
+			<i style ='font-size:15px; color:Navy'> On average, a random submission produces a rating of 0</i>
+			<br><br>
+			<a href="/metric_description/"  style ='font-size:14px; padding-left:85px'>Decription of Metric</a>
+		{% endif %}
+		
+		
 	</p>
 
 </div>
 
 <br>	
 <center><div>
-	<p>
+
+
+<p>
 		<i>
-		To run a new test, please select new test registration:</i> <br>
+		To edit your model information, please select the link below:</i> <br>
 	</p>
 	
 	
-	<form action = "/new_test/" method = "get" name = "New Test">
+	<form action = "/model_edit_info/" method = "get" name = "New Test">
 		
 		
-		<button name = "New_Test" type = "submit" value = "HTML" style ='border:ridge;background-color:orange;border-color:black;color:black ;width:200px;height:25px'>
-		Begin New Test
+		<button name = "model_edit_info" type = "submit" value = "HTML" style ='width:200px;height:25px'>
+		Edit model Information
 		</button>
 		
 	</form>
+	
 
 	
 	
 	<br>
+	
+	<p>
+		<i>
+		To run a new test, please create a new test case:</i> <br>
+	</p>
+	
+	
+	<form action = "/casetypeselect/" method = "get" name = "New Test">
+		
+		
+		<button name = "New_Test" type = "submit" value = "HTML" style ='width:200px;height:25px'>
+		Create New Test
+		</button>
+		
+	</form>
+	
+	<br><br>
+	
+	
+	
 	
 	<div style = "border:double 6px; color: #B00000; background-color: #FFFF99; width:500px ">
 	<p style = "color :black">

@@ -1,6 +1,9 @@
 <!DOCTYPE HTML Public "-//W3C//DTD HTML 4.01//EN">
 <html lang = "en">
 
+<head>
+<META NAME="ROBOTS" CONTENT="NOINDEX, NOFOLLOW">
+</head>
 
 
 <body  marginwidth="0px" marginheight="0px" leftmargin="0px"  topmargin="0px" style ='background : url("/media/background.jpg")' npadding ='0px' height = '100%'  style ='overflow-x: hidden; overflow-y:scroll' >
@@ -19,7 +22,10 @@
 		Lost Person Model Rating System<br>
 		</center>
 		<div style = 'margin-top:18px'>
-		<div style ='font-size:14px; position:absolute;padding-left:445px; width:95%'><i>*Leaderboard*</i>&nbsp;&nbsp;&nbsp;&nbsp;[ <a href="/main/" style ='color:#CCFF33'> Log Out </a> | <a href="https://github.com/ctwardy/Pmap-Score/issues?sort=created&direction=desc&state=open" style ='color:#CCFF33' target="_blank" > Issue Tracker </a> | <a href="/help/" style ='color:#CCFF33' target="_blank"> Help </a>]</div>
+		<div style ='font-size:14px;padding-left:340px; position:absolute; width:95%'>
+		[<a href="/main/" style ='color:white'> Log Out </a>  ]
+		&nbsp;&nbsp;&nbsp;&nbsp;<i>*Completed Test*</i>&nbsp;&nbsp;&nbsp;&nbsp;
+		[  <a href="https://github.com/ctwardy/Pmap-Score/issues?sort=created&direction=desc&state=open" style ='color:white' target="_blank" > Issue Tracker </a> | <a href="/help/" style ='color:white' target="_blank"> Help </a>]</div>
 		</div>
 				
 	</h1>
@@ -34,14 +40,15 @@
 	<h1><b> Leaderboard </h1></b>
 	
 	<br>
-	<b> Sort By: </b>
+	<b> Select Table: </b>
 	
 	<form action = "/switchboard/" method = "get">
 	
 		
 		<select name = 'Sort_by' onchange="this.form.submit();">
-			<option value= '0' > Model </option>
+			<option value= '0' > Model Average </option>
 			<option value= '1' > Test Case </option>
+			<option value= '2' > Scenario </option>
 		
 		</select> 
 	</form>
@@ -49,13 +56,117 @@
 
 	<br><br><br>
 	
+	
+
+	
 	<div style ='padding-left:25px'>
 	<table border = "1" style = " font-size:15px; width:1000px"  bgcolor = '#FFFF99'>
 	<tr style ='color:white;background-color:navy'>
-	<th> <p style ='font-size:15px'> Institution Name </p> </th>
-	<th> <p style ='font-size:15px'> Model Name </p> </th>
-	<th> <p style ='font-size:15px'> Average Rating </p> </th>
-	<th> <p style ='font-size:15px'> Tests Completed </p> </th>
+	
+	
+	<th style= 'height:50px'> <form  name ='data' action = "/model_inst_sort/">
+	<Input  type = 'hidden' name = "instname" value ='{{sortlst.0}}'>
+	<Input  type = 'hidden' name = "modelname" value ='{{sortlst.1}}'>
+	<Input  type = 'hidden' name = "avgrating" value ='{{sortlst.2}}'>
+	<Input  type = 'hidden' name = "tstcomplete" value ='{{sortlst.3}}'>
+	<Input  type = 'hidden' name = "page" value ='model_leader'>
+	<button  type = 'submit' style ='font-size:17px;border:0px; background-color:navy;color:white;cursor:pointer'>
+	Institution Name  
+	{% if sortlst.0 == '1' %}
+	&nbsp;&nbsp; ^
+	{% endif %}
+	
+	{% if sortlst.0 == '2' %}
+	&nbsp;&nbsp; v
+	{% endif %}
+	
+	{% if sortlst.0 == '0' %}
+	&nbsp;&nbsp;-
+	{% endif %}
+	
+	</button> </form>
+	</th>
+	
+	
+	
+	
+	
+	<th style= 'height:50px'> <form  name ='data' action = "/model_name_sort/">
+	<Input  type = 'hidden' name = "instname" value ='{{sortlst.0}}'>
+	<Input  type = 'hidden' name = "modelname" value ='{{sortlst.1}}'>
+	<Input  type = 'hidden' name = "avgrating" value ='{{sortlst.2}}'>
+	<Input  type = 'hidden' name = "tstcomplete" value ='{{sortlst.3}}'>
+	<Input  type = 'hidden' name = "page" value ='model_leader'>
+	<button  type = 'submit' style ='font-size:17px;border:0px; background-color:navy;color:white;cursor:pointer'>
+	Model Name 
+	{% if sortlst.1 == '1' %}
+	&nbsp;&nbsp; ^
+	{% endif %}
+	
+	{% if sortlst.1 == '2' %}
+	&nbsp;&nbsp; v
+	{% endif %}
+	
+	{% if sortlst.1 == '0' %}
+	&nbsp;&nbsp;-
+	{% endif %}
+	
+	</button> </form>
+	</th>
+	
+	
+
+	
+	<th style= 'height:50px'> <form  name ='data' action = "/model_rtg_sort/">
+	<Input  type = 'hidden' name = "instname" value ='{{sortlst.0}}'>
+	<Input  type = 'hidden' name = "modelname" value ='{{sortlst.1}}'>
+	<Input  type = 'hidden' name = "avgrating" value ='{{sortlst.2}}'>
+	<Input  type = 'hidden' name = "tstcomplete" value ='{{sortlst.3}}'>
+	<Input  type = 'hidden' name = "page" value ='model_leader'>
+	<button  type = 'submit' style ='font-size:17px;border:0px; background-color:navy;color:white;cursor:pointer'>
+	Average Rating 
+	{% if sortlst.2 == '1' %}
+	&nbsp;&nbsp; ^
+	{% endif %}
+	
+	{% if sortlst.2 == '2' %}
+	&nbsp;&nbsp; v
+	{% endif %}
+	
+	{% if sortlst.2 == '0' %}
+	&nbsp;&nbsp;-
+	{% endif %}
+	
+	</button> </form>
+	</th>
+	
+	
+	
+	
+	
+	<th style= 'height:50px'> <form  name ='data' action = "/model_tstscomp_sort/">
+	<Input  type = 'hidden' name = "instname" value ='{{sortlst.0}}'>
+	<Input  type = 'hidden' name = "modelname" value ='{{sortlst.1}}'>
+	<Input  type = 'hidden' name = "avgrating" value ='{{sortlst.2}}'>
+	<Input  type = 'hidden' name = "tstcomplete" value ='{{sortlst.3}}'>
+	<Input  type = 'hidden' name = "page" value ='model_leader'>
+	<button  type = 'submit' style ='font-size:17px;border:0px; background-color:navy;color:white;cursor:pointer'>
+	Tests Completed  
+	{% if sortlst.3 == '1' %}
+	&nbsp;&nbsp; ^
+	{% endif %}
+	
+	{% if sortlst.3 == '2' %}
+	&nbsp;&nbsp; v
+	{% endif %}
+	
+	{% if sortlst.3 == '0' %}
+	&nbsp;&nbsp;-
+	{% endif %}
+	
+	</button> </form>
+	</th>
+	
 	
 	</tr>
 	
@@ -66,22 +177,43 @@
 			<td>
 			<center>
 			<form action ='/Account_Profile/' name = 'inputform1'>
-			<input type = 'hidden' name ='Account' value = '{{i.0}}'>
+			<input type = 'hidden' name ='Account' value = '{{i.4}}'>
 			<button type = 'submit' style ='border:0px; background-color:#FFFF99;color:blue;cursor:pointer'> <u><b> {{i.0}} </b></u> </button>
 			</form>
 			</center>
 			</td>
 			
 			<td>
-			<p style =' font-size:15px'> <center><b>{{i.1}}</b></center></p>
+			<center>
+			<form action ='/model_Profile/' name = 'inputform2'>
+			<input type = 'hidden' name ='Account' value = '{{i.4}}'>
+			<input type = 'hidden' name ='Model' value = '{{i.1}}'>
+			<button type = 'submit' style ='border:0px; background-color:#FFFF99;color:blue;cursor:pointer'> <u><b> {{i.1}} </b></u> </button>
+			</form>
+			</center>
 			</td>
 			
 			<td>
-			<p style =' font-size:15px'> <center><b>{{i.2}}</b></center></p>
+			{% if i.5 %}
+			<p style =' font-size:15px'> <center><b>{{i.2}} &nbsp; &nbsp; &nbsp; ({{i.5}}, &nbsp; {{i.6}}) </b></center></p>
+			{% else %}
+			<p style =' font-size:15px'> <center><b>{{i.2}} </b></center></p>
+			{% endif %}
 			</td>
 			
 			<td>
+			
+			{% if i.6 %}
+			
+			<p style =' font-size:15px'> <center><b style = "color:red" >{{i.3}}</b></center></p>
+			
+			{% else %}
+			
 			<p style =' font-size:15px'> <center><b>{{i.3}}</b></center></p>
+			
+			{% endif %}
+			
+			
 			</td>
 			
 			
@@ -95,6 +227,9 @@
 	</table>
 	</div>
 
+	<br>
+	<center>  * Average Ratings of multiple tests are reported with 95% confidence intervals
+	<br>
 	<br>
 	<br>
 	

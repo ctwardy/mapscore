@@ -1,6 +1,9 @@
 <!DOCTYPE HTML Public "-//W3C//DTD HTML 4.01//EN">
 <html lang = "en">
 
+<head>
+<META NAME="ROBOTS" CONTENT="NOINDEX, NOFOLLOW">
+</head>
 
 
 <body  marginwidth="0px" marginheight="0px" leftmargin="0px"  topmargin="0px" style ='background : url("/media/background.jpg")' npadding ='0px' height = '100%'  style ='overflow-x: hidden; overflow-y:scroll' >
@@ -126,22 +129,38 @@
 		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;Repeat Password: &nbsp;&nbsp;
 		{% if fail %} <Input maxlength = '30' type = "password" name = "Password2" value ='{{Password2}}'> {% else %} <Input maxlength = '30' type = "password" name = "Password2">  {% endif %}
 		{% if Pass2fail %}&nbsp; <i style ='color:red;font-size:12px'> Invalid Entry </i>   {% endif %}
-		<br><br>
-		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-		&nbsp;&nbsp;&nbsp;&nbsp;
-		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type = "Submit">	
+
 		<br><br>
 		
 		<center> {% if passsyncfail %}<i style ='color:red;font-size:12px'> Passwords do not match </i>   {% endif %} </center>
 		
+		<br>
+		
+		 <b style ='padding-left:175px'> User Verification </b> 
+		<br>
+		<br>
+		
+		<img style = 'padding-left:50px' src = "/media/Captcha1.png" width ='374' height = '355'  >
+		
 		
 		<br><br>
+		
+		<div style = 'padding-left:120px'>Please transcribe the image text below:<br> </div>
+		<br>
+		<div style = 'padding-left:160px'> <Input  maxlength = '30' type = "text" name = "captcha" > </div>
+		
+		{% if captchafail %}&nbsp;<i style ='color:red;font-size:12px;padding-left:185px'> Invalid Image Match</i> <br>{% endif %}
+		
+		<br>
+		
+		<div style = 'padding-left:210px'> <input type = "Submit"> </div>
+		
+		<br><br>
+		
 		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;
 		Beta Key: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 		&nbsp;&nbsp;&nbsp;&nbsp;
-		<Input maxlength = '30' type = "password" name = "Betakey" > {% if betafail %}&nbsp; <i style ='color:red;font-size:12px'> Invalid Beta Key</i>   {% endif %}
+		<Input maxlength = '30' type = "password" name = "Betakey" > {% if betafail %}&nbsp; <i style ='color:red;font-size:12px'> Invalid Beta Key</i>    {% endif %}
 		<br><br>
 		
 	</form>

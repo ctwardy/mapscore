@@ -1,6 +1,9 @@
 <!DOCTYPE HTML Public "-//W3C//DTD HTML 4.01//EN">
 <html lang = "en">
 
+<head>
+<META NAME="ROBOTS" CONTENT="NOINDEX, NOFOLLOW">
+</head>
 
 
 <body  marginwidth="0px" marginheight="0px" leftmargin="0px"  topmargin="0px" style ='background : url("/media/background.jpg")' npadding ='0px' height = '100%'  style ='overflow-x: hidden; overflow-y:scroll' >
@@ -19,7 +22,10 @@
 		Lost Person Model Rating System<br>
 		</center>
 		<div style = 'margin-top:18px'>
-		<div style ='font-size:14px; position:absolute;padding-left:430px; width:95%'><i>*Completed Test*</i>&nbsp;&nbsp;&nbsp;&nbsp;[ <a href="/main/" style ='color:#CCFF33'> Log Out </a> | <a href="https://github.com/ctwardy/Pmap-Score/issues?sort=created&direction=desc&state=open" style ='color:#CCFF33' target="_blank" > Issue Tracker </a> | <a href="/help/" style ='color:#CCFF33' target="_blank"> Help </a>]</div>
+		<div style ='font-size:14px;padding-left:260px; position:absolute; width:95%'>
+		[<a href="/main/" style ='color:white'> Log Out </a> | <a href="/hyper_leaderboard/" style ='color:white'> Leaderboard </a> ]
+		&nbsp;&nbsp;&nbsp;&nbsp;<i>*Completed Test*</i>&nbsp;&nbsp;&nbsp;&nbsp;
+		[  <a href="https://github.com/ctwardy/Pmap-Score/issues?sort=created&direction=desc&state=open" style ='color:white' target="_blank" > Issue Tracker </a> | <a href="/help/" style ='color:white' target="_blank"> Help </a>]</div>
 		</div>
 				
 	</h1>
@@ -36,7 +42,10 @@
 	<br><br>
 		
 	<h1 style ='color:red'> 	Model Rating: {{rating}} </h1>
-	
+	<i style ='font-size:15px; color:Navy'> Metric from -1 (Worst Possible) to 1 (Perfect)</i> <br>
+	<i style ='font-size:15px; color:Navy'> On average, a random submission produces a rating of 0</i>
+	<br><br>
+			<a href="/metric_description_nonactive/"  style ='font-size:14px;'>Decription of Metric</a>
 	<br><br>
 	
 	
@@ -141,10 +150,10 @@
 		
 		<b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<u>Search Region Boundary Points:</b></u><br>
 		<br>
-		<b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Upper Left:</b> {{upleft}} -{A}<br>
-		<b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Upper Right:</b> {{upright}} -{B}<br>
-		<b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Lower Right:</b> {{downright}} -{C}<br>
-		<b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Lower Left:</b> {{downleft}} -{D}<br>
+		<b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Upper Lat:</b>&nbsp;&nbsp; {{uplat}}<br>
+		<b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Lower Lat:</b> &nbsp; {{downlat}}<br>
+		<b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Right Lon:</b>&nbsp;&nbsp;{{rightlon}}<br>
+		<b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Left Lon:</b>&nbsp;&nbsp;&nbsp;&nbsp;{{leftlon}}<br>
 		<br>	
 		</p>
 </div>

@@ -1,6 +1,9 @@
 <!DOCTYPE HTML Public "-//W3C//DTD HTML 4.01//EN">
 <html lang = "en">
 
+<head>
+<META NAME="ROBOTS" CONTENT="NOINDEX, NOFOLLOW">
+</head>
 
 
 <body  marginwidth="0px" marginheight="0px" leftmargin="0px"  topmargin="0px" style ='background : url("/media/background.jpg")' npadding ='0px' height = '100%'  style ='overflow-x: hidden; overflow-y:scroll' >
@@ -19,8 +22,12 @@
 		Lost Person Model Rating System<br>
 		</center>
 		<div style = 'margin-top:18px'>
-		<div style ='font-size:14px; position:absolute;padding-left:435px; width:95%'><i>*Test Case Menu*</i>&nbsp;&nbsp;&nbsp;&nbsp;[ <a href="/main/" style ='color:#CCFF33'> Log Out </a> | <a href="https://github.com/ctwardy/Pmap-Score/issues?sort=created&direction=desc&state=open" style ='color:#CCFF33' target="_blank" > Issue Tracker </a> | <a href="/help/" style ='color:#CCFF33' target="_blank"> Help </a>]</div>
+		<div style ='font-size:14px;padding-left:255px; position:absolute; width:95%'>
+		[<a href="/main/" style ='color:white'> Log Out </a> | <a href="/hyper_leaderboard/" style ='color:white'> Leaderboard </a> ]
+		&nbsp;&nbsp;&nbsp;&nbsp;<i>*Test Case Menu*</i>&nbsp;&nbsp;&nbsp;&nbsp;
+		[  <a href="https://github.com/ctwardy/Pmap-Score/issues?sort=created&direction=desc&state=open" style ='color:white' target="_blank" > Issue Tracker </a> | <a href="/help/" style ='color:white' target="_blank"> Help </a>]</div>
 		</div>
+
 				
 	</h1>
 </div>	
@@ -60,24 +67,29 @@
 	
 	<table border = "1" style = " font-size:15px; width:1000px"  bgcolor = '#FFFF99'>
 	<tr>
-	<th> Name </th>
 	<th> ID </th>
+	<th> Name </th>
 	<th> Age </th>
 	<th> Sex </th>
-	<th> LKP (Lat, Lon)</th>
-	<th> Find (Lat, Lon) </th>
 	<th> Boundary Points (Lat, Lon) </th>
 	<th> Find Cell (X,Y)</th>
+	<th> Layers Uploaded</th>
 	</tr>
 	
 	
 	{% for i in case_list %}
 	<tr style = " font-size:12px" >
-		{% for j in i %}
-			<td>
-			{{j}}
-			</td>
-		{% endfor %}
+	
+	<td>{{i.0}}</td> 
+	<td>{{i.1}}</td>
+	<td>{{i.2}}</td>
+	<td>{{i.3}}</td>
+	<td>{{i.4}}</td>
+	<td>{{i.5}}</td> 
+	<form  name ='data' action = "/UploadLayers/">
+	<Input  type = 'hidden' name = "id" value = {{i.0}} >
+	<td><button type = 'submit' style ='border:0px; background-color:#FFFF99;color:blue;cursor:pointer'> <u><b> {{i.6}} </b></u> </button></td>
+	</form>
 	</tr>
 	
 	{% endfor %}

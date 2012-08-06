@@ -1,6 +1,9 @@
 <!DOCTYPE HTML Public "-//W3C//DTD HTML 4.01//EN">
 <html lang = "en">
 
+<head>
+<META NAME="ROBOTS" CONTENT="NOINDEX, NOFOLLOW">
+</head>
 
 
 <body  marginwidth="0px" marginheight="0px" leftmargin="0px"  topmargin="0px" style ='background : url("/media/background.jpg")' npadding ='0px' height = '100%'  style ='overflow-x: hidden; overflow-y:scroll' >
@@ -19,8 +22,12 @@
 		Lost Person Model Rating System<br>
 		</center>
 		<div style = 'margin-top:18px'>
-		<div style ='font-size:14px; position:absolute;padding-left:440px; width:95%'><i>*Alignment Test*</i>&nbsp;&nbsp;&nbsp;&nbsp;[ <a href="/main/" style ='color:#CCFF33'> Log Out </a> | <a href="https://github.com/ctwardy/Pmap-Score/issues?sort=created&direction=desc&state=open" style ='color:#CCFF33' target="_blank" > Issue Tracker </a> | <a href="/help/" style ='color:#CCFF33' target="_blank"> Help </a>]</div>
-		</div>		
+		<div style ='font-size:14px;padding-left:260px; position:absolute; width:95%'>
+		[<a href="/main/" style ='color:white'> Log Out </a> | <a href="/hyper_leaderboard/" style ='color:white'> Leaderboard </a> ]
+		&nbsp;&nbsp;&nbsp;&nbsp;<i>*Alignment Test*</i>&nbsp;&nbsp;&nbsp;&nbsp;
+		[  <a href="https://github.com/ctwardy/Pmap-Score/issues?sort=created&direction=desc&state=open" style ='color:white' target="_blank" > Issue Tracker </a> | <a href="/help/" style ='color:white' target="_blank"> Help </a>]</div>
+		</div>
+					
 				
 	</h1>
 </div>	
@@ -30,29 +37,92 @@
 
 <div style =' margin-left: 0% ; margin-top: 130px; margin-right: 0%; margin-bottom: 0px; color:black; overflow-y:hidden; overflow-x:hidden;'  >
 
+
 <br><br>
 
-
-<div style ='position:absolute; padding-left:530px; padding-top:160px'>
-<img src = '{{pic}}'>
-</div>
-
-<div style ='position:absolute; padding-left:720px; padding-top:890px'>
-<b>Point Reference</b>
-</div>
-
-
-<div style ='position:absolute; padding-left:530px; padding-top:920px'>
-<img src = "/media/base_grid_show.png">
-</div>
-
-<i style ='position:absolute;padding-left:380px;padding-top:75px'> Bulk input option available at bottom of page </i>
 
 <center>
 <h1> <b> Grid Alignment Verification </b> </h1>
 </center>
 
+
+<i style ='position:absolute;padding-left:380px;padding-top:0px'> Bulk input option available at bottom of page </i>
 <br><br>
+
+<center>
+
+<form action = "/activate_inst/" method = "get" name = "Instructions2">
+		
+		
+		<button name = "Instructions2" type = "submit" value = "HTML">
+		Instructions
+		</button></form>
+
+</center>
+
+<br>
+
+
+<center>
+
+<form action = "/DownloadGridsyncsol/" method = "get" name = "DWNLDPTS">
+		
+		
+		<button name = "DWNLD_PTS" type = "submit" value = "HTML">
+		Download Grid Points
+		</button></form>
+
+</center>
+
+
+
+<div style ='position:absolute; padding-left:530px; padding-top:545px'>
+<img src = '{{pic}}'>
+</div>
+
+<div style ='position:absolute; padding-left:720px; padding-top:1275px'>
+<b>Point Reference</b>
+</div>
+
+
+<div style ='position:absolute; padding-left:530px; padding-top:1305px'>
+<img src = "/media/base_grid_show.png">
+</div>
+
+
+
+
+
+
+
+
+<br>
+
+<div style = 'padding-left:200px'>
+<h1><b style = 'font-size:18px;padding-left:90px'> <u>Bounding Box Coordinates for Search Region:</u></h1></b>
+<div style = 'margin-left:15px; border:double; background-color:#FFFF99; width: 500px;'>
+<br><br>
+<div style = 'padding-left:40px'>
+<b> Upper Lat:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {{uplat}} </b><br>
+<b> Lower Lat:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {{downlat}}</b><br>
+<b> Right Lon:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;{{rightlon}}</b><br>
+<b> Left Lon:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {{leftlon}}</b><br>
+<b> LKP (Center): &nbsp;&nbsp;{{LKP}}</b> <br><br>
+<b> Total # Cells:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {{totalcells}}</b><br><br>
+<b> Cells Per Side:&nbsp;&nbsp;&nbsp; {{sidecells}}<br> (Search Region) </b>
+<br><br>
+<b style ="color:#780000">Note: &nbsp;&nbsp;&nbsp;&nbsp;Our definition of the lost person grid is based on a Great <br>
+	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Sphere approximation of the Earth.</b>
+	
+	<br><br>
+
+</div>
+</div>
+</div>
+
+
+
+<br><br><br><br>
 
 
 

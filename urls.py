@@ -1,4 +1,5 @@
 from django.conf.urls.defaults import patterns, include, url
+from django.http import HttpResponse
 from Views import main_page 
 from Views import account_reg
 from Views import create_account
@@ -75,6 +76,43 @@ from Views import delete_model
 from Views import deletemodel_confirm
 from Views import help
 from Views import help_how_alter_account
+from Views import model_to_Scenario_switch
+from Views import switchboard_toscenario
+from Views import test_to_Scenario_switch
+from Views import test_to_test_switch
+from Views import scenario_to_test_switch
+from Views import scenario_to_scenario_switch
+from Views import hyper_leaderboard
+from Views import model_inst_sort
+from Views import model_name_sort
+from Views import model_rtg_sort
+from Views import model_tstscomp_sort
+from Views import test_inst_sort
+from Views import test_modelname_sort
+from Views import test_name_sort
+from Views import test_rating_sort
+from Views import cat_inst_sort
+from Views import cat_modelname_sort
+from Views import catrating_sort
+from Views import catcompleted_sort
+from Views import model_edit_info
+from Views import model_change_info
+from Views import model_Profile
+from Views import metric_description
+from Views import metric_description_nonactive
+from Views import metric_description_submissionreview
+from Views import reg_conditions
+from Views import DownloadGridsync
+from Views import DownloadParam
+from Views import UploadLayers
+from Views import upload_Layerfile
+from Views import DownloadLayers
+from Views import delete_Layers
+from Views import DownloadLayersadmin
+from Views import casetypeselect
+from Views import NextSequentialTestSwitch
+from Views import TesttypeSwitch
+from Views import DownloadGridsyncsol
 
 # Uncomment the next two lines to enable the admin:
 # from django.contrib import admin
@@ -154,6 +192,46 @@ urlpatterns = patterns('',
 			  ('^deletemodel_confirm/$',deletemodel_confirm),
 			  ('^help/$',help),
 			  ('^help_how_alter_account/$',help_how_alter_account),
+			  ('^model_to_Scenario_switch/$',model_to_Scenario_switch),
+			  ('^switchboard_toscenario/$',switchboard_toscenario),
+			  ('^test_to_Scenario_switch/$',test_to_Scenario_switch),
+			  ('^test_to_test_switch/$',test_to_test_switch),
+			  ('^scenario_to_test_switch/$',scenario_to_test_switch),
+			  ('^scenario_to_scenario_switch/$',scenario_to_scenario_switch),
+			  ('^hyper_leaderboard/$',hyper_leaderboard),
+			  ('^model_inst_sort/$',model_inst_sort),
+			  ('^model_name_sort/$',model_name_sort),
+			  ('^model_rtg_sort/$',model_rtg_sort),
+			  ('^model_tstscomp_sort/$',model_tstscomp_sort),
+			  ('^test_inst_sort/$',test_inst_sort),
+			  ('^test_modelname_sort/$',test_modelname_sort),
+			  ('^test_name_sort/$',test_name_sort),
+			  ('^test_rating_sort/$',test_rating_sort),
+			  ('^cat_inst_sort/$',cat_inst_sort),
+			  ('^cat_modelname_sort/$',cat_modelname_sort),
+			  ('^catrating_sort/$',catrating_sort),
+			  ('^catcompleted_sort/$',catcompleted_sort),
+			  ('^model_edit_info/$',model_edit_info),
+			  ('^model_change_info/$',model_change_info),
+			  ('^model_Profile/$',model_Profile),
+			  ('^metric_description/$',metric_description),
+			  ('^metric_description_nonactive/$',metric_description_nonactive),
+			  ('^metric_description_submissionreview/$',metric_description_submissionreview),
+			  ('^reg_conditions/$',reg_conditions),
+			  ('^DownloadGridsync/$',DownloadGridsync),
+			  ('^DownloadParam/$',DownloadParam),
+			  ('^UploadLayers/$',UploadLayers),
+			  ('^upload_Layerfile/$',upload_Layerfile),
+			  ('^DownloadLayers/$',DownloadLayers),
+			  ('^delete_Layers/$',delete_Layers),
+			  ('^DownloadLayersadmin/$',DownloadLayersadmin),
+			  ('^casetypeselect/$',casetypeselect),
+			  ('^NextSequentialTestSwitch/$',NextSequentialTestSwitch),
+			  ('^TesttypeSwitch/$',TesttypeSwitch),
+			  ('^DownloadGridsyncsol/$',DownloadGridsyncsol),
+			
+			  (r'^robots\.txt$', lambda r: HttpResponse("User-agent: *\nDisallow: /", mimetype="text/plain")),
+			  
 			  
     # Examples:
     # url(r'^$', 'MapRateWeb.views.home', name='home'),
