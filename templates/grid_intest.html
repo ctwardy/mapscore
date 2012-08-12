@@ -46,8 +46,9 @@
 </center>
 
 
-<i style ='position:absolute;padding-left:380px;padding-top:0px'> Bulk input option available at bottom of page </i>
+<!--<i style ='position:absolute;padding-left:380px;padding-top:0px'> Bulk input option available at bottom of page </i>
 <br><br>
+-->
 
 <center>
 
@@ -62,14 +63,17 @@
 
 <br>
 
+<p>Ensure you have the correct orientation, and that the projection
+  is roughly correct. Then just click "Get Answers!" below and paste them
+  into the answer box. Really.
+</p>
 
 <center>
 
 <form action = "/DownloadGridsyncsol/" method = "get" name = "DWNLDPTS">
 		
-		
 		<button name = "DWNLD_PTS" type = "submit" value = "HTML">
-		Download Grid Points
+		Get Answers!
 		</button></form>
 
 </center>
@@ -111,8 +115,7 @@
 <b> Total # Cells:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {{totalcells}}</b><br><br>
 <b> Cells Per Side:&nbsp;&nbsp;&nbsp; {{sidecells}}<br> (Search Region) </b>
 <br><br>
-<b style ="color:#780000">Note: &nbsp;&nbsp;&nbsp;&nbsp;Our definition of the lost person grid is based on a Great <br>
-	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Sphere approximation of the Earth.</b>
+<b style ="color:#780000">Note: We use a Great Sphere approximation of the Earth.</b>
 	
 	<br><br>
 
@@ -143,6 +146,7 @@
 
 <br><br>
 
+<!--
 <div style = 'padding-left: 25px'>
 <b> In order to ensure that we interpret the pixel pattern of your returned 
     greyscale image appropriately, we first need to ensure that the grid your 
@@ -150,11 +154,12 @@
     this, you will be given nine (lat,lon) points and are will be required to 
     return the coordinated of the grid cell containing each point. This process 
     only needs to be sucessfully completed once per test. <br><br>
-    Below are the nine provided (lat,lon) points. Please complete and submitt the 
+    Below are the nine provided (lat,lon) points. Please complete and submit the 
     following table: <br><br>
     
     </div>
-    
+    -->
+<!--
 <div style = 'padding-left:75px'>
 <form action = "/grid_testresult/" method = "get">
 
@@ -242,8 +247,6 @@ Y: {% if fail %} <Input type = "text" name = "pt9y" value ='{{pt9y_i}}'> {% else
 <br>
 
 
-
-
 <center>
 <input type = "Submit">
 </center>
@@ -259,18 +262,23 @@ Y: {% if fail %} <Input type = "text" name = "pt9y" value ='{{pt9y_i}}'> {% else
 
 		
 </form>
+-->
 
+<!--
 <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 <br><br><br><br><br><br><br><br><br>
+-->
 
+<!--<div style = 'margin-left:15px; border:double; background-color:#FFFF99; width: 500px;height:400px; position:absolute'>
+<div style = 'padding-left:75px'>
+<div style = 'padding-left: 25px'>
+-->
 <center>
-<h1>   Bulk Input </h1>
+<h1>Test Points</h1>
 </center>
 <br><br><br>
-<div style = 'margin-left:15px; border:double; background-color:#FFFF99; width: 500px;height:400px; position:absolute'>
-<div style = 'padding-left:75px'>
 <br>
 <b> Points  # 1 - 9</b>
 <br><br><br><br>
