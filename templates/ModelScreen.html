@@ -158,7 +158,10 @@
 	
 	<form action = "/nonactive_test/" method = "get">
 	
-		{% if completedtest %} <input maxlength = '30' type ='text' name = 'Nonactive_Testin' value ='{{completedtest}}'> {% else %} <input maxlength = '30' type ='text' name = 'Nonactive_Testin'>  {% endif %}
+		{% if completedtest %} <input maxlength = '30' type ='text'
+                                      name = 'Nonactive_Testin' value ='{{completedtest}}'> 
+        {% else %} <input maxlength = '30' type ='text' name = 'Nonactive_Testin'>  
+        {% endif %}
 		
 			 
 		<input type ='submit' value = 'Submit'/>

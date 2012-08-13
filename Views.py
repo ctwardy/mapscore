@@ -80,7 +80,7 @@ def main_page(request):
 	# Sorting Algorithm largest -- smallest
 
 	for i in allmodels:
-		if i.model_avgrating != 'unrated':
+		if i.model_avgrating != 'unrated' and i.Completed_cases >= 10:
 			sorted_models.append(i)
 
 	#Bubblesort
@@ -1900,10 +1900,12 @@ def setcompletedtest(request):
 	intest_raw = str(request.GET['Nonactive_Testin'])
 
 	intest = ''
-	for i in intest_raw:
-		if i != ' ':
-			intest = intest + str(i)
-
+        # The following strips all spaces, which blocks "Hiker Paul" and "Hiker June". 
+        # Use strip() instead.
+	# for i in intest_raw:
+	# 	#if i != ' ':
+        #         intest = intest + str(i)
+        intest = intest_raw.strip()
 
 	completed_lst = []
 
