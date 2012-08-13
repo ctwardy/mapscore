@@ -80,7 +80,7 @@ def main_page(request):
 	# Sorting Algorithm largest -- smallest
 
 	for i in allmodels:
-		if i.model_avgrating != 'unrated' and i.Completed_cases >= 10:
+		if i.model_avgrating != 'unrated':
 			sorted_models.append(i)
 
 	#Bubblesort
@@ -119,16 +119,17 @@ def main_page(request):
 
 		numbertests = count
 
-		sublist.append(institution)
-		sublist.append(model)
-		sublist.append(rating)
-		sublist.append(numbertests)
+                if numbertests >= 5:
+                        sublist.append(institution)
+                        sublist.append(model)
+                        sublist.append(rating)
+                        sublist.append(numbertests)
+                        
+                        inputlist.append(sublist)
 
-		inputlist.append(sublist)
 
-
-		if len(inputlist) >5:
-			inputlist = inputlist[0:4]
+	if len(inputlist) >10:
+		inputlist = inputlist[0:4]
 
 	inputdic ={'Scorelist':inputlist}	
 
