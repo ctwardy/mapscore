@@ -1035,9 +1035,16 @@ class Test(models.Model):
 
 
 			# if correct
-			if inlist[m][0] == existlist[m][0]  and inlist[m][1] == existlist[m][1]:
+                        # if inlist[m][0] == existlist[m][0]  and inlist[m][1] == existlist[m][1]:
+
+                        # Let's do "good enough", not precisely correct.
+                        THRESH = 5
+                        x0, y0 = inlist[m]
+                        x1, y1 = existlist[m]
+                        if math.abs(x0-x1) < THRESH and math.abs(y0-y1) < THRESH:
 				correctlist.append(True)
 
+                                # Draw a "correct" icon. Pixel by pixel. Augh.
 				for i in range (pixelwidth):
 					for j in range(pixelwidth):
 
@@ -1078,7 +1085,7 @@ class Test(models.Model):
 				correctlist.append(False)
 
 
-
+                                # Draw an "incorrect" icon. Laboriously.  Augh.
 				for i in range (5):
 					for j in range(11-2*(i)):
 
@@ -1342,4 +1349,5 @@ class terminated_accounts(models.Model):
 	institution_name = models.CharField(max_length = 30)
 	modelsi = models.CharField(max_length = 30)
 	deleted_models = models.CharField(max_length = 10)
+
 

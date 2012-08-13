@@ -63,10 +63,12 @@
 
 <br>
 
+<div style='padding-left:10%; padding-right:10%'>
 <p>Ensure you have the correct orientation, and that the projection
   is roughly correct. Then just click "Get Answers!" below and paste them
   into the answer box. Really.
 </p>
+</div>
 
 <center>
 
@@ -79,7 +81,7 @@
 </center>
 
 
-
+<!--
 <div style ='position:absolute; padding-left:530px; padding-top:545px'>
 <img src = '{{pic}}'>
 </div>
@@ -88,11 +90,10 @@
 <b>Point Reference</b>
 </div>
 
-
 <div style ='position:absolute; padding-left:530px; padding-top:1305px'>
 <img src = "/media/base_grid_show.png">
 </div>
-
+-->
 
 
 
@@ -116,264 +117,231 @@
 <b> Cells Per Side:&nbsp;&nbsp;&nbsp; {{sidecells}}<br> (Search Region) </b>
 <br><br>
 <b style ="color:#780000">Note: We use a Great Sphere approximation of the Earth.</b>
-	
-	<br><br>
-
+<br><br>
 </div>
 </div>
 </div>
-
 
 
 <br><br><br><br>
-
-
-
-
 
 
 <div style = 'position:absolute;padding-left:250px'>
-<b> Grid Test </b>
+  <b>Lat/Lon Points</b>
 </div>
 <div style = 'position:absolute;padding-left:720px;'>
-<b> Visual Depiction </b>
+  <b> Grid Points (Your Answers) </b>
 </div>
 
 <br>
 <br>
 
+<!--
 <div style = 'margin-left:15px; border:double; background-color:#FFFF99; width: 500px; position:absolute'>
+  <div style = 'padding-left:75px'>
+    <form action = "/grid_testresult/" method = "get">
+      
+      <u><i>Point One:</i></u> <br>
+      {{pt1}}<br>
+      X: {% if fail %} <Input type = "text" name = "pt1x" value ='{{pt1x_i}}'> {% else %} <Input type = "text" name = "pt1x">  {% endif %}
+      Y: {% if fail %} <Input type = "text" name = "pt1y" value ='{{pt1y_i}}'> {% else %} <Input type = "text" name = "pt1y">  {% endif %}
+      <br>
+      {% if fail1 %}<i style ='color:red; font-size:12px; padding-left:60px'> Invalid Entry: must only contain and integer </i> {% endif %}
 
-<br><br>
+      <br>
+      <br>
 
-<!--
-<div style = 'padding-left: 25px'>
-<b> In order to ensure that we interpret the pixel pattern of your returned 
-    greyscale image appropriately, we first need to ensure that the grid your 
-    model will rate is consistent with that which we require. In order to do 
-    this, you will be given nine (lat,lon) points and are will be required to 
-    return the coordinated of the grid cell containing each point. This process 
-    only needs to be sucessfully completed once per test. <br><br>
-    Below are the nine provided (lat,lon) points. Please complete and submit the 
-    following table: <br><br>
-    
+      <u><i>Point Two:</i> </u><br>
+      {{pt2}}<br>
+      X: {% if fail %} <Input type = "text" name = "pt2x" value ='{{pt2x_i}}'> {% else %} <Input type = "text" name = "pt2x">  {% endif %}
+      Y: {% if fail %} <Input type = "text" name = "pt2y" value ='{{pt2y_i}}'> {% else %} <Input type = "text" name = "pt2y">  {% endif %}
+      <br>
+      {% if fail2 %}<i style ='color:red; font-size:12px;padding-left:60px'> Invalid Entry: must only contain and integer </i>    {% endif %}
+      <br>
+      <br>
+
+      <u><i>Point Three:</i></u> <br>
+      {{pt3}}<br>
+      X: {% if fail %} <Input type = "text" name = "pt3x" value ='{{pt3x_i}}'> {% else %} <Input type = "text" name = "pt3x">  {% endif %}
+      Y: {% if fail %} <Input type = "text" name = "pt3y" value ='{{pt3y_i}}'> {% else %} <Input type = "text" name = "pt3y">  {% endif %}
+      <br>
+      {% if fail3 %}<i style ='color:red; font-size:12px;padding-left:60px'> Invalid Entry: must only contain and integer </i>   {% endif %}
+      <br>
+      <br>
+
+      <u><i>Point Four:</i></u> <br>
+      {{pt4}}<br>
+      X: {% if fail %} <Input type = "text" name = "pt4x" value ='{{pt4x_i}}'> {% else %} <Input type = "text" name = "pt4x">  {% endif %}
+      Y: {% if fail %} <Input type = "text" name = "pt4y" value ='{{pt4y_i}}'> {% else %} <Input type = "text" name = "pt4y">  {% endif %}
+      <br>
+      {% if fail4 %}<i style ='color:red; font-size:12px;padding-left:60px'> Invalid Entry: must only contain and integer </i>   {% endif %}
+      <br>
+      <br>
+
+      <u><i>Point Five:</i></u> <br>
+      {{pt5}}<br>
+      X: {% if fail %} <Input type = "text" name = "pt5x" value ='{{pt5x_i}}'> {% else %} <Input type = "text" name = "pt5x">  {% endif %}
+      Y: {% if fail %} <Input type = "text" name = "pt5y" value ='{{pt5y_i}}'> {% else %} <Input type = "text" name = "pt5y">  {% endif %}
+      <br>
+      {% if fail5 %}<i style ='color:red; font-size:12px;padding-left:60px'> Invalid Entry: must only contain and integer </i>   {% endif %}
+      <br>
+      <br>
+
+      <u><i>Point Six:</i></u><br>
+      {{pt6}}<br>
+      X: {% if fail %} <Input type = "text" name = "pt6x" value ='{{pt6x_i}}'> {% else %} <Input type = "text" name = "pt6x">  {% endif %}
+      Y: {% if fail %} <Input type = "text" name = "pt6y" value ='{{pt6y_i}}'> {% else %} <Input type = "text" name = "pt6y">  {% endif %}
+      <br>
+      {% if fail6 %}<i style ='color:red; font-size:12px;padding-left:60px'> Invalid Entry: must only contain and integer </i>    {% endif %}
+      <br>
+      <br>
+
+      <u><i>Point Seven:</i> </u><br>
+      {{pt7}}<br>
+      X: {% if fail %} <Input type = "text" name = "pt7x" value ='{{pt7x_i}}'> {% else %} <Input type = "text" name = "pt7x">  {% endif %}
+      Y: {% if fail %} <Input type = "text" name = "pt7y" value ='{{pt7y_i}}'> {% else %} <Input type = "text" name = "pt7y">  {% endif %}
+      <br>
+      {% if fail7 %}<i style ='color:red; font-size:12px;padding-left:60px'> Invalid Entry: must only contain and integer </i>    {% endif %}
+      <br>
+      <br>
+
+      <u><i>Point Eight:</i></u> <br>
+      {{pt8}}<br>
+      X: {% if fail %} <Input type = "text" name = "pt8x" value ='{{pt8x_i}}'> {% else %} <Input type = "text" name = "pt8x">  {% endif %}
+      Y: {% if fail %} <Input type = "text" name = "pt8y" value ='{{pt8y_i}}'> {% else %} <Input type = "text" name = "pt8y">  {% endif %}
+      <br>
+      {% if fail8 %}<i style ='color:red; font-size:12px;padding-left:60px'> Invalid Entry: must only contain and integer </i>   {% endif %}
+      <br>
+      <br>
+
+      <u><i>Point Nine: </i></u><br>
+      {{pt9}}<br>
+      X: {% if fail %} <Input type = "text" name = "pt9x" value ='{{pt9x_i}}'> {% else %} <Input type = "text" name = "pt9x">  {% endif %}
+      Y: {% if fail %} <Input type = "text" name = "pt9y" value ='{{pt9y_i}}'> {% else %} <Input type = "text" name = "pt9y">  {% endif %}
+      <br>
+      {% if fail9 %}<i style ='color:red; font-size:12px;padding-left:60px'> Invalid Entry: must only contain and integer </i>  {% endif %}
+      <br>
+      <br>
+
+
+
+
+      <center>
+        <input type = "Submit">
+      </center>
+    </form>
+    <br><br>
+  </div>
+</div>
+-->
+
+<div style = 'margin-left:15px; border:double;
+         background-color:#FFFF99; width: 500px;height:400px;
+         position:absolute'>
+  <div style = 'padding-left:75px'>
+    <div style = 'padding-left: 25px'>
+      
+      <center>
+        <h1>Test Points</h1>
+      </center>
+      <br>
+      <b> Points # 1 - 9</b>
+      <br><br> 
+      {{pt1}}<br> 
+      {{pt2}}<br> 
+      {{pt3}}<br> 
+      {{pt4}}<br>
+      {{pt5}}<br> 
+      {{pt6}}<br> 
+      {{pt7}}<br> 
+      {{pt8}}<br> 
+      {{pt9}}<br>
+      <p>&nbsp;</p>
     </div>
-    -->
-<!--
-<div style = 'padding-left:75px'>
-<form action = "/grid_testresult/" method = "get">
-
-
-<u><i>Point One:</i></u> <br>
-{{pt1}}<br>
-X: {% if fail %} <Input type = "text" name = "pt1x" value ='{{pt1x_i}}'> {% else %} <Input type = "text" name = "pt1x">  {% endif %}
-Y: {% if fail %} <Input type = "text" name = "pt1y" value ='{{pt1y_i}}'> {% else %} <Input type = "text" name = "pt1y">  {% endif %}
-<br>
-{% if fail1 %}<i style ='color:red; font-size:12px; padding-left:60px'> Invalid Entry: must only contain and integer </i> {% endif %}
-
-<br>
-<br>
-
-<u><i>Point Two:</i> </u><br>
-{{pt2}}<br>
-X: {% if fail %} <Input type = "text" name = "pt2x" value ='{{pt2x_i}}'> {% else %} <Input type = "text" name = "pt2x">  {% endif %}
-Y: {% if fail %} <Input type = "text" name = "pt2y" value ='{{pt2y_i}}'> {% else %} <Input type = "text" name = "pt2y">  {% endif %}
-<br>
-{% if fail2 %}<i style ='color:red; font-size:12px;padding-left:60px'> Invalid Entry: must only contain and integer </i>    {% endif %}
-<br>
-<br>
-
-<u><i>Point Three:</i></u> <br>
-{{pt3}}<br>
-X: {% if fail %} <Input type = "text" name = "pt3x" value ='{{pt3x_i}}'> {% else %} <Input type = "text" name = "pt3x">  {% endif %}
-Y: {% if fail %} <Input type = "text" name = "pt3y" value ='{{pt3y_i}}'> {% else %} <Input type = "text" name = "pt3y">  {% endif %}
-<br>
-{% if fail3 %}<i style ='color:red; font-size:12px;padding-left:60px'> Invalid Entry: must only contain and integer </i>   {% endif %}
-<br>
-<br>
-
-<u><i>Point Four:</i></u> <br>
-{{pt4}}<br>
-X: {% if fail %} <Input type = "text" name = "pt4x" value ='{{pt4x_i}}'> {% else %} <Input type = "text" name = "pt4x">  {% endif %}
-Y: {% if fail %} <Input type = "text" name = "pt4y" value ='{{pt4y_i}}'> {% else %} <Input type = "text" name = "pt4y">  {% endif %}
-<br>
-{% if fail4 %}<i style ='color:red; font-size:12px;padding-left:60px'> Invalid Entry: must only contain and integer </i>   {% endif %}
-<br>
-<br>
-
-<u><i>Point Five:</i></u> <br>
-{{pt5}}<br>
-X: {% if fail %} <Input type = "text" name = "pt5x" value ='{{pt5x_i}}'> {% else %} <Input type = "text" name = "pt5x">  {% endif %}
-Y: {% if fail %} <Input type = "text" name = "pt5y" value ='{{pt5y_i}}'> {% else %} <Input type = "text" name = "pt5y">  {% endif %}
-<br>
-{% if fail5 %}<i style ='color:red; font-size:12px;padding-left:60px'> Invalid Entry: must only contain and integer </i>   {% endif %}
-<br>
-<br>
-
-<u><i>Point Six:</i></u><br>
-{{pt6}}<br>
-X: {% if fail %} <Input type = "text" name = "pt6x" value ='{{pt6x_i}}'> {% else %} <Input type = "text" name = "pt6x">  {% endif %}
-Y: {% if fail %} <Input type = "text" name = "pt6y" value ='{{pt6y_i}}'> {% else %} <Input type = "text" name = "pt6y">  {% endif %}
-<br>
-{% if fail6 %}<i style ='color:red; font-size:12px;padding-left:60px'> Invalid Entry: must only contain and integer </i>    {% endif %}
-<br>
-<br>
-
-<u><i>Point Seven:</i> </u><br>
-{{pt7}}<br>
-X: {% if fail %} <Input type = "text" name = "pt7x" value ='{{pt7x_i}}'> {% else %} <Input type = "text" name = "pt7x">  {% endif %}
-Y: {% if fail %} <Input type = "text" name = "pt7y" value ='{{pt7y_i}}'> {% else %} <Input type = "text" name = "pt7y">  {% endif %}
-<br>
-{% if fail7 %}<i style ='color:red; font-size:12px;padding-left:60px'> Invalid Entry: must only contain and integer </i>    {% endif %}
-<br>
-<br>
-
-<u><i>Point Eight:</i></u> <br>
-{{pt8}}<br>
-X: {% if fail %} <Input type = "text" name = "pt8x" value ='{{pt8x_i}}'> {% else %} <Input type = "text" name = "pt8x">  {% endif %}
-Y: {% if fail %} <Input type = "text" name = "pt8y" value ='{{pt8y_i}}'> {% else %} <Input type = "text" name = "pt8y">  {% endif %}
-<br>
-{% if fail8 %}<i style ='color:red; font-size:12px;padding-left:60px'> Invalid Entry: must only contain and integer </i>   {% endif %}
-<br>
-<br>
-
-<u><i>Point Nine: </i></u><br>
-{{pt9}}<br>
-X: {% if fail %} <Input type = "text" name = "pt9x" value ='{{pt9x_i}}'> {% else %} <Input type = "text" name = "pt9x">  {% endif %}
-Y: {% if fail %} <Input type = "text" name = "pt9y" value ='{{pt9y_i}}'> {% else %} <Input type = "text" name = "pt9y">  {% endif %}
-<br>
-{% if fail9 %}<i style ='color:red; font-size:12px;padding-left:60px'> Invalid Entry: must only contain and integer </i>  {% endif %}
-<br>
-<br>
-
-
-<center>
-<input type = "Submit">
-</center>
-</form>
-<br><br>
-
-</div>
-</div>
-<br><br><br>
-
-
-
-
-		
-</form>
--->
-
-<!--
-<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
-<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
-<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
-<br><br><br><br><br><br><br><br><br>
--->
-
-<!--<div style = 'margin-left:15px; border:double; background-color:#FFFF99; width: 500px;height:400px; position:absolute'>
-<div style = 'padding-left:75px'>
-<div style = 'padding-left: 25px'>
--->
-<center>
-<h1>Test Points</h1>
-</center>
-<br><br><br>
-<br>
-<b> Points  # 1 - 9</b>
-<br><br><br><br>
-{{pt1}}<br>
-{{pt2}}<br>
-{{pt3}}<br>
-{{pt4}}<br>
-{{pt5}}<br>
-{{pt6}}<br>
-{{pt7}}<br>
-{{pt8}}<br>
-{{pt9}}<br>
-<br><br><br><br>
-<br>
-</div>
+  </div>
 </div>
 
 <div style ='position:absolute; margin-left:530px;  border:double;background-color:#FFFF99; width:500px; height:400px'>
-
-<div style ='padding-left:50px;padding-top:20px'>
-<form action = "/bulkin/" method = "get" name = "Login">
-		<br>
-		Bulk Input format: <br><br>
-		Point_1_x&nbsp;&nbsp;&nbsp;Point_1_y <br>
-		Point_2_x&nbsp;&nbsp;&nbsp;Point_2_y <br>
-		etc.
+  
+  <div style ='padding-left:50px;padding-top:20px'>
+    <form action = "/bulkin/" method = "get" name = "Login">
+	  <center>
+        <h1>Grid Points (Your Answers)</h1>
+      </center>
+	  Input format: <br>
+	  Point_1_x&nbsp;&nbsp;&nbsp;Point_1_y <br>
+	  Point_2_x&nbsp;&nbsp;&nbsp;Point_2_y <br> etc.
+	  
+	  <br><br>
+	  
+	  {% if fail_t %} <textarea name = "Bulkin" rows = "9" style ='width:400px'> {{inall}} </textarea> {% else %} <textarea name = "Bulkin" rows = "9" style ='width:400px'> </textarea>  {% endif %}
+	  <br>
+	  {% if fail_t %} <i style ='color:red; font-size:12px'> Invalid Entry:  </i>   {% endif %}
+	  {% if fail_10 %} <i style ='color:red; font-size:12px'> Too many input elements  </i>   {% endif %}
+	  {% if fail_11 %} <i style ='color:red; font-size:12px'> Too few input elements  </i>   {% endif %}
+	  {% if fail_1 or fail_2 or fail_3 or fail_4 or fail_5 or fail_6 or fail_7 or fail_8 or fail_9  %} <i style ='color:red; font-size:12px'> Error Lines:  </i>   {% endif %}
 		
-		<br><br>
-		
-		{% if fail_t %} <textarea name = "Bulkin" rows = "9" style ='width:400px'> {{inall}} </textarea> {% else %} <textarea name = "Bulkin" rows = "9" style ='width:400px'> </textarea>  {% endif %}
-		<br>
-		{% if fail_t %} <i style ='color:red; font-size:12px'> Invalid Entry:  </i>   {% endif %}
-		{% if fail_10 %} <i style ='color:red; font-size:12px'> Too many input elements  </i>   {% endif %}
-		{% if fail_11 %} <i style ='color:red; font-size:12px'> Too few input elements  </i>   {% endif %}
-		{% if fail_1 or fail_2 or fail_3 or fail_4 or fail_5 or fail_6 or fail_7 or fail_8 or fail_9  %} <i style ='color:red; font-size:12px'> Error Lines:  </i>   {% endif %}
-		
-		{% if fail_1 %} <i style ='color:red; font-size:12px'> 1;  </i>   {% endif %}
-		{% if fail_2 %} <i style ='color:red; font-size:12px'> 2;  </i>   {% endif %}
-		{% if fail_3 %} <i style ='color:red; font-size:12px'> 3;  </i>   {% endif %}
-		{% if fail_4 %} <i style ='color:red; font-size:12px'> 4;  </i>   {% endif %}
-		{% if fail_5 %} <i style ='color:red; font-size:12px'> 5;  </i>   {% endif %}
-		{% if fail_6 %} <i style ='color:red; font-size:12px'> 6;  </i>   {% endif %}
-		{% if fail_7 %} <i style ='color:red; font-size:12px'> 7;  </i>   {% endif %}
-		{% if fail_8 %} <i style ='color:red; font-size:12px'> 8;  </i>   {% endif %}
-		{% if fail_9 %} <i style ='color:red; font-size:12px'> 9;  </i>   {% endif %}
-		
-		<br>
-		<br>
-		
-		
-	
-		<input type = "Submit">
-		<br>
-		<br>
+	  {% if fail_1 %} <i style ='color:red; font-size:12px'> 1;  </i>   {% endif %}
+	  {% if fail_2 %} <i style ='color:red; font-size:12px'> 2;  </i>   {% endif %}
+	  {% if fail_3 %} <i style ='color:red; font-size:12px'> 3;  </i>   {% endif %}
+	  {% if fail_4 %} <i style ='color:red; font-size:12px'> 4;  </i>   {% endif %}
+	  {% if fail_5 %} <i style ='color:red; font-size:12px'> 5;  </i>   {% endif %}
+	  {% if fail_6 %} <i style ='color:red; font-size:12px'> 6;  </i>   {% endif %}
+	  {% if fail_7 %} <i style ='color:red; font-size:12px'> 7;  </i>   {% endif %}
+	  {% if fail_8 %} <i style ='color:red; font-size:12px'> 8;  </i>   {% endif %}
+	  {% if fail_9 %} <i style ='color:red; font-size:12px'> 9;  </i>   {% endif %}
+	  
+	  <br><br>
+	  <center>
+	    <input type = "Submit">
+      </center>
+	  <br>
+	  <br>
 	</form>
-</div>
+    
+
+  </div>
 </div>
 
-
+<br><br><br><br><br><br><br><br><br>
 <br><br><br><br>
-<br><br><br><br><br><br><br><br><br>
-<br><br><br><br><br><br><br><br><br>
-
+<br><br><br><br>
+<br><br><br><br>
+&nbsp;
 
 <center>
+  
+  <h1>Visual Depiction</h1>
 
-<form action = "/activate_inst/" method = "get" name = "Instructions">
-		
-		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-		<button name = "Instructions" type = "submit" value = "HTML">
-		Instructions
-		</button></form>
+  <!-- Show the grid? -->
+  <p><img src = '{{pic}}'></p>
+
+  <form action = "/activate_inst/" method = "get" name =
+        "Instructions">
+    <button name = "Instructions" type = "submit" value = "HTML">
+	  Instructions
+  </button></form>
 
 <br>
 
 
 <form action = "/model_menu/" method = "get" name = "Return to Model Menu">
-		
-		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-		<button name = "Return To Model Menu" type = "submit" value = "HTML">
-		Return To Model Menu
-		</button></form>
+  <button name = "Return To Model Menu" type = "submit" value = "HTML">
+	Return To Model Menu
+</button></form>
 
 					
 </center>
 		
 <br><br><br>
 
-</div>	
+</div>
 	<hr color = 'Navy'>
 	<p>
 	
-		  <center ><i><b>GMU: C4I Center --- Mr. Nathan Jones (njonesh@gmu.edu) -- Dr. Charles Twardy ----- (Funded by the National Science Foundation)</b></i></center>
+		  <center ><i><b>GMU: C4I Center --- Mr. Nathan Jones
+		  (njonesh@gmu.edu) -- Dr. Charles Twardy ----- (Funded by the
+		  National Science Foundation)</b></i></center>
 	</p>
 	<br>
 	
