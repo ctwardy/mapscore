@@ -1041,7 +1041,7 @@ class Test(models.Model):
                         THRESH = 5
                         x0, y0 = inlist[m]
                         x1, y1 = existlist[m]
-                        if math.abs(x0-x1) < THRESH and math.abs(y0-y1) < THRESH:
+                        if abs(x0-x1) < THRESH and math.abs(y0-y1) < THRESH:
 				correctlist.append(True)
 
                                 # Draw a "correct" icon. Pixel by pixel. Augh.
