@@ -6391,7 +6391,7 @@ def keyselect(request):
 
         key_lst = [str(x.key) for x in Case.objects.all()]
 			
-	return render_to_response('Testselect.html',{'keys':key_lst})		
+	return render_to_response('Testselect.html',{'keyin2':key_lst})		
 			
 #-------------------------------------------------------------------------------------
 def KeySwitch(request):
