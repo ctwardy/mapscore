@@ -57,31 +57,39 @@
 
 	<div style = "border:double 6px; color: #B00000; background-color: #FFFF99; width:500px ">
 	<p style = "color :black">
-		<i>
-		To select the next test of a particular type:</i> <br>
+		<i>To select the next test of a particular type:</i> <br>
 	</p>
 	
 	<br>
 	
-	<form action = "/TesttypeSwitch/" method = "get">
-	
-		
+	<form action = "/TesttypeSwitch/" method = "get">	
 		<select name = 'typein2'>
 			<option value= '0' >-- Please select your test type --</option>
 			
 			{% for i in types %}
 				<option> {{i}} </option>
 			 {% endfor %}
-		
-			 
 		<input type ='submit' value = 'Submit'/>
-		
 		</select> 
-		
-		
 	</form>
-	
 	<br><br>
+
+
+    <p><i>To select a case directly by name:</i></p><br>
+	<form action = "/KeySwitch/" method = "get">	
+		<select name = 'keyin2'>
+			<option value= '0' >-- Please select your case name --</option>
+			
+			{% for i in keys %}
+				<option> {{i}} </option>
+			 {% endfor %}
+		<input type ='submit' value = 'Submit'/>
+		</select> 
+	</form>
+	<br><br>
+	</div>
+
+
 	</div>
 	
 	
@@ -90,31 +98,8 @@
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 	
-	
-	
-	<form action = "/model_menu/" method = "get" name = "Return to Main Menu">
+	<form action = "/model_menu/" method = "get" name = "Return to Model Menu">
 	
 		<button name = "Return To Model Menu" type = "submit" value = "HTML">
 		Return To Model Menu

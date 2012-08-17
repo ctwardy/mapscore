@@ -6350,34 +6350,68 @@ def casetypeselect(request):
 
 	#---------------------------------------------------------------------
 	
-	# only one active test at a time
-	count001 = 0
-	for i in request.session['active_model'].model_tests.all():
-		if i.Active == True:
-			count001 = count001 +1
-	if count001 >0:
-		return render_to_response('TestWelcome_alreadyactive.html')
+        if False:
+                # only one active test at a time
+                count001 = 0
+                for i in request.session['active_model'].model_tests.all():
+                        if i.Active == True:
+                                count001 = count001 +1
+                if count001 >0:
+                        return render_to_response('TestWelcome_alreadyactive.html')
 
-	# If all tests completed
-	count2 = 0
-	for i in request.session['active_model'].model_tests.all():
-		if i.Active == False:
-			count2 = count2 +1
+                # If all tests completed
+                count2 = 0
+                for i in request.session['active_model'].model_tests.all():
+                        if i.Active == False:
+                                count2 = count2 +1
 
-	if int(count2) == int(len(Case.objects.all())):
+                if int(count2) == int(len(Case.objects.all())):
 
-		return render_to_response('nomorecases.html')
-	
+                        return render_to_response('nomorecases.html')
+
 	
 	type_lst = []
 	for i in Case.objects.all():
 		if str(i.subject_category) not in  type_lst:
-			type_lst.append(str(i.subject_category))
-			
+			type_lst.append(str(i.subject_category))			
 			
 	return render_to_response('Testselect.html',{'types':type_lst})		
 			
 #-------------------------------------------------------------------------------------
+def AUTHENTICATE():
+	# Token Verification
+	try:
+		if request.session['usertoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+#-------------------------------------------------------------------------------------
+def keyselect(request):	
+	AUTHENTICATE()
+
+        key_lst = [str(x.key) for x in Case.objects.all()]
+			
+	return render_to_response('Testselect.html',{'keys':key_lst})		
+			
+#-------------------------------------------------------------------------------------
+def KeySwitch(request):
+        AUTHENTICATE()
+	selection = request.GET['keyin2']
+	
+	if selection ==0:
+		
+		return redirect("/keyselect/")	
+	
+	for i in Case.objects.all():		
+                # Surely we can do this without a for loop?
+		if i.key != selection:
+                        pass
+                request.session['active_case_temp'] = i
+                break
+	return redirect("/new_test/")					
+	
+#-------------------------------------------------------------------------------------
+
 def NextSequentialTestSwitch(request):
 	
 	#------------------------------------------------------------------

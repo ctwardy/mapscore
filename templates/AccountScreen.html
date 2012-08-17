@@ -72,91 +72,39 @@
 	<div style ='border:solid;width:500px;background : url("/media/wood.gif")'>
 	<br><br>
 	<p>
-		<i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-		<b>To alter your Account, please select 'Manage Account':</b></i> <br>
+	  <form action = "/model_menu/" method = "get">
+		<select name = 'model_in'>
+		  <option value= '0' >-- Select model to test --</option>			
+		  {% for i in modelname_list %}
+		  <option> {{i}} </option>
+		  {% endfor %}
+
+		  <input type ='submit' value = 'Submit'/>
+		</select> 
+	  </form>
+	<br><br>
 	<p>
-	
-	
-	<form action = "/Manage_Account/" method = "get" name = "Manage Account">
-		
-		
-		
+	  <form action = "/new_model/" method = "get" name = "New Model">
+		<button name = "New_Model" type = "submit" value = "HTML" style = 'width:200px;height:25px '>
+		  Add New Model
+		</button>	
+	</form>
+	<p>
+	  <form action = "/Manage_Account/" method = "get" name = "Manage Account">
 		<button name = "Manage Account" type = "submit" value = "HTML" style = 'width:200px;height:25px'>
 		Manage Account
-		</button>
-		
-	</form>
+		</button>	
+	  </form>
 	<br><br>
-	</div>
-	
-	<br><br>
-	
-	
-	
-	<div style ='border:solid;width:500px;background : url("/media/wood.gif")'>
-	<br><br>
-	<p>
-		<i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-		<b>To add a new model, please select 'Register New Model':</b></i> <br>
-	<p>
-	
-	
-	<form action = "/new_model/" method = "get" name = "Return to Main Menu">
-		
-		
-		
-		<button name = "New_Model" type = "submit" value = "HTML" style = 'width:200px;height:25px '>
-		Register New Model
-		</button>
-		
-	</form>
-	<br><br>
-	</div>
-	<br>
-	
-	<br>
-	
-	<div style = 'border:solid;background : url("/media/wood.gif"); width:650px'>
-	<p style = "color :black;  font-size:18px">
-		<i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-		<b>To access an existing model, please select a model from the list below:</b></i> <br>
-	<p>
-	
-	
-	<form action = "/model_menu/" method = "get">
-	
-		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-		&nbsp;&nbsp;&nbsp;&nbsp;
-		<select name = 'model_in'>
-			<option value= '0' >-- Please select your model --</option>
-			
-			{% for i in modelname_list %}
-				<option> {{i}} </option>
-			 {% endfor %}
-		
-			 
-		<input type ='submit' value = 'Submit'/>
-		
-		</select> 
-		
-		
-	</form>
-	
-	<br><br><br>
 	</div>
 
 	<br>
-	
-	
 	<br>
 	
-	<form action = "/main/" method = "get" name = "Return to Main Menu" >
-		
-		
-		<button name = "Return To Main Menu" type = "submit" value = "HTML" style = 'width:125px;background-color:red;color:white;border-color:black' >
-		Log Out
-		</button>
-		
+	<form action = "/main/" method = "get" name = "Log Out" >
+		<button name = "Log Out" type = "submit" value = "HTML" style = 'width:125px;background-color:red;color:white;border-color:black' >
+		  Log Out
+		</button>		
 	</form>
 	
 	<br>	
