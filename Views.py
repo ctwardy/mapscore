@@ -42,6 +42,14 @@ def base_redirect(response):
 	return redirect('/main/')
 
 
+#-------------------------------------------------------------------------------------
+def AUTHENTICATE():
+	# Token Verification
+	try:
+		if request.session['usertoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
 
 #-------------------------------------------------------------
 def main_page(request):
@@ -6333,9 +6341,78 @@ def DownloadLayersadmin(request):
 	resp['Content-Disposition'] = 'attachment; filename= Layers.zip'
 	
 	resp.write(writeinfo)
+        
+        return resp
+        
+#-------------------------------------------------------------------------------------
+def keyselect(request): 
+        AUTHENTICATE()
+
+        #key_lst = [str(x.key) for x in Case.objects.all()]
+        key_lst = []
+        for i in Case.objects.all():
+                key_lst.append(str(i.key))
+                        
+        return render_to_response('Testselect.html',{'keys':key_lst})           
+                        
+#-------------------------------------------------------------------------------------
+def KeySwitch(request):
+        AUTHENTICATE()
+        selection = request.GET['keyin2']
+        
+        if selection ==0:
+                
+                return redirect("/keyselect/")  
+        
+        havecase = False
+        for i in Case.objects.all():            
+                # Surely we can do this without a for loop?
+                if i.key != selection:
+                        pass
+                request.session['active_case_temp'] = i
+                havecase = True
+                break
+        return redirect("/new_test/")                                   
+        
+#-------------------------------------------------------------------------------------
+
+def NextSequentialTestSwitch(request):
 	
-	return resp
+	#------------------------------------------------------------------
+	# Token Verification
+	try:
+		if request.session['usertoken'] == False:
+			return render_to_response('noaccess.html',{})
+	except: 
+		return render_to_response('noaccess.html',{})
+
+	#---------------------------------------------------------------------
+
 	
+	for i in Case.objects.all():
+		
+		counter01 = 0
+		havecase = False
+		for j in request.session['active_model'].model_tests.all():
+			
+			if i.case_name == j.test_case.case_name:
+				counter01 = counter01+1
+			
+		if counter01 == 0:
+				
+				request.session['active_case_temp'] = i
+				havecase = True
+				break
+		
+		
+
+	
+	if havecase == False:
+		return render_to_response('nomorecases.html')
+			
+			
+	return redirect("/new_test/")		
+			
 #------------------------------------------------------------------------------------
 def casetypeselect(request):
 	
@@ -6376,78 +6453,6 @@ def casetypeselect(request):
 			type_lst.append(str(i.subject_category))			
 			
 	return render_to_response('Testselect.html',{'types':type_lst})		
-			
-#-------------------------------------------------------------------------------------
-def AUTHENTICATE():
-	# Token Verification
-	try:
-		if request.session['usertoken'] == False:
-			return render_to_response('noaccess.html',{})
-	except: 
-		return render_to_response('noaccess.html',{})
-#-------------------------------------------------------------------------------------
-def keyselect(request):	
-	AUTHENTICATE()
-
-        key_lst = [str(x.key) for x in Case.objects.all()]
-			
-	return render_to_response('Testselect.html',{'keyin2':key_lst})		
-			
-#-------------------------------------------------------------------------------------
-def KeySwitch(request):
-        AUTHENTICATE()
-	selection = request.GET['keyin2']
-	
-	if selection ==0:
-		
-		return redirect("/keyselect/")	
-	
-	for i in Case.objects.all():		
-                # Surely we can do this without a for loop?
-		if i.key != selection:
-                        pass
-                request.session['active_case_temp'] = i
-                break
-	return redirect("/new_test/")					
-	
-#-------------------------------------------------------------------------------------
-
-def NextSequentialTestSwitch(request):
-	
-	#------------------------------------------------------------------
-	# Token Verification
-	try:
-		if request.session['usertoken'] == False:
-			return render_to_response('noaccess.html',{})
-	except: 
-		return render_to_response('noaccess.html',{})
-
-	#---------------------------------------------------------------------
-
-	
-	for i in Case.objects.all():
-		
-		counter01 = 0
-		havecase = False
-		for j in request.session['active_model'].model_tests.all():
-			
-			if i.case_name == j.test_case.case_name:
-				counter01 = counter01+1
-			
-		if counter01 == 0:
-				
-				request.session['active_case_temp'] = i
-				havecase = True
-				break
-		
-		
-
-	
-	if havecase == False:
-		return render_to_response('nomorecases.html')
-			
-			
-	return redirect("/new_test/")		
 			
 #-------------------------------------------------------------------------------------
 def TesttypeSwitch(request):
