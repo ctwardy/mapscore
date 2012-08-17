@@ -826,20 +826,14 @@ def newtest(request):
 
 #-----------------------------------------------------------------------------------------------
 def create_test(request):
-
-	#------------------------------------------------------------------
-	# Token Verification
-	try:
-		if request.session['usertoken'] == False:
-			return render_to_response('noaccess.html',{})
-	except: 
-		return render_to_response('noaccess.html',{})
-
-	#---------------------------------------------------------------------
+        AUTHENTICATE()
 	
 	# If refresh
 	if request.session['createcheck'] == True:
-		return render_to_response('TestCreated.html')
+		return redirect('/test_instructions/')
+
+                # NO! DON'T DO THIS!  CLUNKY!
+		#return render_to_response('TestCreated.html')
 
 	tempcase = request.session['active_case_temp'] 
 	newtest = Test( test_case = tempcase,
@@ -856,6 +850,8 @@ def create_test(request):
 	newtest.setup()
 	
 	newtest.save()
+
+        request.session['active_test'] = newtest
 	
 	request.session['createcheck'] = True
 
