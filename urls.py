@@ -112,6 +112,7 @@ from Views import DownloadLayersadmin
 from Views import casetypeselect
 from Views import NextSequentialTestSwitch
 from Views import TesttypeSwitch
+from Views import KeySwitch
 from Views import DownloadGridsyncsol
 
 # Uncomment the next two lines to enable the admin:
@@ -228,6 +229,7 @@ urlpatterns = patterns('',
 			  ('^casetypeselect/$',casetypeselect),
 			  ('^NextSequentialTestSwitch/$',NextSequentialTestSwitch),
 			  ('^TesttypeSwitch/$',TesttypeSwitch),
+			  ('^KeySwitch/$',KeySwitch),
 			  ('^DownloadGridsyncsol/$',DownloadGridsyncsol),
 			
 			  (r'^robots\.txt$', lambda r: HttpResponse("User-agent: *\nDisallow: /", mimetype="text/plain")),

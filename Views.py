@@ -6332,16 +6332,14 @@ def old_casetypeselect(request):
 def casetypeselect(request): 
 	AUTHENTICATE()
 
-	key_lst = [str(x.key) for x in Case.objects.all()]
-	type_lst = set([str(x.subject_category) for x in Case.objects.all()])
-	for i in Case.objects.all():
-		key_lst.append(str(i.key))
-					
-	return render_to_response('Testselect.html',{'keys':key_lst, 'types':type_list})
+	key_lst = sorted(set([str(x.key) for x in Case.objects.all()]))
+	type_lst = sorted(set([str(x.subject_category) for x in Case.objects.all()]))
+	return render_to_response('Testselect.html',{'keys':key_lst, 'types':type_lst})
 						
 #-------------------------------------------------------------------------------------
 def TesttypeSwitch(request):
 	AUTHENTICATE()
+
 	selection = request.GET['typein2']
 	if selection ==0:
 		return redirect("/casetypeselect/")	
@@ -6373,12 +6371,14 @@ def KeySwitch(request):
 	
 	havecase = False
 	for i in Case.objects.all():            
-		# Surely we can do this without a for loop?
 		if i.key != selection:
-				pass
+			pass
 		request.session['active_case_temp'] = i
 		havecase = True
 		break
+	if havecase == False:
+		return render_to_response('nomorecasestype.html',{'selection':selection})
+
 	return redirect("/new_test/")                                   
 		
 #-------------------------------------------------------------------------------------
