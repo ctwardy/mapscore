@@ -6193,55 +6193,34 @@ def DownloadLayers(request):
 		return render_to_response('noaccess.html',{})
 
 	#---------------------------------------------------------------------
-	
-	
 	active_test = request.session['active_test']
 	active_case = active_test.test_case
-	
 	string = str(active_case.LayerField)
-
 	zippin = zipfile.ZipFile(string,'r')
-	
 	zippinlst = zippin.namelist()
-	
 	zippin.close()
-	
 	buff = cStringIO.StringIO()
-	
 	zippin2 = zipfile.ZipFile(buff,'w',zipfile.ZIP_DEFLATED)
-	
-	
-		
 	for name in zippinlst:
 		
 		stream = "Layers/" + str(active_case.id) +'_' + str(active_case.case_name) + "/" + name
-		
 		for i in range(len(name)-1):
 			if name[i] == '/':
 				term = i
 				break
 		
 		name2 = name[term+1:len(name)]
-			
-		
 		if not stream[len(stream)-1] == '/':
-		
 			filein = open(stream,'rb')
-		
 			zippin2.writestr(name2,filein.read())
 	
 	zippin2.close()
-	
 	buff.flush()
-	
 	writeinfo = buff.getvalue()
-	
 	buff.close()
 	
 	resp = HttpResponse( content_type = 'application/zip')
-	
 	resp['Content-Disposition'] = 'attachment; filename= Layers.zip'
-	
 	resp.write(writeinfo)
 	
 	return resp
@@ -6289,27 +6268,17 @@ def DownloadLayersadmin(request):
 		return render_to_response('noaccess.html',{})
 
 	#---------------------------------------------------------------------
-
 	active_case = Case.objects.get(id = request.session['ActiveAdminCase'])
 	
 	string = str(active_case.LayerField)
-
 	zippin = zipfile.ZipFile(string,'r')
-	
 	zippinlst = zippin.namelist()
-	
 	zippin.close()
-	
 	buff = cStringIO.StringIO()
-	
 	zippin2 = zipfile.ZipFile(buff,'w',zipfile.ZIP_DEFLATED)
 	
-	
-		
 	for name in zippinlst:
-		
 		stream = "Layers/" + str(active_case.id) +'_' + str(active_case.case_name) + "/" + name
-		
 		for i in range(len(name)-1):
 			if name[i] == '/':
 				term = i
@@ -6317,132 +6286,40 @@ def DownloadLayersadmin(request):
 		
 		name2 = name[term+1:len(name)]
 			
-		
 		if not stream[len(stream)-1] == '/':
-		
 			filein = open(stream,'rb')
-		
 			zippin2.writestr(name2,filein.read())
 	
 	zippin2.close()
-	
 	buff.flush()
-	
 	writeinfo = buff.getvalue()
-	
 	buff.close()
-	
 	resp = HttpResponse( content_type = 'application/zip')
-	
 	resp['Content-Disposition'] = 'attachment; filename= Layers.zip'
-	
 	resp.write(writeinfo)
-        
-        return resp
-        
-#-------------------------------------------------------------------------------------
-def keyselect(request): 
-        AUTHENTICATE()
 
-        #key_lst = [str(x.key) for x in Case.objects.all()]
-        key_lst = []
-        for i in Case.objects.all():
-                key_lst.append(str(i.key))
-                        
-        return render_to_response('Testselect.html',{'keys':key_lst})           
-                        
-#-------------------------------------------------------------------------------------
-def KeySwitch(request):
-        AUTHENTICATE()
-        selection = request.GET['keyin2']
-        
-        if selection ==0:
-                
-                return redirect("/keyselect/")  
-        
-        havecase = False
-        for i in Case.objects.all():            
-                # Surely we can do this without a for loop?
-                if i.key != selection:
-                        pass
-                request.session['active_case_temp'] = i
-                havecase = True
-                break
-        return redirect("/new_test/")                                   
-        
-#-------------------------------------------------------------------------------------
+	return resp
 
-def NextSequentialTestSwitch(request):
-	
-	#------------------------------------------------------------------
-	# Token Verification
-	try:
-		if request.session['usertoken'] == False:
-			return render_to_response('noaccess.html',{})
-	except: 
-		return render_to_response('noaccess.html',{})
 
-	#---------------------------------------------------------------------
-
-	
-	for i in Case.objects.all():
-		
-		counter01 = 0
-		havecase = False
-		for j in request.session['active_model'].model_tests.all():
-			
-			if i.case_name == j.test_case.case_name:
-				counter01 = counter01+1
-			
-		if counter01 == 0:
-				
-				request.session['active_case_temp'] = i
-				havecase = True
-				break
-		
-		
-
-	
-	if havecase == False:
-		return render_to_response('nomorecases.html')
-			
-			
-	return redirect("/new_test/")		
-			
 #------------------------------------------------------------------------------------
-def casetypeselect(request):
-	
-	
-	#------------------------------------------------------------------
-	# Token Verification
-	try:
-		if request.session['usertoken'] == False:
-			return render_to_response('noaccess.html',{})
-	except: 
-		return render_to_response('noaccess.html',{})
+def old_casetypeselect(request):
+	AUTHENTICATE()
+	if False:
+		# only one active test at a time
+		count001 = 0
+		for i in request.session['active_model'].model_tests.all():
+			if i.Active == True:
+				count001 = count001 +1
+		if count001 >0:
+			return render_to_response('TestWelcome_alreadyactive.html')
 
-	#---------------------------------------------------------------------
-	
-        if False:
-                # only one active test at a time
-                count001 = 0
-                for i in request.session['active_model'].model_tests.all():
-                        if i.Active == True:
-                                count001 = count001 +1
-                if count001 >0:
-                        return render_to_response('TestWelcome_alreadyactive.html')
-
-                # If all tests completed
-                count2 = 0
-                for i in request.session['active_model'].model_tests.all():
-                        if i.Active == False:
-                                count2 = count2 +1
-
-                if int(count2) == int(len(Case.objects.all())):
-
-                        return render_to_response('nomorecases.html')
-
-	
+		# If all tests completed
+		count2 = 0
+		for i in request.session['active_model'].model_tests.all():
+			if i.Active == False:
+				count2 = count2 +1
+		if int(count2) == int(len(Case.objects.all())):
+			return render_to_response('nomorecases.html')
 	type_lst = []
 	for i in Case.objects.all():
 		if str(i.subject_category) not in  type_lst:
@@ -6450,52 +6327,81 @@ def casetypeselect(request):
 			
 	return render_to_response('Testselect.html',{'types':type_lst})		
 			
+
+#-------------------------------------------------------------------------------------
+def casetypeselect(request): 
+	AUTHENTICATE()
+
+	key_lst = [str(x.key) for x in Case.objects.all()]
+	type_lst = set([str(x.subject_category) for x in Case.objects.all()])
+	for i in Case.objects.all():
+		key_lst.append(str(i.key))
+					
+	return render_to_response('Testselect.html',{'keys':key_lst, 'types':type_list})
+						
 #-------------------------------------------------------------------------------------
 def TesttypeSwitch(request):
-	
-	#------------------------------------------------------------------
-	# Token Verification
-	try:
-		if request.session['usertoken'] == False:
-			return render_to_response('noaccess.html',{})
-	except: 
-		return render_to_response('noaccess.html',{})
-
-	#---------------------------------------------------------------------
-
+	AUTHENTICATE()
 	selection = request.GET['typein2']
-	
 	if selection ==0:
-		
 		return redirect("/casetypeselect/")	
 	
 	for i in Case.objects.all():
-		
 		if i.subject_category==selection:
-		
 			counter01 = 0
 			havecase = False
 			for j in request.session['active_model'].model_tests.all():
-			
 				if i.case_name == j.test_case.case_name:
 					counter01 = counter01+1
 			
 			if counter01 == 0:
-				
-					request.session['active_case_temp'] = i
-					havecase = True
-					break
-		
-		
+				request.session['active_case_temp'] = i
+				havecase = True
+				break
 
-	
 	if havecase == False:
 		return render_to_response('nomorecasestype.html',{'selection':selection})
+
+	return redirect("/new_test/")
+
+#-------------------------------------------------------------------------------------
+def KeySwitch(request):
+	AUTHENTICATE()
+	selection = request.GET['keyin2']
+	if selection ==0:			
+		return redirect("/casetypeselect/")  
+	
+	havecase = False
+	for i in Case.objects.all():            
+		# Surely we can do this without a for loop?
+		if i.key != selection:
+				pass
+		request.session['active_case_temp'] = i
+		havecase = True
+		break
+	return redirect("/new_test/")                                   
+		
+#-------------------------------------------------------------------------------------
+
+def NextSequentialTestSwitch(request):
+	AUTHENTICATE()
+	
+	for i in Case.objects.all():
+		counter01 = 0
+		havecase = False
+		for j in request.session['active_model'].model_tests.all():
+			if i.case_name == j.test_case.case_name:
+				counter01 = counter01+1
 			
-			
-	return redirect("/new_test/")					
-			
-			
+		if counter01 == 0:
+				request.session['active_case_temp'] = i
+				havecase = True
+				break
+	if havecase == False:
+		return render_to_response('nomorecases.html')
+
+	return redirect("/new_test/")
+
 #--------------------------------------------------------------------------------------
 def DownloadGridsyncsol(request):
 	
