@@ -36,42 +36,40 @@
 
 <div style =' margin-left: 0% ; margin-top: 130px; margin-right: 0%; margin-bottom: 0px; color:black; overflow-y:hidden; overflow-x:hidden;'  >
 
-<div style = 'padding-left:325px;' >
+<div style = 'padding-left:250px;' >
 <br>
 	<p style = " font-size:18px" >
 		<b>Account Name:</b> {{ Name_act}}
-		<br><b>Model Name:</b>   {{Name_m}}
-		
+		<br><b>Model Name:</b>   {{Name_m}}		
 	</p>
 
-	<p><i>A new testing scenario has been selected!</i>  Click the
-	button at the bottom to accept the scenario.
+	<p><i>A new testing scenario has been selected!</i><br>
+      Click the	button at the bottom to accept the scenario.
 	</p>
-      <br>
-	<p style = " font-size:18px;">	
-		<b>Provided below are the known lost person scenario parameters:</b>
+
+	<p style = " font-size:18px" >
+	<b>Provided below are the known lost person scenario parameters:</b>
 	</p>
 </div>
 
 
 
 <div style = 'padding-left:25px;' >
+		<image src = '{{MAP}}' 
+               title= '{{MAP}}'
+               style = 'border:solid; border-width:5px;float:left'>
 		
+		<center>
+		<a href = 'http://code.google.com/apis/maps/terms.html'>Google Maps API - Terms<a>
+		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		<a href ='http://www.google.com/privacy.html'>Google Privacy Page<a>
+		<p> By using this service you are agreeing to be bound by
+		Google's Terms of Use</p>
+        </center>		
 		
-
-		<image src = '{{MAP}}' style = 'border:solid; border-width:5px;float:left'>
-		
-		<div style ='position:absolute;padding-top:550px;padding-left:0px'>
-		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-		<a href = 'http://code.google.com/apis/maps/terms.html'> Google Maps API - Terms <a>
-		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-		<a href ='http://www.google.com/privacy.html'> Google Privacy Page <a>
-		<p> By using this service you are agreeing to be bound by Google's Terms of Use <p>
-		</div>
-			
-		
-<div style = 'padding-left:525px;' >
-	<p style = "background-color:#FFFF99 ; border: double; width : 400px">
+<div style = 'padding-left:550px;' >
+	<p style = "background-color:#FFFF99 ; border: double; 
+                width:400px; padding-left:25px">
 	<br>
 		<b>Test Case Name:</b> {{name}} 
 		<br><br>	
