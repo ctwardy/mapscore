@@ -705,21 +705,14 @@ def newtest(request):
 
 	AUTHENTICATE()	
 
-	age = request.session['active_case_temp'].Age
-	name = request.session['active_case_temp'].case_name
-	sex = request.session['active_case_temp'].Sex
-	LKP = '('+request.session['active_case_temp'].lastlat + ',' +request.session['active_case_temp'].lastlon + ')' 
-	totalcells = request.session['active_case_temp'].totalcellnumber
-	sidecells = request.session['active_case_temp'].sidecellnumber
-	uplat = request.session['active_case_temp'].upright_lat 
-	rightlon = request.session['active_case_temp'].upright_lon
-	downlat = request.session['active_case_temp'].downright_lat
-	leftlon = request.session['active_case_temp'].upleft_lon 
-
 	account_name = request.session['active_account'].institution_name
 	model_name = request.session['active_model'].model_nameID
 	URL = request.session['active_case_temp'].URL
 
+	age = request.session['active_case_temp'].Age
+	name = request.session['active_case_temp'].case_name
+	sex = request.session['active_case_temp'].Sex
+	LKP = '('+request.session['active_case_temp'].lastlat + ',' +request.session['active_case_temp'].lastlon + ')' 
 	subject_category = request.session['active_case_temp'].subject_category 
 	subject_subcategory = request.session['active_case_temp'].subject_subcategory
 	scenario   =  request.session['active_case_temp'].scenario
@@ -731,29 +724,17 @@ def newtest(request):
 	terrain  = request.session['active_case_temp'].terrain
 	total_hours = request.session['active_case_temp'].total_hours 
 
+	totalcells = int(request.session['active_case_temp'].totalcellnumber)
+	sidecells = request.session['active_case_temp'].sidecellnumber
+	uplat = request.session['active_case_temp'].upright_lat 
+	rightlon = request.session['active_case_temp'].upright_lon
+	downlat = request.session['active_case_temp'].downright_lat
+	leftlon = request.session['active_case_temp'].upleft_lon 
 
+	# That's a lot of variables. We'll use the 'locals()' trick
+        # instead of creating an input dictionary.
 
-
-
-	# Create Input dictionary
-
-	inputdic = {'Name_act':account_name, 'Name_m':model_name, 'name' :name, 'age':age, 'sex':sex,'LKP':LKP,'horcells':sidecells,'vercells':sidecells,'totcells' : totalcells, 'cellwidth' : 5, 'regionwidth' : 25,'uplat':uplat,'rightlon':rightlon,'downlat':downlat,'leftlon':leftlon,'MAP':URL}
-	inputdic['subject_category'] = subject_category
-	inputdic['subject_subcategory'] = subject_subcategory
-	inputdic['scenario'] = scenario
-	inputdic['subject_activity'] = subject_activity
-	inputdic['number_lost'] = number_lost
-	inputdic['group_type'] = group_type
-	inputdic['ecoregion_domain'] = ecoregion_domain
-	inputdic['ecoregion_division'] = ecoregion_division
-	inputdic['terrain'] = terrain
-	inputdic['total_hours'] = total_hours
-
-
-
-	
-
-	return render_to_response('TestWelcome.html',inputdic)
+	return render_to_response('TestWelcome.html', locals())
 
 #-----------------------------------------------------------------------------------------------
 def create_test(request):
