@@ -119,7 +119,7 @@ urlpatterns = patterns('',
 			  ('^casetypeselect/$',casetypeselect),
 			  ('^NextSequentialTestSwitch/$',NextSequentialTestSwitch),
 			  ('^TesttypeSwitch/$',TesttypeSwitch),
-			  ('^KeySwitch/$',KeySwitch),
+			  ('^TestNameSwitch/$',TestNameSwitch),
 			  ('^DownloadGridsyncsol/$',DownloadGridsyncsol),
 			
 			  (r'^robots\.txt$', lambda r: HttpResponse("User-agent: *\nDisallow: /", mimetype="text/plain")),
