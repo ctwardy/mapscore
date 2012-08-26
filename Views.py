@@ -727,7 +727,9 @@ def newtest(request):
 	total_hours = case.total_hours 
 
 	totcells = int(float(case.totalcellnumber))
-	horcells = vertcells = case.sidecellnumber
+	horcells = vercells = case.sidecellnumber
+        cellwidth = 5 # meters
+        regionwidth = 25 # km
 	uplat = case.upright_lat 
 	rightlon = case.upright_lon
 	downlat = case.downright_lat
