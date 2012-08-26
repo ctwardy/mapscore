@@ -1,0 +1,5 @@
+*.pyc
+*.[oa]
+*~
+media/t*png
+media/profpic*png
