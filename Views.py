@@ -43,13 +43,15 @@ def base_redirect(response):
 
 
 #-------------------------------------------------------------------------------------
-def AUTHENTICATE():
-	# Token Verification
-	try:
-		if request.session['usertoken'] == False:
-			return render_to_response('noaccess.html',{})
-	except: 
-		return render_to_response('noaccess.html',{})
+def AUTHENTICATE(token='usertoken'):
+    '''token is either 'usertoken' or 'admintoken'
+    '''
+    # Token Verification
+    try:
+        if request.session[token] == False:
+            return render_to_response('noaccess.html',{})
+    except: 
+        return render_to_response('noaccess.html',{})
 
 #-------------------------------------------------------------
 def main_page(request):
@@ -418,15 +420,8 @@ def account_access(request):
 
 			return render_to_response('IncorrectLogin.html',{})
 	else:
-		#------------------------------------------------------------------
-		# Token Verification
-		try:
-			if request.session['usertoken'] == False:
-				return render_to_response('noaccess.html',{})
-		except: 
-			return render_to_response('noaccess.html',{})
+		AUTHENTICATE()
 
-		#---------------------------------------------------------------------
 		model_list = []
 		for i in request.session['active_account'].account_models.all():
 			model_list.append(i.model_nameID)
@@ -446,16 +441,7 @@ def account_access(request):
 #-----------------------------------------------------------------
 def model_regform(request):
 
-	#------------------------------------------------------------------
-	# Token Verification
-	try:
-		if request.session['usertoken'] == False:
-			return render_to_response('noaccess.html',{})
-	except: 
-		return render_to_response('noaccess.html',{})
-
-	#---------------------------------------------------------------------
-
+	AUTHENTICATE()
 
 	return render_to_response('NewModel.html',{})
 
@@ -463,15 +449,8 @@ def model_regform(request):
 
 def model_created(request):
 
-	#------------------------------------------------------------------
-	# Token Verification
-	try:
-		if request.session['usertoken'] == False:
-			return render_to_response('noaccess.html',{})
-	except: 
-		return render_to_response('noaccess.html',{})
+	AUTHENTICATE()
 
-	#---------------------------------------------------------------------
 	# if page refresh
 	if request.session['createcheck'] == True:
 		return render_to_response('ModelRegComplete.html',{})
@@ -544,16 +523,8 @@ def model_created(request):
 
 def model_access(request):
 
-	#------------------------------------------------------------------
-	# Token Verification
-	try:
-		if request.session['usertoken'] == False:
-			return render_to_response('noaccess.html',{})
-	except: 
-		return render_to_response('noaccess.html',{})
-
-	#---------------------------------------------------------------------
-
+	AUTHENTICATE()
+	
 	request.session['active_case_temp'] = 'none'
 	request.session['active_test'] = 'none'
 	request.session['createcheck'] = False
@@ -680,46 +651,20 @@ def admin_account(request):
 
 	elif request.session['Superlogin'] == True:
 
-		#------------------------------------------------------------------
-		# Token Verification
-		try:
-			if request.session['admintoken'] == False:
-				return render_to_response('noaccess.html',{})
-		except: 
-			return render_to_response('noaccess.html',{})
-
-		#---------------------------------------------------------------------
-
+		AUTHENTICATE(token='admintoken')
 		request.session['active_account'] ='superuser'
 		return render_to_response('AdminScreen.html',{})
 
 #--------------------------------------------------------------------------
 def testcase_admin(request):
 
-	#------------------------------------------------------------------
-	# Token Verification
-	try:
-		if request.session['admintoken'] == False:
-			return render_to_response('noaccess.html',{})
-	except: 
-		return render_to_response('noaccess.html',{})
-
-	#---------------------------------------------------------------------
+	AUTHENTICATE(token='admintoken')	
 	
-	
-	for case in Case.objects.all():
-		
-		case.UploadedLayers = False
-		case.save()
-		
+	for case in Case.objects.filter(UploadedLayers = False):
 		if os.path.exists(str(case.LayerField)):
-			case.UploadedLayers = True
-			case.save()
-	
-	
+			case.update(UploadedLayers = True)	
 	
 	request.session['ActiveAdminCase'] = 'none'
-	
 
 	request.session['inputdic'] = 'none'
 	caselist = []
@@ -735,24 +680,12 @@ def testcase_admin(request):
 		inputlist.append(str(i.UploadedLayers))
 		caselist.append(inputlist)
 
-
-
-
 	return render_to_response('TestCaseMenu.html',{'case_list':caselist})
 
 #----------------------------------------------------------------------------
 def Casereg(request):
 
-	#------------------------------------------------------------------
-	# Token Verification
-	try:
-		if request.session['admintoken'] == False:
-			return render_to_response('noaccess.html',{})
-	except: 
-		return render_to_response('noaccess.html',{})
-
-	#---------------------------------------------------------------------
-
+	AUTHENTICATE(token='admintoken')
 	inputdic = {}
 	inputdic.update(csrf(request))
 	return render_to_response('Casereg.html',inputdic)
@@ -762,17 +695,7 @@ def Casereg(request):
 
 def newtest(request):
 
-	#------------------------------------------------------------------
-	# Token Verification
-	try:
-		if request.session['usertoken'] == False:
-			return render_to_response('noaccess.html',{})
-	except: 
-		return render_to_response('noaccess.html',{})
-
-	#---------------------------------------------------------------------
-
-	
+	AUTHENTICATE()	
 
 	age = request.session['active_case_temp'].Age
 	name = request.session['active_case_temp'].case_name
@@ -826,50 +749,37 @@ def newtest(request):
 
 #-----------------------------------------------------------------------------------------------
 def create_test(request):
-        AUTHENTICATE()
-	
+	AUTHENTICATE()
+
 	# If refresh
 	if request.session['createcheck'] == True:
 		return redirect('/test_instructions/')
 
-                # NO! DON'T DO THIS!  CLUNKY!
-		#return render_to_response('TestCreated.html')
+	#Old code had notification page.Clunky.
+	#return render_to_response('TestCreated.html')
 
 	tempcase = request.session['active_case_temp'] 
 	newtest = Test( test_case = tempcase,
-			test_name = tempcase.case_name,
-			ID2 = str(request.session['active_model'].ID2) + ':' +str(tempcase.case_name) )
+		test_name = tempcase.case_name,
+		ID2 = str(request.session['active_model'].ID2) + ':' +str(tempcase.case_name) )
 
 	newtest.save()
 
 	Link = Test_Model_Link( test = newtest,
-				model = request.session['active_model'])
+							model = request.session['active_model'])
 
 	Link.save()
-	
 	newtest.setup()
-	
 	newtest.save()
-
-        request.session['active_test'] = newtest
-	
+	request.session['active_test'] = newtest
 	request.session['createcheck'] = True
-
 	return render_to_response('TestCreated.html')
 
 #-------------------------------------------------------------------------------------------------
 def setactive_test(request):
 
-	#------------------------------------------------------------------
-	# Token Verification
-	try:
-		if request.session['usertoken'] == False:
-			return render_to_response('noaccess.html',{})
-	except: 
-		return render_to_response('noaccess.html',{})
-
-	#---------------------------------------------------------------------
-
+	AUTHENTICATE()
+	
 	intest = request.GET['test_in_active']
 	print intest
 	if intest == '0':
@@ -884,16 +794,8 @@ def setactive_test(request):
 #------------------------------------------------------------------------------------------------
 def Activate_instructions(request):
 
-	#------------------------------------------------------------------
-	# Token Verification
-	try:
-		if request.session['usertoken'] == False:
-			return render_to_response('noaccess.html',{})
-	except: 
-		return render_to_response('noaccess.html',{})
-
-	#---------------------------------------------------------------------
-
+	AUTHENTICATE()
+	
 	request.session['active_test'].show_instructions = True
 	request.session['active_test'].save()
 	return redirect('/test_instructions/')
@@ -903,16 +805,7 @@ def Activate_instructions(request):
 #-------------------------------------------------------------------------------------------------
 def tst_instructions(request):
 
-	#------------------------------------------------------------------
-	# Token Verification
-	try:
-		if request.session['usertoken'] == False:
-			return render_to_response('noaccess.html',{})
-	except: 
-		return render_to_response('noaccess.html',{})
-
-	#---------------------------------------------------------------------
-	
+	AUTHENTICATE()	
 	if int(request.session['active_test'].nav) == 2:
 		
 		if request.session['active_test'].show_instructions == True:
@@ -935,16 +828,7 @@ def tst_instructions(request):
 
 def active_test(request):
 
-	#------------------------------------------------------------------
-	# Token Verification
-	try:
-		if request.session['usertoken'] == False:
-			return render_to_response('noaccess.html',{})
-	except: 
-		return render_to_response('noaccess.html',{})
-
-	#---------------------------------------------------------------------
-
+	AUTHENTICATE()
 
 	#request.session['active_test'] = Test.objects.get(ID2 = request.session['active_test'].ID2)
 	active_test = request.session['active_test']
@@ -1905,23 +1789,12 @@ def setcompletedtest(request):
 	#---------------------------------------------------------------------
 
 	intest_raw = str(request.GET['Nonactive_Testin'])
-
-	intest = ''
-        # The following strips all spaces, which blocks "Hiker Paul" and "Hiker June". 
-        # Use strip() instead.
-	# for i in intest_raw:
-	# 	#if i != ' ':
-        #         intest = intest + str(i)
-        intest = intest_raw.strip()
-
+	intest = intest_raw.strip()
 	completed_lst = []
 
 	for i in list(request.session['active_model'].model_tests.all()):
 		if i.Active == False:
 			completed_lst.append(str(i.test_name))
-
-
-
 
 	if intest not in completed_lst :
 		request.session['failure'] = True
@@ -6332,9 +6205,9 @@ def old_casetypeselect(request):
 def casetypeselect(request): 
 	AUTHENTICATE()
 
-	key_lst = sorted(set([str(x.key) for x in Case.objects.all()]))
+	name_lst = sorted(set([str(x.test_name) for x in Case.objects.all()]))
 	type_lst = sorted(set([str(x.subject_category) for x in Case.objects.all()]))
-	return render_to_response('Testselect.html',{'keys':key_lst, 'types':type_lst})
+	return render_to_response('Testselect.html',{'names':name_lst, 'types':type_lst})
 						
 #-------------------------------------------------------------------------------------
 def TesttypeSwitch(request):
@@ -6363,23 +6236,31 @@ def TesttypeSwitch(request):
 	return redirect("/new_test/")
 
 #-------------------------------------------------------------------------------------
-def KeySwitch(request):
+def TestNameSwitch(request):
 	AUTHENTICATE()
-	selection = request.GET['keyin2']
+	selection = request.GET['casename']
 	if selection ==0:			
 		return redirect("/casetypeselect/")  
 	
 	havecase = False
-	for i in Case.objects.all():            
-		if i.key != selection:
-			pass
+	try:
+		Case.objects.get(case_name=selection)
 		request.session['active_case_temp'] = i
-		havecase = True
-		break
-	if havecase == False:
+		return redirect("/new_test/")                                   
+	except Case.DoesNotExist:
 		return render_to_response('nomorecasestype.html',{'selection':selection})
-
-	return redirect("/new_test/")                                   
+	#else:
+	#	print "Multiple Cases Found"
+#	for i in Case.objects.all():            
+#		if i.key != selection:
+#			pass
+#		request.session['active_case_temp'] = i
+#		havecase = True
+#		break
+#	if havecase == False:
+#		return render_to_response('nomorecasestype.html',{'selection':selection})
+#
+#	return redirect("/new_test/")                                   
 		
 #-------------------------------------------------------------------------------------
 
@@ -6405,16 +6286,7 @@ def NextSequentialTestSwitch(request):
 #--------------------------------------------------------------------------------------
 def DownloadGridsyncsol(request):
 	
-	#------------------------------------------------------------------
-	# Token Verification
-	try:
-		if request.session['usertoken'] == False:
-			return render_to_response('noaccess.html',{})
-	except: 
-		return render_to_response('noaccess.html',{})
-
-	#---------------------------------------------------------------------
-
+	AUTHENTICATE()
 	
 	active_test = request.session['active_test']
 	

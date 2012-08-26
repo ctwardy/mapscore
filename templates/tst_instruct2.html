@@ -41,50 +41,50 @@
 
 <br>
 <div style = 'padding-left:10%;' >
-<br><br>
+<br>
 <div style = 'border:double; width:700px; background-color:#FFFF99'>
 <div style = 'padding-left:10%;' >
-<br>
+<div style = 'padding-left:100px; padding-right:100px'>
+    <b><u><h1> Grayscale Rating Instructions </h1></u></b>
+</div><br>
 
-<div style = 'padding-left:100px'><b><u><h1> Grayscale Rating Instructions </h1></u></b></div><br>
+    <form action = "/test_active/" method = "get" name = "Continue">
+		<center>
+		<button name = "Continue" type = "submit" value = "HTML" title='I know this. Continue with test.'>
+		Move along.
+		</button>
+		</center>		
+    </form>
 
-<br>
-
-<br>
-
-<b> 	
-	For this test, you are given 4 (lat,lon) points governing the boundary<br>
-	of the search region. You will use these points in addition to the provided  <br>
-	information regarding number of horizontal and vertical cells to construct a  <br>
-	grid of square cells for your search region. Each cell must have the same height  <br>
-	and width.<br><br>
+    <p style='bold'>
+	For this test, you are given 4 (lat,lon) points governing the boundary
+	of the search region. You will use these points in addition to the provided  
+	information regarding number of horizontal and vertical cells to construct a  
+	grid of square cells for your search region. Each cell must have the same height  
+	and width.</p>
 	
-	Your model must then rate each generated grid cell based on the probability that  <br>
-	the lost person will be located in that cell. This process is left to you and your <br>
-	individual model. You are encouraged to use all provided test case information as  <br>
-	well as all layers needed as input to your model  <br><br>
+	<p style='bold'>
+	Your model must then rate each generated grid cell based on the probability that  
+	the lost person will be located in that cell. This process is left to you and your 
+	individual model. You are encouraged to use all provided test case information as  
+	well as all layers needed as input to your model.</p>
 
-	Once you have run your model and have developed a rating for each cell, you must  <br>
-	then construct a grayscale image representing your result. Each pixel in your  <br>
-	grayscale image will represent a cell in your rated grid. For example, if your  <br>
-	grid has 'H' horizontal cells and 'V' vertical cells, you will return a grayscale  <br>
-	image with exactly 'H x V' pixels. In your grayscale image, the lighter the pixel<br>
-	shade, the higher the probability that an individual is found in the corresponding <br>
-	grid cell. Thus, a shade of black represents low probability where a shade of white  <br>
-	represents high probability. We request that the grayscale image submitted is in (.png) <br>
-	format with color bands labeled as either 'P' or 'L'<br><br>
+    <p style='bold'>
+	Once you have run your model and have developed a rating for each cell, you must  
+	then construct a grayscale image representing your result. Each pixel in your  
+	grayscale image will represent a cell in your rated grid. For example, if your  
+	grid has 'H' horizontal cells and 'V' vertical cells, you will return a grayscale  
+	image with exactly 'H x V' pixels. In your grayscale image, the lighter the pixel
+	shade, the higher the probability that an individual is found in the corresponding 
+	grid cell. Thus, a shade of black represents low probability where a shade of white  
+	represents high probability. We request that the grayscale image submitted is in (.png) 
+	format with color bands labeled as either 'P' or 'L'.</p>
 
-	Lastly, you will be prompted to submit your grayscale image for analysis.  <br>
-	Once submitted, we will rate your image and close out the test case. You will  <br>
-	now only be able to view the case and can make no more modifications. The new <br>
-	rating will be added to your model's overall rating and your leaderboard status  <br>
-	will be updated.  <br><br>
-	
-	<br> <br><br>
-	
-	
-
-</b>
+	<p style='bold'>Lastly, you will be prompted to submit your grayscale image for analysis.  
+	Once submitted, we will rate your image and close out the test case. You will  
+	now only be able to view the case and can make no more modifications. The new 
+	rating will be added to your model's overall rating and your leaderboard status  
+	will be updated.</p>
 
 <br>	
 </div>	
@@ -98,22 +98,22 @@
 <br>
 <form action = "/test_active/" method = "get" name = "Continue">
 		
-		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		<center>
 		<button name = "Continue" type = "submit" value = "HTML">
 		Continue with Test
 		</button>
+		</center>
 		
 </form>
 
 <br>
 <form action = "/model_menu/" method = "get" name = "Return to Model Menu">
 		
-		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		<center>
 		<button name = "Return To Model Menu" type = "submit" value = "HTML">
 		Return To Model Menu
 		</button>
+		</center>
 		
 </form>
 

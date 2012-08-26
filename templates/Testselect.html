@@ -76,11 +76,11 @@
 
 
     <p><i>NOT WORKING: To select a case directly by name:</i></p><br>
-	<form action = "/KeySwitch/" method = "get">	
-		<select name = 'keyin2'>
+	<form action = "/TestNameSwitch/" method = "get">	
+		<select name = 'casename'>
 			<option value= '0' >-- Please select your case name --</option>
 			
-			{% for i in keys %}
+			{% for i in names %}
 				<option> {{i}} </option>
 			 {% endfor %}
 		<input type ='submit' value = 'Submit'/>
