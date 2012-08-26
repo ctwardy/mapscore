@@ -5972,8 +5972,11 @@ def TestNameSwitch(request):
 		return redirect("/new_test/")                                   
 	except Case.DoesNotExist:
 		return render_to_response('nomorecasestype.html',{'selection':selection})
-	#else:
-	#	print "Multiple Cases Found"
+	else:
+                # Multiple Cases Found -- Pick the first
+                cases = Case.objects.filter(case_name = selection)
+                request.session['active_case_temp'] = cases[0]
+                return redirect("/new_test/")
 		
 #-------------------------------------------------------------------------------------
 
