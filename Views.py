@@ -5983,23 +5983,12 @@ def TestNameSwitch(request):
 	
 	havecase = False
 	try:
-		Case.objects.get(case_name=selection)
-		request.session['active_case_temp'] = i
+		request.session['active_case_temp'] = Case.objects.get(case_name=selection)
 		return redirect("/new_test/")                                   
 	except Case.DoesNotExist:
 		return render_to_response('nomorecasestype.html',{'selection':selection})
 	#else:
 	#	print "Multiple Cases Found"
-#	for i in Case.objects.all():            
-#		if i.key != selection:
-#			pass
-#		request.session['active_case_temp'] = i
-#		havecase = True
-#		break
-#	if havecase == False:
-#		return render_to_response('nomorecasestype.html',{'selection':selection})
-#
-#	return redirect("/new_test/")                                   
 		
 #-------------------------------------------------------------------------------------
 
