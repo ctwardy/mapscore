@@ -705,31 +705,33 @@ def newtest(request):
 
 	AUTHENTICATE()	
 
-	account_name = request.session['active_account'].institution_name
-	model_name = request.session['active_model'].model_nameID
-	URL = request.session['active_case_temp'].URL
+        # Use names requested by TestWelcome.html so we can use locals() later.
+        case = request.session['active_case_temp']
+	MAP = case.URL
+        Name_act = request.session['active_account'].institution_name
+	Name_m = request.session['active_model'].model_nameID
 
-	age = request.session['active_case_temp'].Age
-	name = request.session['active_case_temp'].case_name
-	sex = request.session['active_case_temp'].Sex
-	LKP = '('+request.session['active_case_temp'].lastlat + ',' +request.session['active_case_temp'].lastlon + ')' 
-	subject_category = request.session['active_case_temp'].subject_category 
-	subject_subcategory = request.session['active_case_temp'].subject_subcategory
-	scenario   =  request.session['active_case_temp'].scenario
-	subject_activity  = request.session['active_case_temp'].subject_activity
-	number_lost  = request.session['active_case_temp'].number_lost
-	group_type = request.session['active_case_temp'].group_type 
-	ecoregion_domain  = request.session['active_case_temp'].ecoregion_domain 
-	ecoregion_division = request.session['active_case_temp'].ecoregion_division 
-	terrain  = request.session['active_case_temp'].terrain
-	total_hours = request.session['active_case_temp'].total_hours 
+	age = case.Age
+	name = case.case_name
+	sex = case.Sex
+	LKP = '('+case.lastlat + ',' +case.lastlon + ')' 
+	subject_category = case.subject_category 
+	subject_subcategory = case.subject_subcategory
+	scenario   =  case.scenario
+	subject_activity  = case.subject_activity
+	number_lost  = case.number_lost
+	group_type = case.group_type 
+	ecoregion_domain  = case.ecoregion_domain 
+	ecoregion_division = case.ecoregion_division 
+	terrain  = case.terrain
+	total_hours = case.total_hours 
 
-	totalcells = int(float(request.session['active_case_temp'].totalcellnumber))
-	sidecells = request.session['active_case_temp'].sidecellnumber
-	uplat = request.session['active_case_temp'].upright_lat 
-	rightlon = request.session['active_case_temp'].upright_lon
-	downlat = request.session['active_case_temp'].downright_lat
-	leftlon = request.session['active_case_temp'].upleft_lon 
+	totcells = int(float(case.totalcellnumber))
+	horcells = vertcells = case.sidecellnumber
+	uplat = case.upright_lat 
+	rightlon = case.upright_lon
+	downlat = case.downright_lat
+	leftlon = case.upleft_lon 
 
 	# That's a lot of variables. We'll use the 'locals()' trick
         # instead of creating an input dictionary.
