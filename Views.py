@@ -724,7 +724,7 @@ def newtest(request):
 	terrain  = request.session['active_case_temp'].terrain
 	total_hours = request.session['active_case_temp'].total_hours 
 
-	totalcells = int(request.session['active_case_temp'].totalcellnumber)
+	totalcells = int(float(request.session['active_case_temp'].totalcellnumber))
 	sidecells = request.session['active_case_temp'].sidecellnumber
 	uplat = request.session['active_case_temp'].upright_lat 
 	rightlon = request.session['active_case_temp'].upright_lon
@@ -755,7 +755,7 @@ def create_test(request):
 	newtest.save()
 
 	Link = Test_Model_Link( test = newtest,
-							model = request.session['active_model'])
+                                model = request.session['active_model'])
 
 	Link.save()
 	newtest.setup()
