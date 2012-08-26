@@ -46,14 +46,22 @@ def base_redirect(response):
 def AUTHENTICATE(token='usertoken'):
     '''token is either 'usertoken' or 'admintoken'
     '''
-    # Token Verification
     try:
-        if request.session[token] == False:
+	if request.session[token] == False:
+	    return render_to_response('noaccess.html',{})
+    except: 
+	return render_to_response('noaccess.html',{})
+
+#-------------------------------------------------------------
+def AUTHENTICATE_EITHER():
+    '''Authenticates with either 'usertoken' or 'admintoken'.'''
+    try:
+        if request.session['admintoken'] == False and request.session['usertoken'] == False:
             return render_to_response('noaccess.html',{})
     except: 
         return render_to_response('noaccess.html',{})
 
-#-------------------------------------------------------------
+#-------------------------------------------------------------------------------------------------
 def main_page(request):
 
 	# record a hit on the main page
@@ -930,15 +938,7 @@ def active_test(request):
 
 def grid_test_result(request):
 
-	#------------------------------------------------------------------
-	# Token Verification
-	try:
-		if request.session['usertoken'] == False:
-			return render_to_response('noaccess.html',{})
-	except: 
-		return render_to_response('noaccess.html',{})
-
-	#---------------------------------------------------------------------
+        AUTHENTICATE()
 
 	active_test = request.session['active_test']
 	active_case = active_test.test_case
@@ -1174,15 +1174,7 @@ def grid_test_result(request):
 #---------------------------------------------------------------------------------------------------------
 def regen_test(request):
 
-	#------------------------------------------------------------------
-	# Token Verification
-	try:
-		if request.session['usertoken'] == False:
-			return render_to_response('noaccess.html',{})
-	except: 
-		return render_to_response('noaccess.html',{})
-
-	#---------------------------------------------------------------------
+        AUTHENTICATE()
 
 	request.session['active_test'].nav = 0
 	os.remove(request.session['active_test'].test_url2)
@@ -1194,15 +1186,7 @@ def regen_test(request):
 
 def passtest(request):
 
-	#------------------------------------------------------------------
-	# Token Verification
-	try:
-		if request.session['usertoken'] == False:
-			return render_to_response('noaccess.html',{})
-	except: 
-		return render_to_response('noaccess.html',{})
-
-	#---------------------------------------------------------------------
+        AUTHENTICATE()
 
 	active_test = request.session['active_test']
 	request.session['active_test'].Validated = True
@@ -1220,15 +1204,7 @@ def passtest(request):
 #-----------------------------------------------------------------------------------------------------------
 def Bulkin(request):
 
-	#------------------------------------------------------------------
-	# Token Verification
-	try:
-		if request.session['usertoken'] == False:
-			return render_to_response('noaccess.html',{})
-	except: 
-		return render_to_response('noaccess.html',{})
-
-	#---------------------------------------------------------------------
+        AUTHENTICATE()
 
 	active_test = request.session['active_test']
 	inall = request.GET['Bulkin']
@@ -1401,15 +1377,7 @@ def Bulkin(request):
 
 def load_image(request):
 
-	#------------------------------------------------------------------
-	# Token Verification
-	try:
-		if request.session['usertoken'] == False:
-			return render_to_response('noaccess.html',{})
-	except: 
-		return render_to_response('noaccess.html',{})
-
-	#---------------------------------------------------------------------
+        AUTHENTICATE() 
 
 	#******************** Alter for server
 	#string = 'C:/Users/Nathan Jones/Django Website/MapRateWeb/media/'
@@ -1452,15 +1420,7 @@ def load_image(request):
 #-------------------------------------------------------------------------------------------------------------	
 def confirm_grayscale(request):
 
-	#------------------------------------------------------------------
-	# Token Verification
-	try:
-		if request.session['usertoken'] == False:
-			return render_to_response('noaccess.html',{})
-	except: 
-		return render_to_response('noaccess.html',{})
-
-	#---------------------------------------------------------------------
+        AUTHENTICATE() 
 
 	# Verify Image
 	image_in = Image.open(request.session['active_test'].greyscale_path)
@@ -1585,15 +1545,7 @@ def confirm_grayscale(request):
 # deny grayscale confirmation
 def denygrayscale_confirm(request):
 
-	#------------------------------------------------------------------
-	# Token Verification
-	try:
-		if request.session['usertoken'] == False:
-			return render_to_response('noaccess.html',{})
-	except: 
-		return render_to_response('noaccess.html',{})
-
-	#---------------------------------------------------------------------
+        AUTHENTICATE() 
 
 	# Remove served Grayscale image
 	os.remove(request.session['active_test'].greyscale_path)
@@ -1611,16 +1563,7 @@ def denygrayscale_confirm(request):
 # accept grayscale confirmation
 def acceptgrayscale_confirm(request):
 
-	#------------------------------------------------------------------
-	# Token Verification
-	try:
-		if request.session['usertoken'] == False:
-			return render_to_response('noaccess.html',{})
-	except: 
-		return render_to_response('noaccess.html',{})
-
-	#---------------------------------------------------------------------
-
+        AUTHENTICATE()
 	#string = 'C:/Users/Nathan Jones/Django Website/MapRateWeb/user_grayscale/'
 	string = 'user_grayscale/'
 
@@ -1663,16 +1606,7 @@ def acceptgrayscale_confirm(request):
 
 def Rate(request):
 
-	#------------------------------------------------------------------
-	# Token Verification
-	try:
-		if request.session['usertoken'] == False:
-			return render_to_response('noaccess.html',{})
-	except: 
-		return render_to_response('noaccess.html',{})
-
-	#---------------------------------------------------------------------
-
+        AUTHENTICATE() 
 	response = request.session['active_test'].rate()
 
 	# Resync Model
@@ -1693,16 +1627,7 @@ def Rate(request):
 #----------------------------------------------------------------------------------------------------------------
 def submissionreview(request):
 
-	#------------------------------------------------------------------
-	# Token Verification
-	try:
-		if request.session['usertoken'] == False:
-			return render_to_response('noaccess.html',{})
-	except: 
-		return render_to_response('noaccess.html',{})
-
-	#---------------------------------------------------------------------
-
+        AUTHENTICATE()
 	request.session['active_model'].Completed_cases = int(request.session['active_model'].Completed_cases) + 1
 	request.session['active_model'].save()
 
@@ -1778,16 +1703,7 @@ def submissionreview(request):
 #-----------------------------------------------------------------------------------------------------------------------------------
 def setcompletedtest(request):
 
-	#------------------------------------------------------------------
-	# Token Verification
-	try:
-		if request.session['usertoken'] == False:
-			return render_to_response('noaccess.html',{})
-	except: 
-		return render_to_response('noaccess.html',{})
-
-	#---------------------------------------------------------------------
-
+        AUTHENTICATE()
 	intest_raw = str(request.GET['Nonactive_Testin'])
 	intest = intest_raw.strip()
 	completed_lst = []
@@ -1807,16 +1723,7 @@ def setcompletedtest(request):
 #-------------------------------------------------------------------------------------------------------------------------------------
 def nonactivetest(request):
 
-	#------------------------------------------------------------------
-	# Token Verification
-	try:
-		if request.session['usertoken'] == False:
-			return render_to_response('noaccess.html',{})
-	except: 
-		return render_to_response('noaccess.html',{})
-
-	#---------------------------------------------------------------------
-
+        AUTHENTICATE()
 
 	active_test = request.session['active_test']
 	active_case = active_test.test_case
@@ -1884,16 +1791,7 @@ def nonactivetest(request):
 #---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 def Leader_model(request):
 
-	#-------------------------------------------------------------------------------------------------
-	# Token Verification
-	try:
-		if request.session['admintoken'] == False and request.session['usertoken'] == False:
-			return render_to_response('noaccess.html',{})
-	except: 
-		return render_to_response('noaccess.html',{})
-
-	#-------------------------------------------------------------------------------------------------
-
+        AUTHENTICATE_EITHER()
 	sorted_models = []
 	allmodels = Model.objects.all()
 
@@ -2032,16 +1930,7 @@ def switchboard(request):
 #*********************************************
 
 
-	#-------------------------------------------------------------------------------------------------
-	# Token Verification
-	try:
-		if request.session['admintoken'] == False and request.session['usertoken'] == False:
-			return render_to_response('noaccess.html',{})
-	except: 
-		return render_to_response('noaccess.html',{})
-
-	#-------------------------------------------------------------------------------------------------
-	
+        AUTHENTICATE_EITHER()	
 	# anything to model
 
 	if request.GET['Sort_by'] == '0':
@@ -2076,16 +1965,7 @@ def switchboard(request):
 #----------------------------------------------------------------------------------------------------
 def model_to_test_switch(request):
 
-	#-------------------------------------------------------------------------------------------------
-	# Token Verification
-	try:
-		if request.session['admintoken'] == False and request.session['usertoken'] == False:
-			return render_to_response('noaccess.html',{})
-	except: 
-		return render_to_response('noaccess.html',{})
-
-	#-------------------------------------------------------------------------------------------------
-
+        AUTHENTICATE_EITHER()
 	request.session['nav']	= '2'
 	inputdic = request.session['inputdic'] 	
 
@@ -2094,15 +1974,7 @@ def model_to_test_switch(request):
 #-------------------------------------------------------------------------------------------------------------
 def switchboard_totest(request):	
 
-	#-------------------------------------------------------------------------------------------------
-	# Token Verification
-	try:
-		if request.session['admintoken'] == False and request.session['usertoken'] == False:
-			return render_to_response('noaccess.html',{})
-	except: 
-		return render_to_response('noaccess.html',{})
-
-	#-------------------------------------------------------------------------------------------------
+        AUTHENTICATE_EITHER()
 
 	casename_raw = str(request.GET['casename'])
 
@@ -2215,16 +2087,7 @@ def switchboard_totest(request):
 #---------------------------------------------------------------------------------------------------------------
 def model_to_Scenario_switch(request):
 	
-	#-------------------------------------------------------------------------------------------------
-	# Token Verification
-	try:
-		if request.session['admintoken'] == False and request.session['usertoken'] == False:
-			return render_to_response('noaccess.html',{})
-	except: 
-		return render_to_response('noaccess.html',{})
-
-	#-------------------------------------------------------------------------------------------------
-	
+	AUTHENTICATE_EITHER()
 	
 	inputdic =  request.session['inputdic']  
 	
@@ -2246,15 +2109,7 @@ def model_to_Scenario_switch(request):
 #---------------------------------------------------------------------------------------------------------------
 def testcaseshow(request):
 
-	#-------------------------------------------------------------------------------------------------
-	# Token Verification
-	try:
-		if request.session['admintoken'] == False and request.session['usertoken'] == False:
-			return render_to_response('noaccess.html',{})
-	except: 
-		return render_to_response('noaccess.html',{})
-
-	#-------------------------------------------------------------------------------------------------
+        AUTHENTICATE_EITHER()
 
 	if request.session['active_account'] =='superuser':
 
@@ -2296,15 +2151,7 @@ def testcaseshow(request):
 #-----------------------------------------------------------------------------------------------------------------
 def return_leader(request):
 
-	#-------------------------------------------------------------------------------------------------
-	# Token Verification
-	try:
-		if request.session['admintoken'] == False and request.session['usertoken'] == False:
-			return render_to_response('noaccess.html',{})
-	except: 
-		return render_to_response('noaccess.html',{})
-
-	#-------------------------------------------------------------------------------------------------
+        AUTHENTICATE_EITHER()
 
 	inputdic = request.session['inputdic'] 	
 
@@ -2334,15 +2181,7 @@ def return_leader(request):
 #-----------------------------------------------------------------------------------------------------------------
 def completedtest_info(request):
 
-	#-------------------------------------------------------------------------------------------------
-	# Token Verification
-	try:
-		if request.session['admintoken'] == False and request.session['usertoken'] == False:
-			return render_to_response('noaccess.html',{})
-	except: 
-		return render_to_response('noaccess.html',{})
-
-	#-------------------------------------------------------------------------------------------------
+        AUTHENTICATE_EITHER()
 
 	completed_lst = []
 
@@ -2357,15 +2196,7 @@ def completedtest_info(request):
 #----------------------------------------------------------------------------------------------------------------
 def case_ref(request):
 
-	#-------------------------------------------------------------------------------------------------
-	# Token Verification
-	try:
-		if request.session['admintoken'] == False and request.session['usertoken'] == False:
-			return render_to_response('noaccess.html',{})
-	except: 
-		return render_to_response('noaccess.html',{})
-
-	#-------------------------------------------------------------------------------------------------
+        AUTHENTICATE_EITHER()
 
 	Input = request.GET['CaseName2']
 
@@ -2418,16 +2249,7 @@ def case_ref(request):
 #-----------------------------------------------------------------------------------------------------------------------
 def caseref_return(request):
 
-	#-------------------------------------------------------------------------------------------------
-	# Token Verification
-	try:
-		if request.session['admintoken'] == False and request.session['usertoken'] == False:
-			return render_to_response('noaccess.html',{})
-	except: 
-		return render_to_response('noaccess.html',{})
-
-	#-------------------------------------------------------------------------------------------------
-
+        AUTHENTICATE_EITHER()
 	
 	inputdic = request.session['inputdic'] 
 
@@ -2458,15 +2280,7 @@ def caseref_return(request):
 
 def Account_Profile(request):
 
-	#-------------------------------------------------------------------------------------------------
-	# Token Verification
-	try:
-		if request.session['admintoken'] == False and request.session['usertoken'] == False:
-			return render_to_response('noaccess.html',{})
-	except: 
-		return render_to_response('noaccess.html',{})
-
-	#-------------------------------------------------------------------------------------------------
+        AUTHENTICATE_EITHER()
 
 	Account_in = request.GET['Account']
 
@@ -2501,15 +2315,7 @@ def Account_Profile(request):
 #--------------------------------------------------------------------------------------------------------------------
 def returnfrom_profile(request):
 
-	#-------------------------------------------------------------------------------------------------
-	# Token Verification
-	try:
-		if request.session['admintoken'] == False and request.session['usertoken'] == False:
-			return render_to_response('noaccess.html',{})
-	except: 
-		return render_to_response('noaccess.html',{})
-
-	#-------------------------------------------------------------------------------------------------
+        AUTHENTICATE_EITHER()
 
 	inputdic = request.session['inputdic'] 
 
@@ -2541,15 +2347,7 @@ def returnfrom_profile(request):
 def completedtest_modellink(request):
 
 
-	#-------------------------------------------------------------------------------------------------
-	# Token Verification
-	try:
-		if request.session['admintoken'] == False and request.session['usertoken'] == False:
-			return render_to_response('noaccess.html',{})
-	except: 
-		return render_to_response('noaccess.html',{})
-
-	#-------------------------------------------------------------------------------------------------
+        AUTHENTICATE_EITHER()
 
 	completedtest = str(request.GET['completedtest'])
 	request.session['completedtest'] = completedtest
@@ -2560,16 +2358,7 @@ def completedtest_modellink(request):
 #---------------------------------------------------------------------------------------------------------------------
 def case_hyperin(request):
 
-	#-------------------------------------------------------------------------------------------------
-	# Token Verification
-	try:
-		if request.session['admintoken'] == False and request.session['usertoken'] == False:
-			return render_to_response('noaccess.html',{})
-	except: 
-		return render_to_response('noaccess.html',{})
-
-	#-------------------------------------------------------------------------------------------------
-
+        AUTHENTICATE_EITHER()
 	inputdic = request.session['inputdic'] 
 
 
@@ -2592,16 +2381,7 @@ def case_hyperin(request):
 
 def upload_casefile(request):
 
-	#------------------------------------------------------------------
-	# Token Verification
-	try:
-		if request.session['admintoken'] == False:
-			return render_to_response('noaccess.html',{})
-	except: 
-		return render_to_response('noaccess.html',{})
-
-	#---------------------------------------------------------------------
-
+        AUTHENTICATE('admintoken')
 	# Take in file - save to server
 	#string = 'C:\Users\Nathan Jones\Django Website\MapRateWeb\case_in\input_unsorted.txt'
 	string = 'case_in/input_unsorted.csv'
@@ -2872,16 +2652,7 @@ def exportcaselibrary(request):
 #-------------------------------------------------------------------------------------------------------------------------
 def Manage_Account(request):
 
-	#------------------------------------------------------------------
-	# Token Verification
-	try:
-		if request.session['usertoken'] == False:
-			return render_to_response('noaccess.html',{})
-	except: 
-		return render_to_response('noaccess.html',{})
-
-	#---------------------------------------------------------------------
-
+        AUTHENTICATE()
 	request.session['active_model'] = 'none'
 	
 	return render_to_response('Account_manage.html')
@@ -2889,15 +2660,7 @@ def Manage_Account(request):
 #----------------------------------------------------------------------------------------------------------------------------
 def edit_user(request):
 
-	#------------------------------------------------------------------
-	# Token Verification
-	try:
-		if request.session['usertoken'] == False:
-			return render_to_response('noaccess.html',{})
-	except: 
-		return render_to_response('noaccess.html',{})
-
-	#---------------------------------------------------------------------
+        AUTHENTICATE()
 
 	Account = request.session['active_account']
 
@@ -2912,15 +2675,7 @@ def edit_user(request):
 #------------------------------------------------------------------------------------------------------------------------------
 def edit_user_run(request):
 
-	#------------------------------------------------------------------
-	# Token Verification
-	try:
-		if request.session['usertoken'] == False:
-			return render_to_response('noaccess.html',{})
-	except: 
-		return render_to_response('noaccess.html',{})
-
-	#---------------------------------------------------------------------
+        AUTHENTICATE()
 
 	Account = request.session['active_account']
 
@@ -2986,15 +2741,7 @@ def edit_user_run(request):
 #---------------------------------------------------------------------------------------------
 def edit_inst(request):	
 
-	#------------------------------------------------------------------
-	# Token Verification
-	try:
-		if request.session['usertoken'] == False:
-			return render_to_response('noaccess.html',{})
-	except: 
-		return render_to_response('noaccess.html',{})
-
-	#---------------------------------------------------------------------
+        AUTHENTICATE()
 
 	Account = request.session['active_account']
 
@@ -3008,15 +2755,7 @@ def edit_inst(request):
 #---------------------------------------------------------------------------------------------
 def edit_inst_run(request):			
 
-	#------------------------------------------------------------------
-	# Token Verification
-	try:
-		if request.session['usertoken'] == False:
-			return render_to_response('noaccess.html',{})
-	except: 
-		return render_to_response('noaccess.html',{})
-
-	#---------------------------------------------------------------------
+        AUTHENTICATE()
 
 	Account = request.session['active_account']
 
@@ -6205,7 +5944,7 @@ def old_casetypeselect(request):
 def casetypeselect(request): 
 	AUTHENTICATE()
 
-	name_lst = sorted(set([str(x.test_name) for x in Case.objects.all()]))
+	name_lst = sorted(set([str(x.case_name) for x in Case.objects.all()]))
 	type_lst = sorted(set([str(x.subject_category) for x in Case.objects.all()]))
 	return render_to_response('Testselect.html',{'names':name_lst, 'types':type_lst})
 						
