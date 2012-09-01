@@ -31,11 +31,15 @@ import os
 import Image
 import zipfile
 from django.core.servers.basehttp import FileWrapper
-
-
-
-
 from django.core.context_processors import csrf
+
+##################### Media File Locations ################################
+#MEDIA_DIR = 'C:/Users/Nathan Jones/Django Website/MapRateWeb/media/'
+#USER_GRAYSCALE = 'C:/Users/Nathan Jones/Django Website/MapRateWeb/user_grayscale/'
+MEDIA_DIR = 'media/'             # for the server
+USER_GRAYSCALE = 'user_grayscale/'
+
+
 
 #--------------------------------------------------------------
 def base_redirect(response):
@@ -1368,35 +1372,19 @@ def Bulkin(request):
 def load_image(request):
 
         AUTHENTICATE() 
-
-	#******************** Alter for server
-	#string = 'C:/Users/Nathan Jones/Django Website/MapRateWeb/media/'
-	string = 'media/'
-
-	 # reformat ID2
-	#..................................................
-	st = str(request.session['active_test'].ID2)
-	temp = ''
-	for i in st:
-		if i == ':':
-			temp = temp +'_'
-		else:
-			temp = temp + str(i)
-	#...............................................	
 	
-	# iterate counter
-	
-	request.session['active_test'].grayrefresh = int(request.session['active_test'].grayrefresh) + 1
-	request.session['active_test'].save()
+	# increment counter
+	active_test = request.session['active_test']
+        grayrefresh = int(active_test.grayrefresh) + 1
+        active_test.grayrefresh = grayrefresh
 
-	string = string + temp
-	string = string + '_' + str(request.session['active_test'].grayrefresh) + '.png'
-
-
+        string = MEDIA_DIR
+	string += str(active_test.ID2).replace(':','_')
+	string += '_%d.png' % grayrefresh 
 
 	# Save the greyscale file path to the test object
-	request.session['active_test'].greyscale_path = string
-	request.session['active_test'].save()
+	active_test.greyscale_path = string
+	active_test.save()
 
 
 	destination = open(string,'wb+')
@@ -1414,120 +1402,35 @@ def confirm_grayscale(request):
 
 	# Verify Image
 	image_in = Image.open(request.session['active_test'].greyscale_path)
+        s = str(request.session['active_test'].ID2).replace(':','_')
+        served_Location = '/%s%s_%s.png' % (MEDIA_DIR, s, str(request.session['active_test'].grayrefresh))
+        inputdic = {'grayscale':served_Location}
 
-	# Check for demensions
-
+	# Check dimensions
 	if image_in.size[0] != 5001 or image_in.size[1] != 5001:
-
-		#----------------------------------------------------------------------------------------		
-		# reformat ID2
-		#..................................................
-		st = str(request.session['active_test'].ID2)
-		temp = ''
-		for i in st:
-			if i == ':':
-				temp = temp +'_'
-			else:
-			 	temp = temp + str(i)
-		#...............................................
-
-
-
-		served_Location = '/media/' + temp + '_' + str(request.session['active_test'].grayrefresh) + '.png'
-		inputdic = {'grayscale':served_Location}
-
 		return render_to_response('uploadfail_demensions.html',inputdic)
 
-
 	data = image_in.getdata()
-
 	bands = image_in.getbands()
 
-	if bands[0] == 'R' and bands[1] == 'G' and bands[2] == 'B':
-		count = 0
+	if bands[:3] == 'RGB':
+                # Check that it's actually RGB, not grayscale stored as RGB
+                # If it's true RGB, fail.
 		for i in range(len(data)):
-			if data[i][0] != data[i][1] or data[i][0] != data[i][2] or data[i][1] != data[i][2]:
-				count = count + 1
-
-		# image not grayscale
-		if count > 0:
-
-	#----------------------------------------------------------------------------------------		
-			# reformat ID2
-			#..................................................
-			st = str(request.session['active_test'].ID2)
-			temp = ''
-			for i in st:
-				if i == ':':
-					temp = temp +'_'
-				else:
-					temp = temp + str(i)
-
-
-			served_Location = '/media/' + temp + '_' + str(request.session['active_test'].grayrefresh) + '.png'
-
-			inputdic = {'grayscale':served_Location}
-
-			return render_to_response('imageupload_fail.html',inputdic)
-
-	#----------------------------------------------------------------------------------------		
-
-
+                        if not( data[i][0] == data[i][1] == data[i][2] ):
+                                return render_to_response('imageupload_fail.html',inputdic)
+                print 'Image OK: grayscale stored as RGB.'
 
 	# REview		
-	elif bands[0] == 'L'  or bands[0] == 'P':
+	elif bands[0] in 'LP':
 		print 'actual grayscale'
 
 	# Image not grayscale
 	else:
-
-	#----------------------------------------------------------------------------------------		
-		# reformat ID2
-		#..................................................
-		st = str(request.session['active_test'].ID2)
-		temp = ''
-		for i in st:
-			if i == ':':
-				temp = temp +'_'
-			else:
-			 	temp = temp + str(i)
-	#...............................................
-
-		served_Location = '/media/' + temp + '_' + str(request.session['active_test'].grayrefresh)+ '.png'
-
-		inputdic = {'grayscale':served_Location}
-		
-
 		return render_to_response('imageupload_fail.html',inputdic)
 
-	#----------------------------------------------------------------------------------------	
-
-
-
-
-	 # reformat ID2
-	#..................................................
-	st = str(request.session['active_test'].ID2)
-	temp = ''
-	for i in st:
-		if i == ':':
-			temp = temp +'_'
-		else:
-			temp = temp + str(i)
-	#...............................................
-
-	served_Location = '/media/' + temp +'_' + str(request.session['active_test'].grayrefresh) +  '.png'
-
-	inputdic = {'grayscale':served_Location}
-	
 
 	return render_to_response('imageupload_confirm.html',inputdic)
-
-
-
-
-
-
 
 
 
@@ -1548,42 +1451,24 @@ def denygrayscale_confirm(request):
 
 
 #----------------------------------------------------------------------------------------------------------------
-
-#----------------------------------------------------------------------------------------------------------------
 # accept grayscale confirmation
 def acceptgrayscale_confirm(request):
 
         AUTHENTICATE()
-	#string = 'C:/Users/Nathan Jones/Django Website/MapRateWeb/user_grayscale/'
-	string = 'user_grayscale/'
-
-	 # reformat ID2
-	#..................................................
-	st = str(request.session['active_test'].ID2)
-	temp = ''
-	for i in st:
-		if i == ':':
-			temp = temp +'_'
-		else:
-			temp = temp + str(i)
-	#...............................................	
-
-	
 	# iterate counter
-	
 	request.session['active_test'].grayrefresh = int(request.session['active_test'].grayrefresh) + 1
 	request.session['active_test'].save()
 	
 
-	string = string + temp
-	string = string + '_'+ str(request.session['active_test'].grayrefresh) + '.png'
+	s = USER_GRAYSCALE + str(request.session['active_test'].ID2).replace(':','_')
+	s += '_%s.png' % str(request.session['active_test'].grayrefresh)
 
 
 	# Remove served Grayscale image
-	shutil.move(request.session['active_test'].greyscale_path, string)
+	shutil.move(request.session['active_test'].greyscale_path, s)
 
 	# set the path
-	request.session['active_test'].greyscale_path = string
+	request.session['active_test'].greyscale_path = s
 	request.session['active_test'].save()
 
 	return redirect('/Rate_Test/')
