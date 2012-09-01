@@ -785,7 +785,7 @@ def setactive_test(request):
                         return redirect('/test_instructions/')
                 except Test.MultipleObjectsReturned:
                         # Really this shouldn't be allowed to happen
-                        tests = Test.objects.filter(test_name = testname)
+                        tests = Test.objects.filter(ID2 = testname)
                         request.session['active_test'] = tests[0]
                         return redirect('/test_instructions/')
 
