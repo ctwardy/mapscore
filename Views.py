@@ -779,13 +779,13 @@ def setactive_test(request):
 		return redirect('/model_menu/')
 
 	else:
-                test_name = str(request.session['active_model'].ID2) + ':' + str(intest)
+                testname = str(request.session['active_model'].ID2) + ':' + str(intest)
                 try:
-                        request.session['active_test'] = Test.objects.get(ID2 = test_name)
+                        request.session['active_test'] = Test.objects.get(ID2 = testname)
                         return redirect('/test_instructions/')
                 except Test.MultipleObjectsReturned:
                         # Really this shouldn't be allowed to happen
-                        tests = Test.objects.filter(test_name)
+                        tests = Test.objects.filter(test_name = testname)
                         request.session['active_test'] = tests[0]
                         return redirect('/test_instructions/')
 
