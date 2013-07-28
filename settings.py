@@ -1,4 +1,4 @@
-# Django settings for MapRateWeb project.
+# Django settings for MapScore project.
 import os
 
 
@@ -107,7 +107,7 @@ MIDDLEWARE_CLASSES = (
  
 )
 
-ROOT_URLCONF = 'MapRateWeb.urls'
+ROOT_URLCONF = 'MapScore.urls'
 
 TEMPLATE_DIRS = (os.path.join(os.path.dirname(__file__),'templates').replace('\\','/'),
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
@@ -122,7 +122,7 @@ INSTALLED_APPS = (
     'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'MapRateWeb.framework',
+    'Pmap-Score.framework',
     # Uncomment the next line to enable the admin:
     'django.contrib.admin',
     # Uncomment the next line to enable admin documentation:
