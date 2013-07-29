@@ -1,4 +1,4 @@
-{%include header.html%}
+{%include header_external.html%}
 
 
 <div style =' margin-left: 0% ; margin-top: 130px; margin-right: 0%; margin-bottom: 0px; color:black; overflow-y:hidden; overflow-x:hidden;'  >
@@ -6,16 +6,15 @@
 <div style = 'padding-left:15%; padding-right:15%' >
 	<br><br>
 
-	<p><b>
-		Welcome to the MapScore. This system is intended to provide
-		academic and Wilderness Search &amp; Rescue (WiSAR)
-		researchers an opportunity to test their lost person
-		behavior models on actual cases from ISRID, and compare the
-		average performance of models over many cases.</b></p>		
+	<p><b> Welcome to the MapScore. This system is intended to provide
+		Wilderness Search &amp; Rescue (WiSAR) researchers an
+		opportunity to test their lost person behavior models on
+		actual cases from ISRID, and compare the average performance
+		of models over many cases.  Login is below.</b></p>
 	<br>	
 </div>	
-	 <center> <p style ='font-size:18px'> <b>Top 10 Rated Models (with 5
-	 or more tests completed)  </b>  </p></center>	
+	 <center> <p style ='font-size:18px'> <b>Top 10 Rated Models (with
+	 5 or more tests completed) </b> </p></center>
 		
 		
 	<div style ='padding-left:25px'>
@@ -33,11 +32,12 @@
 	<tr style = " font-size:12px" >
 		{% for j in i %}
 			<td>
-			<p style =' font-size:15px'> <center><b>{{j}}</b></center></p>
+			  <p style =' font-size:15px'> 
+				<center><b>{{j}}</b></center>
+			  </p>
 			</td>
 		{% endfor %}
 	</tr>
-	
 	{% endfor %}
 	
 
@@ -48,7 +48,6 @@
 	<hr color = 'Navy'>	
 	<br>	
 		
-	
 	<div style = 'padding-left:20%;' >	
 		<p>
 		<i> <b>If you have an existing account please enter your login informaton below:</b></i>
