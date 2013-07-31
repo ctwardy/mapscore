@@ -18,14 +18,14 @@ import os.path
 
 # Import Models
 
-from Pmap-Score.framework.models import Account
-from Pmap-Score.framework.models import Test
-from Pmap-Score.framework.models import Case
-from Pmap-Score.framework.models import Model
-from Pmap-Score.framework.models import Model_Account_Link
-from Pmap-Score.framework.models import Test_Model_Link
-from Pmap-Score.framework.models import Mainhits
-from Pmap-Score.framework.models import terminated_accounts
+from mapscore.framework.models import Account
+from mapscore.framework.models import Test
+from mapscore.framework.models import Case
+from mapscore.framework.models import Model
+from mapscore.framework.models import Model_Account_Link
+from mapscore.framework.models import Test_Model_Link
+from mapscore.framework.models import Mainhits
+from mapscore.framework.models import terminated_accounts
 import cStringIO
 import time
 import re
@@ -97,7 +97,7 @@ def main_page(request):
     request.session['ActiveAdminCase'] = 'none'
     
     sorted_models = get_sorted_models(Model.objects.all())
-
+    inputlist = []
     # copy values for leaderboard table
     for model in sorted_models:
         num_finished = sum((not test.Active for test in model.model_tests.all()))
@@ -1621,7 +1621,7 @@ def get_sorted_models(allmodels):
     '''
     rated_models = [x for x in allmodels
                     if x.model_avgrating != 'unrated']
-    return sorted(rated_models
+    return sorted(rated_models,
                   key=attrgetter('model_avgrating'),
                   reverse=True)
     

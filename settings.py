@@ -1,4 +1,4 @@
-# Django settings for MapScore project.
+# Django settings for MapRateWeb project.
 import os
 
 
@@ -16,7 +16,8 @@ MANAGERS = ADMINS
 
 DATABASES = {
     'default': {
-        'ENGINE': 'postgresql_psycopg2', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
+#        'ENGINE': 'postgresql_psycopg2', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
+        'ENGINE': 'django.db.backends.postgresql_psycopg2', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
         'NAME': 'probmap',# Or path to database file if using sqlite3.
         'USER': 'probmap',                      # Not used with sqlite3.
         'PASSWORD': 'probmap',                  # Not used with sqlite3.
@@ -107,7 +108,7 @@ MIDDLEWARE_CLASSES = (
  
 )
 
-ROOT_URLCONF = 'MapScore.urls'
+ROOT_URLCONF = 'mapscore.urls'
 
 TEMPLATE_DIRS = (os.path.join(os.path.dirname(__file__),'templates').replace('\\','/'),
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
@@ -122,7 +123,7 @@ INSTALLED_APPS = (
     'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'Pmap-Score.framework',
+    'mapscore.framework',
     # Uncomment the next line to enable the admin:
     'django.contrib.admin',
     # Uncomment the next line to enable admin documentation:
