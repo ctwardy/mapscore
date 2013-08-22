@@ -1,0 +1,42 @@
+{% include "header.html" %}
+<!DOCTYPE HTML>
+<html>
+<head>
+<title>Temporary Password Creator/title>
+<p> please make sure to remember your temporary password until you login </p>
+<style type="text/css">
+.javascript_random_passwords{border: 1px solid #0080C0;background-color: #f5f5f5;font-family:Tahoma, Geneva, sans-serif;font-size:13px;padding:8px;margin-top:10%;width:auto;}
+.javascript_random_passwords .title{font-size:14px;font-weight:bolder;margin-top:10px;}
+.javascript_random_passwords input{border: 1px solid #0080C0;border-radius: 2px 2px 2px 2px;}
+.javascript_random_passwords .error_input{border: 1px solid #FF0000;border-radius: 2px 2px 2px 2px;}
+.javascript_random_passwords .message{color:#F00;}
+.javascript_random_passwords .button{font-family:inherit;border: 1px solid #000099;border-radius: 2px 2px 2px 2px;padding: 2px 2px 2px 2px;}
+.javascript_random_passwords .pwd{font-size:16px;color:#FF0000;}
+.javascript_random_passwords .link{color:#FF0000;}
+</style>
+<script type="text/javascript">
+function generate_password(){
+var password_characters='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+var password_length = document.getElementById("txtPasswordLength");
+if(isNaN(password_length.value) || parseInt(password_length.value)==0 || (password_length.value.replace(/\s+$/,"")=="")){
+password_length.select();
+password_length.focus();
+return false;
+}
+var pwdLen=parseInt(password_length.value);
+pwdLen=(pwdLen<=15)?pwdLen:15;
+
+var password='';
+var len=0;
+
+for(var i=0;i<pwdLen;i++){
+password+=password_characters.charAt(Math.floor(Math.random()*password_characters.length))
+}
+document.getElementById("password").innerHTML=password;
+}
+</script>
+</head>
+<body>
+
+
+{% include "footer.html" %}

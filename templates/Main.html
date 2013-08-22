@@ -11,12 +11,12 @@
 		opportunity to test their lost person behavior models on
 		actual cases from ISRID, and compare the average performance
 		of models over many cases.  Login is below.</b></p>
-	<br>	
-</div>	
+	<br>
+</div>
 	 <center> <p style ='font-size:18px'> <b>Top 10 Rated Models (with
 	 5 or more tests completed) </b> </p></center>
-		
-		
+
+
 	<div style ='padding-left:25px'>
 	<table border = "0" style = " font-size:15px; width:900px"  bgcolor = '#FFFF99'>
 	<tr style ='color:white;background-color:navy'>
@@ -24,38 +24,38 @@
 	<th> <p style ='font-size:15px'> Model Name </p> </th>
 	<th> <p style ='font-size:15px'> Average Rating </p> </th>
 	<th> <p style ='font-size:15px'> Tests Completed </p> </th>
-	
+
 	</tr>
-	
-	
+
+
 	{% for i in Scorelist %}
 	<tr style = " font-size:12px" >
 		{% for j in i %}
 			<td>
-			  <p style =' font-size:15px'> 
+			  <p style =' font-size:15px'>
 				<center><b>{{j}}</b></center>
 			  </p>
 			</td>
 		{% endfor %}
 	</tr>
 	{% endfor %}
-	
+
 
 	</table>
 	</div>
 
-	<br>	
-	<hr color = 'Navy'>	
-	<br>	
-		
-	<div style = 'padding-left:20%;' >	
+	<br>
+	<hr color = 'Navy'>
+	<br>
+
+	<div style = 'padding-left:20%;' >
 		<p>
 		<i> <b>If you have an existing account please enter your login informaton below:</b></i>
 	</p>
 	<br>
 	<div style = 'border:double; width:300px; background-color:#FFFF99'>
 	<br>
-	
+
 	<form action = "/account/" method = "get" name = "Login">
 		<center>Login Information</center> <br><br>
         <div style = 'padding-left:10%'>
@@ -63,8 +63,9 @@
 		  Password: <Input maxlength = '30' type = "password" name = "Password"> <br> <br>
 		  <center><input type = "Submit"></center>
           <br>
+          <a href="/password_reset/">Forgot Password?</a>
         </div>
-		
+
 	</form>
 	<br>
 	</div>
@@ -77,36 +78,36 @@
 	        <b></i>
       </p>
     </div>
-	
+
 	<form action = "/reg_conditions/" method = "get" name = "Return to Main Menu">
-		
+
 		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 		<button name = "Register New Account" type = "submit" value = "HTML" style ='border:ridge;background-color:orange;border-color:black;color:black ;width:200px;height:25px'>
 		Register New Account
 		</button>
-		
+
 	</form>
-		
-	
+
+
 	</div>
-	
+
 	<br>
 
-	
+
 	<div style = 'padding-left:20%'>
-	
+
 	<p>
-	
+
 	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 	<b>For system administrators:</b>
 	</p>
 	<br>
-	
-	
+
+
 	<form action = "/admin_login/" method = "get" name = "adminlogin">
-		
+
 		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 		<button name = "adminlogin" type = "submit" value = "HTML" style ='border:ridge;background-color:navy;color:white;border-color:black;width:200px;height:25px'>
@@ -114,11 +115,12 @@
 		Administrator Login
 		</div>
 		</button>
-		
-	</form>	
+
+	</form>
 <br>
 </div>
-	
+		<a href="/PasswordReset/">PasswordReset</a>
+
 
 </div>
 
