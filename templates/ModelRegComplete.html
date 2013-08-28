@@ -10,16 +10,16 @@
 	
 	<p><b>
 		Your model registration is sucessfully completed. <br>
-		You may now access your model via the account menu.<br>
+		You may now access your model going directy to the average model Rating.<br>
 		
 	</b></p>
 	
 	
 	
-	<form action = "/account/" method = "get" name = "Return to Main Menu">
-		
-		<button name = "Return To Account Menu" type = "submit" value = "HTML">
-		Return To Account Menu
+	<form action = "/model_menu/" leaderboard= "get" name = "leaderboard">
+		<input type="hidden" name="model_in" value="{{ model_name }}">
+		<button name = "submit" type = "submit" value = "HTML">
+		    Goto Model View Sceen for {{ model_name }}
 		</button>
 	</form>
 	

@@ -434,11 +434,12 @@ def emaillink(request):
 def model_created(request):
 
     AUTHENTICATE()
-
+    
     # if page refresh
     if request.session['createcheck'] == True:
-        return render_to_response('ModelRegComplete.html',{})
-   
+        input_dic = {'model_name': str(request.GET['Name'])}
+        return render_to_response('ModelRegComplete.html',input_dic)
+    print "debug"
     # Verify Model Name
 
     Model_name = str(request.GET['Name'])
@@ -500,8 +501,10 @@ def model_created(request):
     Link.save()
    
     request.session['createcheck'] = True
-
-    return render_to_response('ModelRegComplete.html',{})
+    
+    input_dic = {'model_name': str(request.GET['Name'])}
+    
+    return render_to_response('ModelRegComplete.html',input_dic)
 
 #-------------------------------------------------------------------   
 
