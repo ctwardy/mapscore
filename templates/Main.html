@@ -3,19 +3,71 @@
 
 <div style =' margin-left: 0% ; margin-top: 130px; margin-right: 0%; margin-bottom: 0px; color:black; overflow-y:hidden; overflow-x:hidden;'  >
 
-<div style = 'padding-left:15%; padding-right:15%' >
-	<br><br>
-
-	<p><b> Welcome to the MapScore website.The mapscore project is a probability map which looks for lost people.This system is intended to provide
-		Wilderness Search &amp; Rescue (WiSAR) researchers an
-		opportunity to test their lost person behavior models on
-		actual cases from ISRID, and compare the average performance
-		of models over many cases. This website is a portal for probability maps, with this information researchers can see solutions to the sarbayes project. The website also develops models, algorithms, and software to support missing-persons searches on land.Using data that Sarbayes has and others have collected about missing-person behavior and search operation. The sarbayes project tests . The Login is below.</b></p>
-	<br>
+<p style='padding-left:5%'>Testing -- do the simple links in the first line work like the blue buttons?</p>
+<div style = 'padding-left:5%;' >
+  <div style = 'border:double; width:850; background-color:#FFFF99;'>
+	<form id="login" action="/account/" method="get" name="Login">
+	  <label for="name">Username:</label>
+	  <input id="name" maxlength="30" type="text" name="Username">
+	  <label for="password">Password:</label>
+	  <input id="password" maxlength="30" type="password" name="Password">
+	  <button type="submit" name="Login">Login</button>
+	  <!--<input type = "Submit" label="Login" name="Login">-->
+	  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+	  <a href="/reg_conditions/">New User?</a> &nbsp;|&nbsp;
+	  <a href="/password_reset/">Forgot Password?</a> &nbsp;|&nbsp;
+	  <a href="/admin_login/">Admin Login</a>
+	  <br/>
+	  <table border="0">
+		<tr>
+		  <td width="600">&nbsp;</td>
+		  <td>
+			<form action = "/reg_conditions/" method = "get" name = "Return to Main Menu">
+			  <button type = "submit" 
+					  name = "Register New Account" 
+					  value = "HTML"
+					  style= "background-color:navy;color:white">
+				New User?
+			  </button>
+			  <!--ridge;background-color:orange;border-color:black;color:black ;width:200px;height:25px'>-->
+			</form>
+		  </td>
+		  <td>
+			<form action = "/admin_login/" method = "get" name = "adminlogin">
+			  <button type = "submit" 
+					  name = "adminlogin" 
+					  value = "HTML" 
+					  style= "background-color:navy;color:white">
+				<!--style ='border:ridge;background-color:navy;color:white;border-color:black;width:200px;height:25px'>-->
+				Admin Login
+			  </button>
+			</form>
+		  </td>
+		</tr>
+	  </table>
+  </div>
 </div>
-	 <center> <p style ='font-size:18px'> <b>Top 10 Rated Models (with
-	 5 or more tests completed) </b> </p></center>
 
+<div style = 'padding-left:15%; padding-right:15%' >
+	<p><b> Welcome to the MapScore website. MapScore scores
+		probability maps for Wilderness Search &amp; Rescue (WiSAR) so
+		the WiSAR community can compare methods for generating such
+		maps. MapScore requests users to generate maps for actual
+		historical searches (from ISRID), and keeps leaderboard
+		statistics for each model or method. MapScore is part of the
+		SAR<i>Bayes</i> project.</b></p>
+</div>
+
+<br>
+<hr color = 'Navy'>
+<br>
+
+<div style='padding-left:15%; padding-right:15%'>
+	 <center> 
+	   <p style ='font-size:18px'><b>Leaderboard Preview: 
+		   Top 10 Models (with at least 5 tests completed)</b>
+	   </p>
+	 </center>
 
 	<div style ='padding-left:25px'>
 	<table border = "0" style = " font-size:15px; width:900px"  bgcolor = '#FFFF99'>
@@ -24,10 +76,7 @@
 	<th> <p style ='font-size:15px'> Model Name </p> </th>
 	<th> <p style ='font-size:15px'> Average Rating </p> </th>
 	<th> <p style ='font-size:15px'> Tests Completed </p> </th>
-
-          <p> In short, the sarbayes project is used to test approximately find out where a lost person using the watershed model.</p>
 	</tr>
-
 
 	{% for i in Scorelist %}
 	<tr style = " font-size:12px" >
@@ -41,7 +90,6 @@
 	</tr>
 	{% endfor %}
 
-
 	</table>
 	</div>
 
@@ -49,79 +97,9 @@
 	<hr color = 'Navy'>
 	<br>
 
-	<div style = 'padding-left:20%;' >
-		<p>
-		<i> <b>If you have an existing account please enter your login informaton below:</b></i>
-	</p>
-	<br>
-	<div style = 'border:double; width:300px; background-color:#FFFF99'>
-	<br>
-
-	<form action = "/account/" method = "get" name = "Login">
-		<center>Login Information</center> <br><br>
-        <div style = 'padding-left:10%'>
-		  Username: <Input maxlength = '30' type = "text" name = "Username"> <br>
-		  Password: <Input maxlength = '30' type = "password" name = "Password"> <br> <br>
-		  <center><input type = "Submit"></center>
-          <br>
-          <a href="/password_reset/">Forgot Password?</a>
-        </div>
-
-	</form>
-	<br>
-	</div>
-	<br>
-    <div style='width:300px'>
-	  <p><i><b>
-            If this is your first time accessing this site, please take
-		    a moment to register your organization. Upon registration, you
-		    will be granted an account and can begin accessing all site features.
-	        <b></i>
-      </p>
-    </div>
-
-	<form action = "/reg_conditions/" method = "get" name = "Return to Main Menu">
-
-		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-		<button name = "Register New Account" type = "submit" value = "HTML" style ='border:ridge;background-color:orange;border-color:black;color:black ;width:200px;height:25px'>
-		Register New Account
-		</button>
-
-	</form>
-
-
 	</div>
 
 	<br>
-
-
-	<div style = 'padding-left:20%'>
-
-	<p>
-
-	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-	<b>For system administrators:</b>
-	</p>
-	<br>
-
-
-	<form action = "/admin_login/" method = "get" name = "adminlogin">
-
-		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-		<button name = "adminlogin" type = "submit" value = "HTML" style ='border:ridge;background-color:navy;color:white;border-color:black;width:200px;height:25px'>
-		<div color = 'red'>
-		Administrator Login
-		</div>
-		</button>
-
-	</form>
-<br>
-</div>
-		<a href="/PasswordReset/">PasswordReset</a>
-
 
 </div>
 
