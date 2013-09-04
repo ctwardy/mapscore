@@ -543,7 +543,7 @@ def model_access(request):
         if selection == '0':
             return redirect('/account/')
         else:
-           # request.session['active_model'] = Model.objects.get(ID2 = str(request.session['active_account'].ID2) + ':' + str(selection))
+            request.session['active_model'] = Model.objects.get(ID2 = str(request.session['active_account'].ID2) + ':' + str(selection))
 
             account_name = request.session['active_account'].institution_name
             model_name = request.session['active_model'].model_nameID
