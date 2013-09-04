@@ -1,10 +1,38 @@
 {% include "header_external.html" %}
 
 
-<div style =' margin-left: 0% ; margin-top: 130px; margin-right: 0%; margin-bottom: 0px; color:black; overflow-y:hidden; overflow-x:hidden;'  >
+<div style =' margin-left: 0% ; margin-top: 120px; margin-right: 0%; margin-bottom: 0px; color:black; overflow-y:hidden; overflow-x:hidden;'  >
 
-<div style = 'padding-left:15%; padding-right:15%' >
-	<br><br>
+<div style = 'padding-left:5%; padding-right:5%' >
+    
+	<div style = '' >
+	<br>
+	<!--<div style = 'padding-top: 1%; padding-bottom: 1%; border:none; width:850px; background-color:#FFFF99'>-->
+    <div style = 'padding-top: 1%; padding-bottom: 1%;'>
+        <div style = 'padding-left:0%'>
+            <fieldset style='background-color:#FFFF99; DISPLAY:inline;'>
+                <legend style="font-weight:bold;">Login with existing account</legend>
+    	    <form style = 'DISPLAY:inline;' action = "/account/" method = "get" name = "Login ">
+    		  Username: <Input maxlength = '30' type = "text" name = "Username">
+    		  Password: <Input maxlength = '30' type = "password" name = "Password">
+    		  <input type = "Submit"></form>
+    		  <form style = 'DISPLAY:inline;' action="/password_reset">
+                      <input type="submit" value="Forgot Password?">
+              </form>
+            </fieldset>              
+            <fieldset style='background-color:#FFFF99;DISPLAY:inline;'>
+                <legend style="font-weight:bold;">Don't have an account? </legend>
+                	<form style='DISPLAY:inline;' action = "/reg_conditions/" method = "get" name = "Return to Main Menu">
+            		<button name = "Register New Account" type = "submit" value = "HTML" style ='border:ridge;background-color:orange;border-color:black;color:black ;width:200px;height:25px'>
+            		Register New Account
+            		</button>
+            	</form>            
+            </fieldset>              
+        </div>        
+	</div>
+	</div>	
+	
+	<br>
 
 	<p><b> Welcome to the MapScore website.The mapscore project is a probability map which looks for lost people.This system is intended to provide
 		Wilderness Search &amp; Rescue (WiSAR) researchers an
@@ -48,81 +76,20 @@
 	<br>
 	<hr color = 'Navy'>
 	<br>
+	<center>
+    <div style = 'padding-left: 0%; padding-right:15%; padding-top: 1%; padding-bottom: 1%; border:none; width:850px;'>
+    	<form style='DISPLAY:inline;' action = "/admin_login/" method = "get" name = "adminlogin">
+    		<button name = "adminlogin" type = "submit" value = "HTML" style ='border:ridge;background-color:navy;color:white;border-color:black;width:200px;height:25px'>
+    		<div color = 'red'>
+    		Administrator Login
+    		</div>
+    		</button>
 
-	<div style = 'padding-left:20%;' >
-		<p>
-		<i> <b>If you have an existing account please enter your login informaton below:</b></i>
-	</p>
-	<br>
-	<div style = 'border:double; width:300px; background-color:#FFFF99'>
-	<br>
-
-	<form action = "/account/" method = "get" name = "Login">
-		<center>Login Information</center> <br><br>
-        <div style = 'padding-left:10%'>
-		  Username: <Input maxlength = '30' type = "text" name = "Username"> <br>
-		  Password: <Input maxlength = '30' type = "password" name = "Password"> <br> <br>
-		  <center><input type = "Submit"></center>
-          <br>
-          <a href="/password_reset/">Forgot Password?</a>
-        </div>
-
-	</form>
-	<br>
-	</div>
-	<br>
-    <div style='width:300px'>
-	  <p><i><b>
-            If this is your first time accessing this site, please take
-		    a moment to register your organization. Upon registration, you
-		    will be granted an account and can begin accessing all site features.
-	        <b></i>
-      </p>
-    </div>
-
-	<form action = "/reg_conditions/" method = "get" name = "Return to Main Menu">
-
-		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-		<button name = "Register New Account" type = "submit" value = "HTML" style ='border:ridge;background-color:orange;border-color:black;color:black ;width:200px;height:25px'>
-		Register New Account
-		</button>
-
-	</form>
-
-
-	</div>
-
-	<br>
-
-
-	<div style = 'padding-left:20%'>
-
-	<p>
-
-	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-	<b>For system administrators:</b>
-	</p>
-	<br>
-
-
-	<form action = "/admin_login/" method = "get" name = "adminlogin">
-
-		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-		<button name = "adminlogin" type = "submit" value = "HTML" style ='border:ridge;background-color:navy;color:white;border-color:black;width:200px;height:25px'>
-		<div color = 'red'>
-		Administrator Login
-		</div>
-		</button>
-
-	</form>
+    	</form>
+    </div>  
+    </center>  
 <br>
 </div>
-		<a href="/PasswordReset/">PasswordReset</a>
 
-
-</div>
 
 {% include "footer.html" %}
