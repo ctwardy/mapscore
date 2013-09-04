@@ -1636,28 +1636,81 @@ def Leader_model(request):
     for model in sorted_models:
         institution = str(model.account_set.all()[0].institution_name)
         username = str(model.account_set.all()[0].username)
-        rating = float(model.avgrating)
+        rating = float(model.model_avgrating)
         tests = model.model_tests.all()
         num_finished = sum((not test.Active for test in tests))
 
-        # 95% Confidence Interval
-        sumdevsquared, lowerbound, upperbound = 0.0, -1.0, 1.0
-        if num_finished > 1:
-            sumdevsquared = sum(((float(x.test_rating) - rating)**2
-                                 for x in tests))
-            stdev = math.sqrt(sumdevsquared / (num_finished - 1))
-            halfwidth = round(1.96 * stdev / math.sqrt(num_finished), 4)
-            lowerbound = max(rating - halfwidth, -1)
-            upperbound = min(rating + halfwidth, 1)
+        # copy values for leaderboard table
+    	inputlist = []
+    	sublist = []
+    	for i in range(len(sorted_models)):
+    		sublist = []
+    		institution = str(sorted_models[i].account_set.all()[0].institution_name)
+    		model = str(sorted_models[i].model_nameID)
+    		rating = str(sorted_models[i].model_avgrating)
 
-        inputlist.append([institution,
-                          model.model_nameID,
-                          rating,
-                          num_finished,
-                          username,
-                          lowerbound,
-                          upperbound,
-                          num_finished < 10])  # Bare Boolean is error-prone
+    		# Create 95% Confidence Interval
+
+    		count = 0
+    		sumdeviationsquared = float(0)
+    		for k in sorted_models[i].model_tests.all():
+    			if k.Active == False:
+
+    				count = count + 1
+    				sumdeviationsquared = sumdeviationsquared + math.pow((float(k.test_rating) - float(rating)),2)
+
+    		if count > 1:
+
+    			standarddeviation = math.sqrt(float((sumdeviationsquared / (count - 1))))
+
+    			halfwidth = 1.96 * (standarddeviation) / math.sqrt(count)
+    			halfwidth = round(halfwidth,4)
+
+
+    			lowerbound = float(rating) - halfwidth
+
+    			if lowerbound > 1:
+    				lowerbound = 1
+    			if lowerbound < -1:
+    				lowerbound = -1
+
+    			upperbound = float(rating) + halfwidth
+
+    			if upperbound > 1:
+    				upperbound = 1
+    			if upperbound < -1:
+    				upperbound = -1
+
+
+    		# End Confidence Interval
+
+
+    		username = str(sorted_models[i].account_set.all()[0].username)
+    		tests = sorted_models[i].model_tests.all()
+
+    		count = 0
+    		for n in tests:
+    			if n.Active == False:
+    				count = count + 1
+
+    		numbertests = count
+
+    		sublist.append(institution)
+    		sublist.append(model)
+    		sublist.append(rating)
+    		sublist.append(numbertests)
+    		sublist.append(username)
+    		if count > 1:
+    			sublist.append(lowerbound)
+    			sublist.append(upperbound)
+    		else:
+    			sublist.append(False)	
+    		if numbertests < 10:
+    			sublist.append(True)
+    		else:
+    			sublist.append(False)
+
+    		inputlist.append(sublist)
 
 
     # Prepare variables to send to HTML template
