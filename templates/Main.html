@@ -3,42 +3,56 @@
 
 <div style =' margin-left: 0% ; margin-top: 120px; margin-right: 0%; margin-bottom: 0px; color:black; overflow-y:hidden; overflow-x:hidden;'  >
 
-<div style = 'padding-left:5%; padding-right:5%' >
+  <div style = 'padding-left:5%; padding-right:5%' >
     
 	<div style = '' >
-	<br>
-	<!--<div style = 'padding-top: 1%; padding-bottom: 1%; border:none; width:850px; background-color:#FFFF99'>-->
-    <div style = 'padding-top: 1%; padding-bottom: 1%;'>
-        <div style = 'padding-left:0%'>
-            <fieldset style='background-color:#FFFF99; DISPLAY:inline;'>
-                <legend style="font-weight:bold;">Login with existing account</legend>
-    	    <form style = 'DISPLAY:inline;' action = "/account/" method = "get" name = "Login ">
+	  <br>
+      <div style = 'padding-top: 1%; padding-bottom: 1%;'>
+		<div style = 'padding-left:0%'>
+          <fieldset style='background-color:#FFFF99; DISPLAY:inline;'>
+			<legend style="font-weight:bold;">Login with existing account</legend>
+    		<form style = 'DISPLAY:inline;' action = "/account/" method = "get" name = "Login ">
     		  Username: <Input maxlength = '30' type = "text" name = "Username">
     		  Password: <Input maxlength = '30' type = "password" name = "Password">
-    		  <input type = "Submit"></form>
-    		  <form style = 'DISPLAY:inline;' action="/password_reset">
-                      <input type="submit" value="Forgot Password?">
-              </form>
-            </fieldset>              
-            <fieldset style='background-color:#FFFF99;DISPLAY:inline;'>
-                <legend style="font-weight:bold;">Don't have an account? </legend>
-                	<form style='DISPLAY:inline;' action = "/reg_conditions/" method = "get" name = "Return to Main Menu">
-            		<button name = "Register New Account" type = "submit" value = "HTML" style ='border:ridge;background-color:orange;border-color:black;color:black ;width:200px;height:25px'>
-            		Register New Account
-            		</button>
-            	</form>            
-            </fieldset>              
+			  <button type="submit" name="Login">Login</button>
+			</form>
+			<!--
+    		<form style = 'DISPLAY:inline;' action="/password_reset">
+			  <input type="submit" value="Forgot Password?">
+			</form>
+			-->
+			<a href="/password_reset/">Forgot Password?</a> &nbsp;|&nbsp;
+			<a href="/reg_conditions/">New User?</a> &nbsp;|&nbsp;
+			<a href="/admin_login/">Admin Login</a>
+          </fieldset>
+		  <!--
+          <fieldset style='background-color:#FFFF99;DISPLAY:inline;'>
+            <legend style="font-weight:bold;">Don't have an account? </legend>
+            <form style='DISPLAY:inline;' action = "/reg_conditions/" method = "get" name = "Return to Main Menu">
+              <button name = "Register New Account" type = "submit" value = "HTML" style ='border:ridge;background-color:orange;border-color:black;color:black ;width:200px;height:25px'>
+            	Register New Account
+              </button>
+            </form>            
+          </fieldset>
+		  -->
         </div>        
-	</div>
+	  </div>
 	</div>	
 	
 	<br>
 
-	<p><b> Welcome to the MapScore website.The mapscore project is a probability map which looks for lost people.This system is intended to provide
-		Wilderness Search &amp; Rescue (WiSAR) researchers an
-		opportunity to test their lost person behavior models on
-		actual cases from ISRID, and compare the average performance
-		of models over many cases. This website is a portal for probability maps, with this information researchers can see solutions to the sarbayes project. The website also develops models, algorithms, and software to support missing-persons searches on land.Using data that Sarbayes has and others have collected about missing-person behavior and search operation. The sarbayes project tests . The Login is below.</b></p>
+	<p><b> Welcome to the MapScore website. MapScore scores
+		probability maps for Wilderness Search &amp; Rescue (WiSAR) so
+		the WiSAR community can compare methods for generating such
+		maps. MapScore requests users to generate maps for actual
+		historical searches (from ISRID), and keeps leaderboard
+		statistics for each model or method. Based at George Mason
+		University, MapScore has received funding from an NSF REU
+		award to Brigham Young University. It is part of the
+		SAR<i>Bayes</i> project.
+	</b></p>
+
+	
 	<br>
 </div>
 	 <center> <p style ='font-size:18px'> <b>Top 10 Rated Models (with
@@ -53,7 +67,6 @@
 	<th> <p style ='font-size:15px'> Average Rating </p> </th>
 	<th> <p style ='font-size:15px'> Tests Completed </p> </th>
 
-          <p> In short, the sarbayes project is used to test approximately find out where a lost person using the watershed model.</p>
 	</tr>
 
 
@@ -76,8 +89,11 @@
 	<br>
 	<hr color = 'Navy'>
 	<br>
+
+<!--
 	<center>
-    <div style = 'padding-left: 0%; padding-right:15%; padding-top: 1%; padding-bottom: 1%; border:none; width:850px;'>
+    <div style = 'padding-left: 0%; padding-right:15%; padding-top:
+		 1%; padding-bottom: 1%; border:none; width:850px;'>
     	<form style='DISPLAY:inline;' action = "/admin_login/" method = "get" name = "adminlogin">
     		<button name = "adminlogin" type = "submit" value = "HTML" style ='border:ridge;background-color:navy;color:white;border-color:black;width:200px;height:25px'>
     		<div color = 'red'>
@@ -87,7 +103,8 @@
 
     	</form>
     </div>  
-    </center>  
+    </center>
+	-->
 <br>
 </div>
 
