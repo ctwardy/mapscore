@@ -1348,7 +1348,6 @@ def load_image(request):
 
 #--------------------------------------------------------------------------
 def confirm_grayscale(request):
-
     AUTHENTICATE()
 
     # Verify Image
@@ -1363,8 +1362,9 @@ def confirm_grayscale(request):
 
     data = image_in.getdata()
     bands = image_in.getbands()
-
-    if bands[:3] == 'RGB':
+        
+#    if bands[:3] == 'RGB':
+    if bands[:3] == ('R','G','B'):
         # Check that it's actually RGB, not grayscale stored as RGB
         # If it's true RGB, fail.
         for i in range(len(data)):
