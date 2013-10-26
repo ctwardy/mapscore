@@ -1,0 +1,83 @@
+{% include "header.html" %}
+
+
+
+<div style =' margin-left: 0% ; margin-top: 130px; margin-right: 0%; margin-bottom: 0px; color:black; overflow-y:hidden; overflow-x:hidden;'  >
+
+<br>
+<center>	
+
+	<h1> Batch Test Upload Confirmation</h1>		
+
+<div style = ' border:double; width:750px; padding-left:50px;padding-right:50px; background-color:#FFFF99'>
+<br>
+<p>Good files found: {{ gcount }}</p>
+<p>Bad files found: {{ bcount }}</p>
+{% if case_list %}
+	<table style='width:730px;'>
+	    <tr style='font-weight: bold;'><td>Model</td><td>Case</td><td>File name</td><td>File Size</td><td>Verification</td></tr>
+	{% for path, fname, file_size, model, case, status in case_list %}
+            <tr style='outline: 1px dotted black;'><td>{{ model }}</td><td>{{ case }}</td><td>{{ fname }}</td><td>{{ file_size }}</td>
+	        {% ifequal status "ready" %}
+	            	        <td style="color: green;">{{ status }}</td>
+	        {% else %}
+	            	        <td style="color: red;">{{ status }}</td>
+	        {% endifequal %}
+	        </tr>
+	{% endfor %}
+    </table>
+{% else %}
+	<p>No appropriate files found.</p>
+{% endif %}        
+
+{% if gcount > 0 %}
+    <p style='font-size:18px;text-align:left;'>If you proceed, those listed as "ready" will be processed. Any listed with a negative status, have already been deleted and will need to be corrected before resubmission.</p>
+
+    <form action = "{% url "batch_test_upload_final" %}" method="post" enctype="multipart/form-data" name="Confirm File" id="confirmForm">
+    		{% csrf_token %}		
+            <p> <input type="submit" value="Process Ready Files" id="submitButton" name="process"/>  
+ 
+                <input type="submit" value="Abort" name="abort" id="abortButton"/> 
+            </p>
+    </form>
+{% else %}
+    <p style='font-size:18px;text-align:left;'>No files were found that were acceptable for processing.</p>
+
+{% endif %}
+
+</div>
+
+
+
+
+<br><br>
+
+<center>
+
+<form action = "/account/" method = "get" name = "Return to Account Menu">
+		<button name = "Return To Account Menu" type = "submit" value = "HTML">
+		Return To Model Menu
+		</button>	
+</form>
+</center>
+
+
+<br><br>
+</div>
+
+<script type="text/javascript">
+function processForm(e) {
+    but = document.getElementById('submitButton');
+    but.disabled = true;
+    but2 = document.getElementById('abortButton');
+    but2.disabled = true;    
+    // You must return false to prevent the default form behavior
+    return True;
+}
+
+var form = document.getElementById('confirmForm');
+form.addEventListener("submit", processForm);
+
+</script>
+	
+{% include "footer.html" %}
