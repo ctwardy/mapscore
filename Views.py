@@ -10,14 +10,16 @@ from django.contrib import auth
 from django.shortcuts import redirect
 from django.core.mail import send_mail
 from django.core import exceptions
+from django.core.files.move import file_move_safe
 from operator import itemgetter, attrgetter
+from django.template import RequestContext
 import random
 import shutil
 import math
 import csv
 import os
 import string
-
+import sys
 
 # Import Models
 
@@ -38,6 +40,8 @@ import Image
 import zipfile
 from django.core.servers.basehttp import FileWrapper
 from django.core.context_processors import csrf
+#import Documnet forms
+from mapscore.forms import ZipUploadForm
 
 ##################### Media File Locations ################################
 #MEDIA_DIR = 'C:/Users/Nathan Jones/Django Website/MapRateWeb/media/'
@@ -56,6 +60,7 @@ def base_redirect(response):
 def AUTHENTICATE(token='usertoken'):
     '''token is either 'usertoken' or 'admintoken'
     '''
+    # todo: fix because I don't think this works without passing the request object
     try:
         if request.session[token] == False:
             return render_to_response('noaccess.html',{})
@@ -303,7 +308,6 @@ def create_account(request):
     #shutil.copyfile('C:\Users\Nathan Jones\Django Website\MapRateWeb\in_images\Defaultprofpic.png',stringlocation)
     shutil.copyfile('in_images/Defaultprofpic.png',stringlocation)
 
-
     # Save image size parameters
     im = Image.open(account.photolocation)
     size = im.size
@@ -402,7 +406,170 @@ def account_access(request):
 
 
         return render_to_response('AccountScreen.html',inputdic)
+#-----------------------------------------------------------------
+def batch_test_upload(request):
+    AUTHENTICATE() # does not work ??
+    try:
+         if request.session['admintoken'] == False and request.session['usertoken'] == False:
+             return render_to_response('noaccess.html',{})
+    except:
+         return render_to_response('noaccess.html',{})
+    
+    context_instance=RequestContext(request)    
+    case_list = []
+    update_list = []
+    if request.method == 'POST':
+        form = ZipUploadForm(request.POST, request.FILES)
+        if form.is_valid():
+            case_list = form.process_zip_file()
+            gc = 0
+            bc = 0
+            for index, (path, fname, file_size, model, case, status) in enumerate(case_list):
+                if status == "ready":
+                    model_count = Model.objects.filter(ID2 = str(request.session['active_account'].ID2 +":"+ model)).count()
+                    if model_count == 0:
+                        status = "model not found"
+                    case_count = Case.objects.filter(case_name = str(case)).count()
 
+                    if case_count == 0:
+                        if status == "model not found":
+                            status = "model nor case found"
+                        else:
+                            status = "case not found"
+                if status == "ready":
+                    gc += 1
+                else:
+                    os.unlink(path)
+                    status += ", image deleted"
+                    bc += 1
+                update_list.append((path, fname, file_size, model, case, status))
+                
+            request.session['gcount'] = gc
+            request.session['bcount'] = bc            
+            request.session['batch_list'] = update_list
+
+            return render_to_response('batch_test_upload_confirm.html',
+                {'case_list': update_list, 'gcount': gc, 'bcount': bc}, 
+                context_instance=RequestContext(request)
+            )
+            
+    else:
+    
+        form = ZipUploadForm() # A empty, unbound form
+
+    return render_to_response('batch_test_upload.html',{'form': form}, 
+        context_instance=RequestContext(request)
+    )
+#-----------------------------------------------------------------    
+def batch_test_upload_final(request):
+    AUTHENTICATE() # this functions doesn't work, needs fixen'
+    
+    try:
+         if request.session['admintoken'] == False and request.session['usertoken'] == False:
+             return render_to_response('noaccess.html',{})
+    except:
+         return render_to_response('noaccess.html',{})
+
+    if request.method != 'POST':
+        return render_to_response('AccountScreen.html', {})
+    
+    result_data = []
+
+    if request.session.get("batch_list") == False:
+        result = "Error, contact batch_list session was not found."
+        return render_to_response('batch_test_upload_final.html',{'result': result,
+            'result_data': result_data})
+    
+    if request.session["batch_list"] == "completed":
+        result = "completed"
+        return render_to_response('batch_test_upload_final.html',{'result': result,
+            'result_data': result_data})
+
+    
+    if 'abort' in request.POST:
+        # User aborted, so delete all the ready temp grayscales
+        for index, (path, fname, file_size, model, case, status) in enumerate(request.session.get("batch_list")):
+            if status == "ready":
+                try:
+                    os.remove(path)
+                except OSError:
+                    pass
+        result = "abort"
+        return render_to_response('batch_test_upload_final.html',{'result': result,
+            'result_data': result_data})        
+
+    (result, result_data) = process_batch_tests(request)
+        
+    return render_to_response('batch_test_upload_final.html',{'result': result,
+        'result_data': result_data})
+#-----------------------------------------------------------------    
+def process_batch_tests(request):
+    
+    # we need to know what the active account is, store simplify
+    act_account = str(request.session['active_account'].ID2)
+    
+    tests_list = request.session.get("batch_list")
+    result_data = []
+    for index, (path, fname, file_size, model, case, status) in enumerate(tests_list):
+        if status != "ready":
+            continue
+        #let's get active model object
+        a_model = Model.objects.get(ID2 = act_account + ":" + str(model)) #str prolly isn't needed
+        
+        # get active case, already verified it exists so skip error check for now
+        a_case = Case.objects.get(case_name=str(case))
+        
+        # create active test
+        
+        newtest = Test( test_case = a_case,
+            test_name = a_case.case_name,
+            ID2 = str(a_model.ID2) + ':' + str(a_case.case_name) )
+
+        newtest.save()
+        
+        # create link between model and test, not sure how this is used yet
+        Link = Test_Model_Link( test = newtest,
+                    model = a_model)
+        Link.save()
+        newtest.setup()
+        newtest.save()
+        
+        # copy grayscale from temp to media for storage
+        grayrefresh = int(newtest.grayrefresh) + 1 
+        newtest.grayrefresh = grayrefresh
+
+        #not sure why we have to put this in the media directory ?
+        # but the single file process does it
+        new_grayfile = MEDIA_DIR
+        new_grayfile += str(newtest.ID2.replace(':','_'))
+        new_grayfile += '_%d.png' % grayrefresh
+        newtest.greyscale_path = new_grayfile
+        newtest.save()
+
+        file_move_safe(path, new_grayfile, 65536, True)
+        
+        newtest.grayrefresh = int(newtest.grayrefresh) + 1
+        s = USER_GRAYSCALE + str(newtest.ID2).replace(':','_')
+        s += '_%s.png' % str(newtest.grayrefresh)
+
+        # Remove served Grayscale image
+        file_move_safe(newtest.greyscale_path, s, 65536, True)
+#        shutil.move(newtest.greyscale_path, s)
+        # set the path
+        newtest.greyscale_path = s
+        newtest.save()
+        response = newtest.rate()
+        os.unlink(newtest.greyscale_path)
+
+        # record rating
+        #---------------------------------------------------------------
+        request.session['active_account'].completedtests = int(request.session['active_account'].completedtests) + 1
+        request.session['active_account'].save()
+        #---------------------------------------------------------------
+        result_data.append((model,case,newtest.ID2,newtest.test_rating,"ok"))
+        
+    request.session['batch_list'] = "completed"
+    return (0,result_data)
 #-----------------------------------------------------------------
 def model_regform(request):
 
@@ -1362,8 +1529,7 @@ def confirm_grayscale(request):
 
     data = image_in.getdata()
     bands = image_in.getbands()
-        
-#    if bands[:3] == 'RGB':
+
     if bands[:3] == ('R','G','B'):
         # Check that it's actually RGB, not grayscale stored as RGB
         # If it's true RGB, fail.
@@ -1410,10 +1576,8 @@ def acceptgrayscale_confirm(request):
     request.session['active_test'].grayrefresh = int(request.session['active_test'].grayrefresh) + 1
     request.session['active_test'].save()
 
-
     s = USER_GRAYSCALE + str(request.session['active_test'].ID2).replace(':','_')
     s += '_%s.png' % str(request.session['active_test'].grayrefresh)
-
 
     # Remove served Grayscale image
     shutil.move(request.session['active_test'].greyscale_path, s)
@@ -5523,8 +5687,6 @@ def UploadLayers(request):
 #---------------------------------------------------------------
 
 def upload_Layerfile(request):
-
-
     #------------------------------------------------------------------
     # Token Verification
     try:
@@ -5542,7 +5704,6 @@ def upload_Layerfile(request):
 
     if admincase.UploadedLayers == True:
 
-
         stream = "Layers/" + str(admincase.id) +'_' + str(admincase.case_name)
 
         os.remove(string)
@@ -5550,12 +5711,6 @@ def upload_Layerfile(request):
 
         admincase.UploadedLayers = False
         admincase.save()
-
-
-
-
-
-
 
     destination = open(string,'wb+')
 
