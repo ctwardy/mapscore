@@ -4,17 +4,15 @@
 
 <div style =' margin-left: 0% ; margin-top: 130px; margin-right: 0%; margin-bottom: 0px; color:black; overflow-y:hidden; overflow-x:hidden;'  >
 
-<b><p style ='position:absolute;padding-left:630px; padding-top:85px'> Scenario Name: </p></b>
+<b><p style ='position:absolute;padding-left:630px; padding-top:85px'> 
+    Scenario Name: </p></b>
 
-	
-
-		
-
-
-
-	<form action ='/switchboard_toscenario/' style ='position:absolute; padding-left:610px;padding-top:120px'>
-	
-	<select name = 'Scenario_sort' onchange="this.form.submit();" style = 'width:160px'>
+    <form action ='/switchboard_toscenario/' 
+            style ='position:absolute; 
+            padding-left:610px;padding-top:120px'>
+	<select name = 'Scenario_sort' 
+            onchange="this.form.submit();" 
+            style = 'width:160px'>
 	
 	{% if not scenario %}
 	 <option SELECTED value= '0' >  -----Select Scenario-----   </option>  

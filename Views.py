@@ -19,6 +19,7 @@ import math
 import csv
 import os
 import string
+from numpy import array, clip, std
 import sys
 
 # Import Models
@@ -1789,92 +1790,59 @@ def get_sorted_models(allmodels):
     return sorted(rated_models,
                   key=attrgetter('model_avgrating'),
                   reverse=True)
-
+                  
+#------------------------------------------------------------------------------
+def confidence_interval(scores):
+    '''Return the 95% CI of the mean as (lowerbound, upperbound).
+    
+    @param scores: iterable of float with relevant scores
+    
+    Because we are trying to infer bounds on the actual
+    (population) performance of the model, from limited samples,
+    we use +- 1.96 * SEM, the standard error of the mean.
+            SEM = stdev / sqrt(N)
+    
+    '''
+    try:
+        N, avg, stdev = len(scores), mean(scores), std(scores)
+        halfwidth = 1.96*stdev / math.sqrt(N)
+        lowerbound = round(clip(avg-halfwidth, -1, 1),4)
+        upperbound = round(clip(avg+halfwidth, -1, 1),4)
+        return (lowerbound, upperbound)
+    except:
+        return (0,0)
+        
 #----------------------------------------------------------------------------------------------------------------------------------------------------
 def Leader_model(request):
-
+    '''Create the leaderboard.'''
     AUTHENTICATE_EITHER()
 
     sorted_models = get_sorted_models(Model.objects.all())
-    # copy values for leaderboard table
+    # Build Leaderboard
+    inputlist = []        
     for model in sorted_models:
-        institution = str(model.account_set.all()[0].institution_name)
-        username = str(model.account_set.all()[0].username)
+        # Read info
+        account = model.account_set.all()[0]
+        institution = account.institution_name
+        username = account.username
+        name = model.model_nameID
         rating = float(model.model_avgrating)
         tests = model.model_tests.all()
-        num_finished = sum((not test.Active for test in tests))
+        finished_tests = [x for x in tests if not x.Active]
+        N = len(finished_tests)
+        scores = [x.test_rating for x in finished_tests]
 
-        # copy values for leaderboard table
-    	inputlist = []
-    	sublist = []
-    	for i in range(len(sorted_models)):
-    		sublist = []
-    		institution = str(sorted_models[i].account_set.all()[0].institution_name)
-    		model = str(sorted_models[i].model_nameID)
-    		rating = str(sorted_models[i].model_avgrating)
-
-    		# Create 95% Confidence Interval
-
-    		count = 0
-    		sumdeviationsquared = float(0)
-    		for k in sorted_models[i].model_tests.all():
-    			if k.Active == False:
-
-    				count = count + 1
-    				sumdeviationsquared = sumdeviationsquared + math.pow((float(k.test_rating) - float(rating)),2)
-
-    		if count > 1:
-
-    			standarddeviation = math.sqrt(float((sumdeviationsquared / (count - 1))))
-
-    			halfwidth = 1.96 * (standarddeviation) / math.sqrt(count)
-    			halfwidth = round(halfwidth,4)
-
-
-    			lowerbound = float(rating) - halfwidth
-
-    			if lowerbound > 1:
-    				lowerbound = 1
-    			if lowerbound < -1:
-    				lowerbound = -1
-
-    			upperbound = float(rating) + halfwidth
-
-    			if upperbound > 1:
-    				upperbound = 1
-    			if upperbound < -1:
-    				upperbound = -1
-
-
-    		# End Confidence Interval
-
-
-    		username = str(sorted_models[i].account_set.all()[0].username)
-    		tests = sorted_models[i].model_tests.all()
-
-    		count = 0
-    		for n in tests:
-    			if n.Active == False:
-    				count = count + 1
-
-    		numbertests = count
-
-    		sublist.append(institution)
-    		sublist.append(model)
-    		sublist.append(rating)
-    		sublist.append(numbertests)
-    		sublist.append(username)
-    		if count > 1:
-    			sublist.append(lowerbound)
-    			sublist.append(upperbound)
-    		else:
-    			sublist.append(False)	
-    		if numbertests < 10:
-    			sublist.append(True)
-    		else:
-    			sublist.append(False)
-
-    		inputlist.append(sublist)
+        # Build case, depending on sample size
+        case = [institution, name, '%5.3f'%rating, N, username]
+        if N <= 1:
+            case.extend([False, True])  # std=False, sm.sample=True
+        else:
+            lowerbound, upperbound = confidence_interval(scores)
+            if N < 10:  # small sample=True
+                case.extend([lowerbound, upperbound, True])
+            else: # small sample = False
+                case.extend([lowerbound, upperbound, False])
+        inputlist.append(case)
 
 
     # Prepare variables to send to HTML template
@@ -3561,126 +3529,56 @@ def help(request):
 
 #----------------------------------------------------------------------------------------
 def help_how_alter_account(request):
-
-    #------------------------------------------------------------------
-    # Token Verification
-    try:
-        if request.session['usertoken'] == False:
-            return render_to_response('noaccess.html',{})
-    except:
-        return render_to_response('noaccess.html',{})
-
-    #----------------------------------------------------------------
-
+    AUTHENTICATE()
     return    render_to_response('help_how_edit_account.html')
 
 #----------------------------------------------------------------------------
-# Leaderboard Again
-
 def switchboard_toscenario(request):
-
-    #-------------------------------------------------------------------
-    # Token Verification
-    try:
-        if request.session['admintoken'] == False and request.session['usertoken'] == False:
-            return render_to_response('noaccess.html',{})
-    except:
-        return render_to_response('noaccess.html',{})
-
-    #-------------------------------------------------------------------
-
-
+    '''Scenario-specific leaderboard'''
+    AUTHENTICATE_EITHER()
     name = str(request.GET['Scenario_sort'])
 
-
     # Gather data
-
     inputlst = []
     for i in Account.objects.all():
         for j in i.account_models.all():
             scenarioclick = 0
-            ratingsum = float(0)
-            for k in j.model_tests.all():
-                if k.Active == False:
-                    if str(k.test_case.scenario) == name:
-                        scenarioclick = scenarioclick + 1
-                        ratingsum = ratingsum + float(k.test_rating)
+            tests = j.model_tests.all()
+            finished_tests = [x for x in tests 
+                if not x.Active
+                and x.test_case.scenario == name]
+            N = len(finished_tests)
+            if N <= 0:  
+                # No finished cases
+                continue
 
-
-
-
-            if scenarioclick > 0:
-                avg = ratingsum / float(scenarioclick)
-                username = str(i.username)
-
-                # Create 95% Confidence Interval
-
-                count = 0
-                sumdeviationsquared = float(0)
-                for k in j.model_tests.all():
-                    if k.Active == False:
-                        if str(k.test_case.scenario) == name:
-                            count = count + 1
-                            sumdeviationsquared = sumdeviationsquared + math.pow((float(k.test_rating) - float(avg)),2)
-
-
-                if count > 1:
-
-                    standarddeviation = math.sqrt(float((sumdeviationsquared / (count - 1))))
-
-                    halfwidth = 1.96 * (standarddeviation) / math.sqrt(count)
-                    halfwidth = round(halfwidth,4)
-
-                    lowerbound = float(avg) - halfwidth
-
-                    if lowerbound > 1:
-                        lowerbound = 1
-                    if lowerbound < -1:
-                        lowerbound = -1
-
-                    upperbound = float(avg) + halfwidth
-
-                    if upperbound > 1:
-                        upperbound = 1
-                    if upperbound < -1:
-                        upperbound = -1
-
-
-                # End Confidence Interval
-
-
-                entry = []
-                entry.append(str(i.institution_name))
-                entry.append(str(j.model_nameID))
-                entry.append(str(avg))
-                entry.append(str(scenarioclick))
-                entry.append(username)
-                if count > 1:
-                    entry.append(lowerbound)
-                    entry.append(upperbound)
-                else:
-                    entry.append(False)
-
-                if scenarioclick < 10:
-                    entry.append(True)
-                else:
-                    entry.append(False)
-
-
-
-                inputlst.append(entry)
-    # Sort Data
+            # Build case dep. on sample size
+            username = i.username
+            scores = [x.test_rating for x in finished_tests]
+            avg_rating = mean(scores)
+            entry = [i.institution_name, j.model_nameID, 
+                     '%5.3f'%avg_rating, N, username]
+            if N < 2:
+                entry.extend([False, True])  # std=False, sm.sample=True
+            else:
+                lowerbound, upperbound = confidence_interval(scores)
+                if N < 10:  # small sample=True
+                    entry.extend([lowerbound, upperbound, True])
+                else: # small sample = False
+                    entry.extend([lowerbound, upperbound, False])
+            inputlst.append(entry)
+    
+    
+    # Sort Data  
+    # TODO Replace with Simple call!
 
     tempterm = ''
 
     count = 1
     while count > 0:
-
         count = 0
-
         if len(inputlst) < 2:
             break
-
         for s in range(len(inputlst)-1):
             if inputlst[s][2] < inputlst[s+1][2]:
                 tempterm = inputlst[s]
@@ -3688,26 +3586,16 @@ def switchboard_toscenario(request):
                 inputlst[s+1] = tempterm
                 tempterm = ''
                 count = count + 1
-
-
-
     inputdic = {'scenario':name,'inputlst':inputlst}
-
-
-
     request.session['nav'] = '4'
 
     scenario_lst = []
     for i in Case.objects.all():
         if str(i.scenario) not in  scenario_lst:
             scenario_lst.append(str(i.scenario))
-
     inputdic['scenario_lst'] = scenario_lst
-
     if request.session['active_account'] =='superuser':
         inputdic['superuser'] = True
-
-
     instname = '0'
     modelname ='0'
     catrating ='1'
