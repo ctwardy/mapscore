@@ -19,7 +19,7 @@ import math
 import csv
 import os
 import string
-from numpy import array, clip, std
+import numpy as np
 import sys
 
 # Import Models
@@ -1803,13 +1803,15 @@ def confidence_interval(scores):
             SEM = stdev / sqrt(N)
     
     '''
+    N,avg,stdev = 0,0.0,0.0
     try:
-        N, avg, stdev = len(scores), mean(scores), std(scores)
+        N, avg, stdev = len(scores), np.mean(scores), np.std(scores)
         halfwidth = 1.96*stdev / math.sqrt(N)
-        lowerbound = round(clip(avg-halfwidth, -1, 1),4)
-        upperbound = round(clip(avg+halfwidth, -1, 1),4)
+        lowerbound = round(np.clip(avg-halfwidth, -1, 1),4)
+        upperbound = round(np.clip(avg+halfwidth, -1, 1),4)
         return (lowerbound, upperbound)
     except:
+        print >> sys.stderr, 'No 95%% CI. N=%d, avg=%6.2f, std=%6.2f' % (N, avg, stdev)
         return (0,0)
         
 #----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1830,18 +1832,19 @@ def Leader_model(request):
         tests = model.model_tests.all()
         finished_tests = [x for x in tests if not x.Active]
         N = len(finished_tests)
-        scores = [x.test_rating for x in finished_tests]
+        scores = [float(x.test_rating) for x in finished_tests]
 
         # Build case, depending on sample size
         case = [institution, name, '%5.3f'%rating, N, username]
         if N <= 1:
-            case.extend([False, True])  # std=False, sm.sample=True
+            case.extend([-1, 1, True])  # std=False, sm.sample=True
         else:
             lowerbound, upperbound = confidence_interval(scores)
             if N < 10:  # small sample=True
                 case.extend([lowerbound, upperbound, True])
             else: # small sample = False
                 case.extend([lowerbound, upperbound, False])
+        #print >> sys.stderr, case
         inputlist.append(case)
 
 
@@ -3554,12 +3557,12 @@ def switchboard_toscenario(request):
 
             # Build case dep. on sample size
             username = i.username
-            scores = [x.test_rating for x in finished_tests]
-            avg_rating = mean(scores)
+            scores = [float(x.test_rating) for x in finished_tests]
+            avg_rating = np.mean(scores)
             entry = [i.institution_name, j.model_nameID, 
                      '%5.3f'%avg_rating, N, username]
             if N < 2:
-                entry.extend([False, True])  # std=False, sm.sample=True
+                entry.extend([-1, 1, True])  # std=False, sm.sample=True
             else:
                 lowerbound, upperbound = confidence_interval(scores)
                 if N < 10:  # small sample=True
@@ -3567,6 +3570,7 @@ def switchboard_toscenario(request):
                 else: # small sample = False
                     entry.extend([lowerbound, upperbound, False])
             inputlst.append(entry)
+            #print >> sys.stderr, entry
     
     
     # Sort Data  
