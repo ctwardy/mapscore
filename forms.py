@@ -55,19 +55,24 @@ class ZipUploadForm(forms.Form):
         return False            
 
     def is_valid_image(self, path):
-        ''' Check if file is readable by PIL. '''
         from PIL import Image
+        from PIL import ImageOps        
 
         try:
+            ''' Check if file is readable by PIL. '''            
             trial_image = Image.open(path)
             trial_image.verify()
+            trial_image = Image.open(path)            
             if trial_image.size[0] != 5001 or trial_image.size[1] != 5001:
                 return "image wrong dimensions"
             bands = trial_image.getbands()
             if bands[:3] == ('R','G','B'):
                 # it's an RGP, lets just convert it to grayscale
-                output_gr = true_image.convert("LP")
-                output_gr.save(path)            
+#                output_gr = trial_image.convert("LP")
+                #trial_image.convert("LP")
+                output_gr = ImageOps.grayscale(trial_image)
+                output_gr.save(path,"PNG")  
+                return "ok"      
             elif bands[0] in 'LP':
                  #actual lgrayscale
                  return "ok"
@@ -79,8 +84,8 @@ class ZipUploadForm(forms.Form):
             # _imaging C module isn't available, so an ImportError will be
             # raised. Catch and re-raise.
             raise
-        except Exception: # Python Imaging Library doesn't recognize it as an image
-            return "image verification failed"
+        except Exception, valerror: # Python Imaging Library doesn't recognize it as an image
+            return "image verification failed"+str(valerror)
          # Check dimensions
 
         return "ok"
