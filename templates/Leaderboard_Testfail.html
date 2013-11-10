@@ -34,21 +34,11 @@
 		
 		<button name = "Go to Case info" type = "submit" value = "HTML">
 		Case Information
-	</button>
-		
+	</button>	
 	</form>
-
-	
-	
-	
-	
-	
-
-
 
 	<center>
 	<h1><b> Leaderboard </h1></b>
-	
 	</center>
 	<br>
 	
@@ -56,16 +46,11 @@
 	<b> Select Table: </b>
 	</div>
 	
-	
-
-		
-
-
-
 	<br><br>
-	<center> <p style='color:red'> The Case name entered is invalid </p></center>
-	
-	<center> <h1 style = 'font-size:18px'> <i> Case Name: {{casename}} </i> </h1> </center>
+	<center>
+	  <p style='color:red'> The Case name entered is invalid </p>
+	  <h1 style = 'font-size:18px'> <i> Case Name: {{casename}} </i> </h1>
+	</center>
 	<br><br>
 	
 	<div style ='padding-left:25px'>
@@ -77,7 +62,8 @@
 	<Input  type = 'hidden' name = "testname" value ='{{sortlst.2}}'>
 	<Input  type = 'hidden' name = "tstrating" value ='{{sortlst.3}}'>
 	<Input  type = 'hidden' name = "page" value ='test_leader_fail'>
-	<button  type = 'submit' style ='font-size:17px;border:0px; background-color:navy;color:white;cursor:pointer'>
+	<button  type = 'submit' style ='font-size:17px;border:0px;
+			 background-color:navy;color:white;cursor:pointer'>
 	Institution Name  
 	{% if sortlst.0 == '1' %}
 	&nbsp;&nbsp; ^
@@ -88,15 +74,11 @@
 	{% endif %}
 	
 	{% if sortlst.0 == '0' %}
-	&nbsp;&nbsp;-
+	&nbsp;&nbsp; -
 	{% endif %}
 	
 	</button> </form>
 	</th>
-	
-	
-	
-	
 	
 	<th style= 'height:50px'> <form  name ='data' action = "/test_modelname_sort/">
 	<Input  type = 'hidden' name = "instname" value ='{{sortlst.0}}'>
@@ -104,7 +86,8 @@
 	<Input  type = 'hidden' name = "testname" value ='{{sortlst.2}}'>
 	<Input  type = 'hidden' name = "tstrating" value ='{{sortlst.3}}'>
 	<Input  type = 'hidden' name = "page" value ='test_leader_fail'>
-	<button  type = 'submit' style ='font-size:17px;border:0px; background-color:navy;color:white;cursor:pointer'>
+	<button  type = 'submit' style ='font-size:17px;border:0px;
+			 background-color:navy;color:white;cursor:pointer'>
 	Model Name 
 	{% if sortlst.1 == '1' %}
 	&nbsp;&nbsp; ^
@@ -115,14 +98,10 @@
 	{% endif %}
 	
 	{% if sortlst.1 == '0' %}
-	&nbsp;&nbsp;-
-	{% endif %}
-	
+	&nbsp;&nbsp; -
+	{% endif %}	
 	</button> </form>
 	</th>
-	
-	
-
 	
 	<th style= 'height:50px'> <form  name ='data' action = "/test_name_sort/">
 	<Input  type = 'hidden' name = "instname" value ='{{sortlst.0}}'>
@@ -130,7 +109,8 @@
 	<Input  type = 'hidden' name = "testname" value ='{{sortlst.2}}'>
 	<Input  type = 'hidden' name = "tstrating" value ='{{sortlst.3}}'>
 	<Input  type = 'hidden' name = "page" value ='test_leader_fail'>
-	<button  type = 'submit' style ='font-size:17px;border:0px; background-color:navy;color:white;cursor:pointer'>
+	<button  type = 'submit' style ='font-size:17px;border:0px;
+			 background-color:navy;color:white;cursor:pointer'>
 	Test Name
 	{% if sortlst.2 == '1' %}
 	&nbsp;&nbsp; ^
@@ -141,15 +121,11 @@
 	{% endif %}
 	
 	{% if sortlst.2 == '0' %}
-	&nbsp;&nbsp;-
-	{% endif %}
-	
-	</button> </form>
+	&nbsp;&nbsp; -
+	{% endif %}	
+	</button>
+	  </form>
 	</th>
-	
-	
-	
-	
 	
 	<th style= 'height:50px'> <form  name ='data' action = "/test_rating_sort/">
 	<Input  type = 'hidden' name = "instname" value ='{{sortlst.0}}'>
@@ -157,7 +133,8 @@
 	<Input  type = 'hidden' name = "testname" value ='{{sortlst.2}}'>
 	<Input  type = 'hidden' name = "tstrating" value ='{{sortlst.3}}'>
 	<Input  type = 'hidden' name = "page" value ='test_leader_fail'>
-	<button  type = 'submit' style ='font-size:17px;border:0px; background-color:navy;color:white;cursor:pointer'>
+	<button  type = 'submit' style ='font-size:17px;border:0px;
+			 background-color:navy;color:white;cursor:pointer'>
 	Test Rating 
 	{% if sortlst.3 == '1' %}
 	&nbsp;&nbsp; ^
@@ -173,84 +150,75 @@
 	
 	</button> </form>
 	</th>
-	
-	
 	</tr>
 	
 	
 	{% for i in Scorelist %}
 	<tr style = " font-size:12px" >
-			<td>
-			<center>
-			<form action ='/Account_Profile/' name = 'inputform1'>
+	  <td>
+		<center>
+		  <form action ='/Account_Profile/' name = 'inputform1'>
 			<input type = 'hidden' name ='Account' value = '{{i.4}}'>
-			<button type = 'submit' style ='border:0px; background-color:#FFFF99;color:blue;cursor:pointer'> <u><b> {{i.0}} </b></u> </button>
-			</form>
-			</center>
-			</td>
-			
-			<td>
-			<center>
-			<form action ='/model_Profile/' name = 'inputform2'>
+			<button type = 'submit' style ='border:0px;
+					background-color:#FFFF99;color:blue;cursor:pointer'>
+			  <u><b> {{i.0}} </b></u>
+			</button>
+		  </form>
+		</center>
+	  </td>
+	  
+	  <td>
+		<center>
+		  <form action ='/model_Profile/' name = 'inputform2'>
 			<input type = 'hidden' name ='Account' value = '{{i.4}}'>
 			<input type = 'hidden' name ='Model' value = '{{i.1}}'>
-			<button type = 'submit' style ='border:0px; background-color:#FFFF99;color:blue;cursor:pointer'> <u><b> {{i.1}} </b></u> </button>
-			</form>
-			</center>
-			</td>
+			<button type = 'submit' style ='border:0px;
+					background-color:#FFFF99;color:blue;cursor:pointer'>
+			  <u><b> {{i.1}} </b></u>
+			</button>
+		  </form>
+		</center>
+	  </td>
 			
-			<td>
-			
-			<center>
-			<form action ='/case_ref/' name = 'inputform'>
+	  <td>
+		<center>
+		  <form action ='/case_ref/' name = 'inputform'>
 			<input type = 'hidden' name ='CaseName2' value = '{{i.2}}'>
-			<button type = 'submit' style ='border:0px; background-color:#FFFF99;color:blue;cursor:pointer'> <u><b> {{i.2}} </b></u> </button>
-			</form>
-			</center>
+			<button type = 'submit' style ='border:0px;
+					background-color:#FFFF99;color:blue;cursor:pointer'>
+			  <u><b> {{i.2}} </b></u>
+			</button>
+		  </form>
+		</center>		
+	  </td>
 			
-			</td>
-			
-			<td>
-			<p style =' font-size:15px'> <center><b>{{i.3}}</b></center></p>
-			</td>
-	
+	  <td>
+		<p style =' font-size:15px'> <center><b>{{i.3}}</b></center></p>
+	  </td>	
 	</tr>
 	
-	{% endfor %}
-	
-
+	{% endfor %}	
 	</table>
 	</div>
 
 	<br>
 	<br>
-	
-	
-	
-	
 	<center>
 	
 	{% if superuser %}
 	
 	<form action = "/admin_account/" method = "get" name = "Return to Account Menu">
-		
-		
 		<button name = "Return To Account Menu" type = "submit" value = "HTML">
 		Return To Admin Menu
 		</button>
-		
 	</form>
 	
-	{% else %}
-	
+	{% else %}	
 	
 	<form action = "/account/" method = "get" name = "Return to Account Menu">
-		
-		
 		<button name = "Return To Account Menu" type = "submit" value = "HTML">
 		Return To Account Menu
 		</button>
-		
 	</form>
 	{% endif %}
 	</center>

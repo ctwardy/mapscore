@@ -1955,8 +1955,14 @@ def switchboard_totest(request):
                           reverse=True)
 
     # copy values for leaderboard table
+    inputlist = []
     for test in sorted_tests:
+        print >> sys.stderr, dir(test.model_set.all()[0])
         inputlist.append(
+            # TODO: No field institution_name.  Fields are:
+            # account_set, clean_fields, gridvalidated, id, model_account_link_set,
+            # model_avgrating, model_nameID, model_tests, test_model_link_set,
+            # update_rating, validate_unique
             [test.model_set.all()[0].institution_name,
              test.model_set.all()[0].model_nameID,
              test.test_name,

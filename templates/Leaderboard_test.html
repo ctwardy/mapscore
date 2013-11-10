@@ -3,254 +3,193 @@
 
 <div style =' margin-left: 0% ; margin-top: 130px; margin-right: 0%; margin-bottom: 0px; color:black; overflow-y:hidden; overflow-x:hidden;'  >
 
-<b><p style ='position:absolute;padding-left:630px; padding-top:85px'> Test Case Name: </p></b>
+  <p style ='position:absolute;padding-left:630px; padding-top:85px'>
+	<b>Test Case Name:</b>
+  </p>
 
 
-	<form action ='/switchboard_totest/' style ='position:absolute; padding-left:610px;padding-top:118px'>
-		{% if caseselection %} <input maxlength = '30' type ='text' name = 'casename' value ='{{caseselection}}'> {% else %} <input maxlength = '30' type ='text' name = 'casename'>  {% endif %}
-		<button name = "send case name" type = "submit" value = "HTML">
-		Submit
-		</button>
-		
-		
-	</form>
+  <form action ='/switchboard_totest/' style ='position:absolute;
+		padding-left:610px;padding-top:118px'>
+	{% if caseselection %}
+	<input maxlength = '30' type ='text' name = 'casename' value ='{{caseselection}}'>
+	{% else %}
+	<input maxlength = '30' type ='text' name = 'casename'>
+	{% endif %}
+	<button name = "send case name" type = "submit" value = "HTML">
+	  Submit
+	</button>	
+  </form>
 
+  <form action = "/switchboard/" method = "get"
+		style='padding-left:480px;position:absolute;padding-top:120px' >
+	<select name = 'Sort_by' onchange="this.form.submit();">
+	  <option value= '0' > Model Average</option>
+	  <option SELECTED value= '1' > Test Case </option>
+	  <option value= '2' > Scenario  </option>  
+	</select> 
+  </form>
 
-	<form action = "/switchboard/" method = "get" style='padding-left:480px;position:absolute;padding-top:120px' >
-	
-		
-		<select name = 'Sort_by' onchange="this.form.submit();">
-			<option value= '0' > Model Average</option>
-			<option SELECTED value= '1' > Test Case </option>
-			<option value= '2' > Scenario  </option>
-		
-		</select> 
-	</form>
+  <form action = "/case_info/" method = "get" name = "Go to Case info "
+		style ='position:absolute;padding-left:350px;padding-top:118px'>	
+	<button name = "Go to Case info" type = "submit" value = "HTML">
+	  Case Information
+	</button>
+  </form>
 
-	<form action = "/case_info/" method = "get" name = "Go to Case info " style ='position:absolute;padding-left:350px;padding-top:118px'>
-		
-		
-		<button name = "Go to Case info" type = "submit" value = "HTML">
-		Case Information
-		</button>
-		
-	</form>
-
-	
-
-
-
-	<center>
-	<h1><b> Leaderboard </h1></b>
-	
-	</center>
-	<br>
-	
-	<div style ='padding-left:490px'>
+  <center>
+	<h1> Leaderboard </h1>
+  </center>
+  <br>
+  
+  <div style ='padding-left:490px'>
 	<b> Select Table: </b>
-	</div>
-	
-	
+  </div>
 
-		
-
-
-
-	<br><br>
-	<center> <h1 style = 'font-size:18px'> <i> Case Name: {{casename}} </i> </h1> </center>
-	<br><br>
-	
-	<div style ='padding-left:25px'>
+  <br><br>
+  <center>
+	<h1 style = 'font-size:18px'> <i> Case Name: {{casename}} </i> </h1>
+  </center>
+  <br><br>
+  
+  <div style ='padding-left:25px'>
 	<table border = "1" style = " font-size:15px; width:1000px"  bgcolor = '#FFFF99'>
-	<tr style ='color:white;background-color:navy'>
-	
-	
-	
-	<th style= 'height:50px'> <form  name ='data' action = "/test_inst_sort/">
-	<Input  type = 'hidden' name = "instname" value ='{{sortlst.0}}'>
-	<Input  type = 'hidden' name = "modelname" value ='{{sortlst.1}}'>
-	<Input  type = 'hidden' name = "testname" value ='{{sortlst.2}}'>
-	<Input  type = 'hidden' name = "tstrating" value ='{{sortlst.3}}'>
-	<Input  type = 'hidden' name = "page" value ='test_leader'>
-	<button  type = 'submit' style ='font-size:17px;border:0px; background-color:navy;color:white;cursor:pointer'>
-	Institution Name  
-	{% if sortlst.0 == '1' %}
-	&nbsp;&nbsp; ^
-	{% endif %}
-	
-	{% if sortlst.0 == '2' %}
-	&nbsp;&nbsp; v
-	{% endif %}
-	
-	{% if sortlst.0 == '0' %}
-	&nbsp;&nbsp;-
-	{% endif %}
-	
-	</button> </form>
-	</th>
-	
-	
-	
-	
-	
-	<th style= 'height:50px'> <form  name ='data' action = "/test_modelname_sort/">
-	<Input  type = 'hidden' name = "instname" value ='{{sortlst.0}}'>
-	<Input  type = 'hidden' name = "modelname" value ='{{sortlst.1}}'>
-	<Input  type = 'hidden' name = "testname" value ='{{sortlst.2}}'>
-	<Input  type = 'hidden' name = "tstrating" value ='{{sortlst.3}}'>
-	<Input  type = 'hidden' name = "page" value ='test_leader'>
-	<button  type = 'submit' style ='font-size:17px;border:0px; background-color:navy;color:white;cursor:pointer'>
-	Model Name 
-	{% if sortlst.1 == '1' %}
-	&nbsp;&nbsp; ^
-	{% endif %}
-	
-	{% if sortlst.1 == '2' %}
-	&nbsp;&nbsp; v
-	{% endif %}
-	
-	{% if sortlst.1 == '0' %}
-	&nbsp;&nbsp;-
-	{% endif %}
-	
-	</button> </form>
-	</th>
-	
-	
-
-	
-	<th style= 'height:50px'> <form  name ='data' action = "/test_name_sort/">
-	<Input  type = 'hidden' name = "instname" value ='{{sortlst.0}}'>
-	<Input  type = 'hidden' name = "modelname" value ='{{sortlst.1}}'>
-	<Input  type = 'hidden' name = "testname" value ='{{sortlst.2}}'>
-	<Input  type = 'hidden' name = "tstrating" value ='{{sortlst.3}}'>
-	<Input  type = 'hidden' name = "page" value ='test_leader'>
-	<button  type = 'submit' style ='font-size:17px;border:0px; background-color:navy;color:white;cursor:pointer'>
-	Test Name
-	{% if sortlst.2 == '1' %}
-	&nbsp;&nbsp; ^
-	{% endif %}
-	
-	{% if sortlst.2 == '2' %}
-	&nbsp;&nbsp; v
-	{% endif %}
-	
-	{% if sortlst.2 == '0' %}
-	&nbsp;&nbsp;-
-	{% endif %}
-	
-	</button> </form>
-	</th>
-	
-	
-	
-	
-	
-	<th style= 'height:50px'> <form  name ='data' action = "/test_rating_sort/">
-	<Input  type = 'hidden' name = "instname" value ='{{sortlst.0}}'>
-	<Input  type = 'hidden' name = "modelname" value ='{{sortlst.1}}'>
-	<Input  type = 'hidden' name = "testname" value ='{{sortlst.2}}'>
-	<Input  type = 'hidden' name = "tstrating" value ='{{sortlst.3}}'>
-	<Input  type = 'hidden' name = "page" value ='test_leader'>
-	<button  type = 'submit' style ='font-size:17px;border:0px; background-color:navy;color:white;cursor:pointer'>
-	Test Rating 
-	{% if sortlst.3 == '1' %}
-	&nbsp;&nbsp; ^
-	{% endif %}
-	
-	{% if sortlst.3 == '2' %}
-	&nbsp;&nbsp; v
-	{% endif %}
-	
-	{% if sortlst.3 == '0' %}
-	&nbsp;&nbsp;-
-	{% endif %}
-	
-	</button> </form>
-	</th>
-	
-	
-	</tr>
-	
-	
-	{% for i in Scorelist %}
-	<tr style = " font-size:12px" >
+	  <tr style ='color:white;background-color:navy'>
+		<th style= 'height:50px'> <form  name ='data' action = "/test_inst_sort/">
+			<Input  type = 'hidden' name = "instname" value ='{{sortlst.0}}'>
+			<Input  type = 'hidden' name = "modelname" value ='{{sortlst.1}}'>
+			<Input  type = 'hidden' name = "testname" value ='{{sortlst.2}}'>
+			<Input  type = 'hidden' name = "tstrating" value ='{{sortlst.3}}'>
+			<Input  type = 'hidden' name = "page" value ='test_leader'>
+			<button  type = 'submit' style ='font-size:17px;border:0px;
+					 background-color:navy;color:white;cursor:pointer'>
+			  Institution Name  
+			  {% if sortlst.0 == '1' %}  &nbsp;&nbsp; ^	  {% endif %}			  
+			  {% if sortlst.0 == '2' %}  &nbsp;&nbsp; v	  {% endif %}			  
+			  {% if sortlst.0 == '0' %}  &nbsp;&nbsp; -	  {% endif %}
+			</button>
+		  </form>
+		</th>
 		
-			<td>
-			<center>
+		<th style= 'height:50px'> <form  name ='data' action = "/test_modelname_sort/">
+			<Input  type = 'hidden' name = "instname" value ='{{sortlst.0}}'>
+			<Input  type = 'hidden' name = "modelname" value ='{{sortlst.1}}'>
+			<Input  type = 'hidden' name = "testname" value ='{{sortlst.2}}'>
+			<Input  type = 'hidden' name = "tstrating" value ='{{sortlst.3}}'>
+			<Input  type = 'hidden' name = "page" value ='test_leader'>
+			<button  type = 'submit' style ='font-size:17px;border:0px;
+					 background-color:navy;color:white;cursor:pointer'>
+			  Model Name 
+			  {% if sortlst.1 == '1' %}  &nbsp;&nbsp; ^  {% endif %}
+			  {% if sortlst.1 == '2' %}  &nbsp;&nbsp; v  {% endif %}			  
+			  {% if sortlst.1 == '0' %}  &nbsp;&nbsp; -  {% endif %}			  
+			</button>
+		  </form>
+		</th>
+		
+		<th style= 'height:50px'> <form  name ='data' action = "/test_name_sort/">
+			<Input  type = 'hidden' name = "instname" value ='{{sortlst.0}}'>
+			<Input  type = 'hidden' name = "modelname" value ='{{sortlst.1}}'>
+			<Input  type = 'hidden' name = "testname" value ='{{sortlst.2}}'>
+			<Input  type = 'hidden' name = "tstrating" value ='{{sortlst.3}}'>
+			<Input  type = 'hidden' name = "page" value ='test_leader'>
+			<button  type = 'submit' style ='font-size:17px;border:0px;
+					 background-color:navy;color:white;cursor:pointer'>
+			  Test Name
+			  {% if sortlst.2 == '1' %}  &nbsp;&nbsp; ^  {% endif %}			  
+			  {% if sortlst.2 == '2' %}  &nbsp;&nbsp; v  {% endif %}			  
+			  {% if sortlst.2 == '0' %}  &nbsp;&nbsp; -  {% endif %}			  
+			</button>
+		  </form>
+		</th>
+		
+		<th style= 'height:50px'> <form  name ='data' action = "/test_rating_sort/">
+			<Input  type = 'hidden' name = "instname" value ='{{sortlst.0}}'>
+			<Input  type = 'hidden' name = "modelname" value ='{{sortlst.1}}'>
+			<Input  type = 'hidden' name = "testname" value ='{{sortlst.2}}'>
+			<Input  type = 'hidden' name = "tstrating" value ='{{sortlst.3}}'>
+			<Input  type = 'hidden' name = "page" value ='test_leader'>
+			<button  type = 'submit' style ='font-size:17px;border:0px;
+					 background-color:navy;color:white;cursor:pointer'>
+			  Test Rating 
+			  {% if sortlst.3 == '1' %}  &nbsp;&nbsp; ^  {% endif %}			  
+			  {% if sortlst.3 == '2' %}  &nbsp;&nbsp; v  {% endif %}			  
+			  {% if sortlst.3 == '0' %}  &nbsp;&nbsp; -  {% endif %}			  
+			</button>
+		  </form>
+		</th>
+	  </tr>
+	  
+	  
+	  {% for i in Scorelist %}
+	  <tr style = " font-size:12px" >
+		<td>
+		  <center>
 			<form action ='/Account_Profile/' name = 'inputform1'>
-			<input type = 'hidden' name ='Account' value = '{{i.4}}'>
-			<button type = 'submit' style ='border:0px; background-color:#FFFF99;color:blue;cursor:pointer'> <u><b> {{i.0}} </b></u> </button>
+			  <input type = 'hidden' name ='Account' value = '{{i.4}}'>
+			  <button type = 'submit' style ='border:0px;
+					  background-color:#FFFF99;color:blue;cursor:pointer'>
+				<u><b> {{i.0}} </b></u>
+			  </button>
 			</form>
-			</center>
-			</td>
-			
-			<td>
-			<center>
+		  </center>
+		</td>
+		
+		<td>
+		  <center>
 			<form action ='/model_Profile/' name = 'inputform2'>
-			<input type = 'hidden' name ='Account' value = '{{i.4}}'>
-			<input type = 'hidden' name ='Model' value = '{{i.1}}'>
-			<button type = 'submit' style ='border:0px; background-color:#FFFF99;color:blue;cursor:pointer'> <u><b> {{i.1}} </b></u> </button>
+			  <input type = 'hidden' name ='Account' value = '{{i.4}}'>
+			  <input type = 'hidden' name ='Model' value = '{{i.1}}'>
+			  <button type = 'submit' style ='border:0px;
+					  background-color:#FFFF99;color:blue;cursor:pointer'>
+				<u><b> {{i.1}} </b></u>
+			  </button>
 			</form>
-			</center>
-			</td>
-			
-			<td>
-			
-			<center>
+		  </center>
+		</td>
+		
+		<td>		  
+		  <center>
 			<form action ='/case_ref/' name = 'inputform'>
-			<input type = 'hidden' name ='CaseName2' value = '{{i.2}}'>
-			<button type = 'submit' style ='border:0px; background-color:#FFFF99;color:blue;cursor:pointer'> <u><b> {{i.2}} </b></u> </button>
+			  <input type = 'hidden' name ='CaseName2' value = '{{i.2}}'>
+			  <button type = 'submit' style ='border:0px;
+					  background-color:#FFFF99;color:blue;cursor:pointer'>
+				<u><b> {{i.2}} </b></u>
+			  </button>
 			</form>
-			</center>
-			
-			</td>
-			
-			<td>
-			<p style =' font-size:15px'> <center><b>{{i.3}}</b></center></p>
-			</td>
-	
-	</tr>
-	
-	{% endfor %}
-	
-
+		  </center>		  
+		</td>
+		
+		<td>
+		  <p style =' font-size:15px'> <center><b>{{i.3}}</b></center></p>
+		</td>		
+	  </tr>
+	  
+	  {% endfor %}
 	</table>
-	</div>
+  </div>
 
-	<br>
-	<br>
-	
-	
-	
-	
-	<center>
-	
+  <br>
+  <br>
+  <center>
+
 	{% if superuser %}
 	
 	<form action = "/admin_account/" method = "get" name = "Return to Account Menu">
-		
-		
-		<button name = "Return To Account Menu" type = "submit" value = "HTML">
+	  <button name = "Return To Account Menu" type = "submit" value = "HTML">
 		Return To Admin Menu
-		</button>
-		
+	  </button>
 	</form>
 	
 	{% else %}
 	
-	
 	<form action = "/account/" method = "get" name = "Return to Account Menu">
-		
-		
-		<button name = "Return To Account Menu" type = "submit" value = "HTML">
+	  <button name = "Return To Account Menu" type = "submit" value = "HTML">
 		Return To Account Menu
-		</button>
-		
+	  </button>  
 	</form>
 	{% endif %}
-	</center>
-	<br>
+  </center>
+  <br>
 
 </div>
 
