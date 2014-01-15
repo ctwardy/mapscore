@@ -1623,9 +1623,24 @@ def acceptgrayscale_confirm(request):
     s = USER_GRAYSCALE + str(request.session['active_test'].ID2).replace(':','_')
     s += '_%s.png' % str(request.session['active_test'].grayrefresh)
 
-    # Remove served Grayscale image
+    # create string for saving thumbnail 128x128
+    thumb = USER_GRAYSCALE + "thumb_" + str(request.session['active_test'].ID2).replace(':','_') + ".png"
+
     shutil.move(request.session['active_test'].greyscale_path, s)
 
+    from PIL import Image
+    im = Image.open(s)
+    im = im.convert('RGB')
+    im.thumbnail((128,128), Image.ANTIALIAS)
+    im.save(thumb,'PNG') 
+
+    # thumbnail is saved in USER_GRAYSCALE dir with name:
+    # save as thumb_User_Model_Case.png    
+    
+    #debugx
+    #print >>sys.stderr, "DEBUGX:"
+    #print >>sys.stderr, str(thumb)
+    
     # set the path
     request.session['active_test'].greyscale_path = s
     request.session['active_test'].save()
