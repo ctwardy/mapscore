@@ -50,6 +50,8 @@ from mapscore.forms import ZipUploadForm
 MEDIA_DIR = 'media/'         # for the server
 USER_GRAYSCALE = 'user_grayscale/'
 
+# console print e.g.:
+#print >>sys.stderr, 'Goodbye, cruel world!'
 
 
 #--------------------------------------------------------------
@@ -520,15 +522,34 @@ def process_batch_tests(request):
         # get active case, already verified it exists so skip error check for now
         a_case = Case.objects.get(case_name=str(case))
         
-        # create active test
+        # note similar code to below also exists in create_test()
         
+        # set ID2 for this test case "User:Model:Case"
+        ID2 = str(a_model.ID2) + ':' + str(a_case.case_name)
+        
+        # First check to see if this test already exists
+        # and if yes, delete existing one to prevent duplicates
+        try:
+            findtest = Test.objects.get(ID2 = ID2)
+        except Test.DoesNotExist:
+            findtest = None
+        # Test does exist:
+        if findtest != None:
+            print >>sys.stderr, 'DEBUG: deleting previous test\n'
+            print >>sys.stderr, str(findtest.id) + ":" + str(findtest.ID2)
+            #delete the test_model_link first
+            OldLink = Test_Model_Link.objects.get(test = findtest.id)
+            OldLink.delete()
+            #then delete existing test 
+            findtest.delete()
+        
+        #create new test:
         newtest = Test( test_case = a_case,
             test_name = a_case.case_name,
-            ID2 = str(a_model.ID2) + ':' + str(a_case.case_name) )
+            ID2 = ID2 )
 
         newtest.save()
         
-        # create link between model and test, not sure how this is used yet
         Link = Test_Model_Link( test = newtest,
                     model = a_model)
         Link.save()
@@ -607,7 +628,7 @@ def model_created(request):
     if request.session['createcheck'] == True:
         input_dic = {'model_name': str(request.GET['Name'])}
         return render_to_response('ModelRegComplete.html',input_dic)
-    print "debug"
+#    print "debug"
     # Verify Model Name
 
     Model_name = str(request.GET['Name'])
@@ -837,6 +858,8 @@ def newtest(request):
     age = case.Age
     name = case.case_name
     sex = case.Sex
+    country = case.country
+    state = case.state
     LKP = '('+case.lastlat + ',' +case.lastlon + ')'
     subject_category = case.subject_category
     subject_subcategory = case.subject_subcategory
@@ -875,9 +898,27 @@ def create_test(request):
     #return render_to_response('TestCreated.html')
 
     tempcase = request.session['active_case_temp']
+    
+    # Need to avoid creating duplicate tests for given model/case
+    # idea: delete exisitng test model link and test, then create new one ?
+    ID2 = str(request.session['active_model'].ID2) + ':' + str(tempcase.case_name)    
+    try:
+        findtest = Test.objects.get(ID2 = ID2)
+    except Test.DoesNotExist:
+        findtest = None
+        
+    if findtest != None:
+        print >>sys.stderr, 'DEBUG:\n'
+        print >>sys.stderr, str(findtest.id) + ":" + str(findtest.ID2)
+        #delete the test_model_link first
+        OldLink = Test_Model_Link.objects.get(test = findtest.id)
+        OldLink.delete()
+        #then delete existing test 
+        findtest.delete()
+        
     newtest = Test( test_case = tempcase,
         test_name = tempcase.case_name,
-        ID2 = str(request.session['active_model'].ID2) + ':' +str(tempcase.case_name) )
+        ID2 = ID2 )
 
     newtest.save()
 
@@ -1002,6 +1043,8 @@ def active_test(request):
         age = active_case.Age
         name = active_case.case_name
         sex = active_case.Sex
+        country = active_case.country
+        state = active_case.state        
         LKP = '('+active_case.lastlat + ',' +active_case.lastlon + ')'
         totalcells = active_case.totalcellnumber
         sidecells = active_case.sidecellnumber
@@ -1031,7 +1074,7 @@ def active_test(request):
 
     # Create Input dictionary
 
-        inputdic = {'Name_act':account_name, 'Name_m':model_name, 'name' :name, 'age':age, 'sex':sex,'LKP':LKP,'horcells':sidecells,'vercells':sidecells,'totcells' : totalcells, 'cellwidth' : 5, 'regionwidth' : 25,'uplat':uplat,'rightlon':rightlon,'downlat':downlat,'leftlon':leftlon,'MAP':URL}
+        inputdic = {'Name_act':account_name, 'Name_m':model_name, 'name' :name, 'age':age,'country':country,'state':state, 'sex':sex,'LKP':LKP,'horcells':sidecells,'vercells':sidecells,'totcells' : totalcells, 'cellwidth' : 5, 'regionwidth' : 25,'uplat':uplat,'rightlon':rightlon,'downlat':downlat,'leftlon':leftlon,'MAP':URL}
         inputdic['subject_category'] = subject_category
         inputdic['subject_subcategory'] = subject_subcategory
         inputdic['scenario'] = scenario
@@ -1629,6 +1672,8 @@ def submissionreview(request):
     age = active_case.Age
     name = active_case.case_name
     sex = active_case.Sex
+    country = active_case.country
+    state = active_case.state
     LKP = '('+active_case.lastlat + ',' +active_case.lastlon + ')'
     totalcells = active_case.totalcellnumber
     sidecells = active_case.sidecellnumber
@@ -1664,7 +1709,7 @@ def submissionreview(request):
 
     # Create Input dictionary
 
-    inputdic = {'Name_act':account_name, 'Name_m':model_name, 'name' :name, 'age':age, 'sex':sex,'LKP':LKP,'horcells':sidecells,'vercells':sidecells,'totcells' : totalcells, 'cellwidth' : 5, 'regionwidth' : 25,'uplat':uplat,'rightlon':rightlon,'downlat':downlat,'leftlon':leftlon,'MAP':URL}
+    inputdic = {'Name_act':account_name, 'Name_m':model_name, 'name' :name, 'age':age,'country':country,'state':state, 'sex':sex,'LKP':LKP,'horcells':sidecells,'vercells':sidecells,'totcells' : totalcells, 'cellwidth' : 5, 'regionwidth' : 25,'uplat':uplat,'rightlon':rightlon,'downlat':downlat,'leftlon':leftlon,'MAP':URL}
     inputdic['subject_category'] = subject_category
     inputdic['subject_subcategory'] = subject_subcategory
     inputdic['scenario'] = scenario
@@ -1693,12 +1738,13 @@ def submissionreview(request):
 
 #------------------------------------------------------------------------------------------------
 def setcompletedtest(request):
-
     AUTHENTICATE()
     intest_raw = str(request.GET['Nonactive_Testin'])
     intest = intest_raw.strip()
     completed_lst = []
-
+    #debugx
+    print >>sys.stderr, 'DEBUG:\n'
+    print >>sys.stderr, intest
     for i in list(request.session['active_model'].model_tests.all()):
         if i.Active == False:
             completed_lst.append(str(i.test_name))
@@ -1723,6 +1769,8 @@ def nonactivetest(request):
     age = active_case.Age
     name = active_case.case_name
     sex = active_case.Sex
+    country = active_case.country
+    state = active_case.state
     LKP = '('+active_case.lastlat + ',' +active_case.lastlon + ')'
     totalcells = active_case.totalcellnumber
     sidecells = active_case.sidecellnumber
@@ -1758,7 +1806,7 @@ def nonactivetest(request):
 
     # Create Input dictionary
 
-    inputdic = {'Name_act':account_name, 'Name_m':model_name, 'name' :name, 'age':age, 'sex':sex,'LKP':LKP,'horcells':sidecells,'vercells':sidecells,'totcells' : totalcells, 'cellwidth' : 5, 'regionwidth' : 25,'uplat':uplat,'rightlon':rightlon,'downlat':downlat,'leftlon':leftlon,'MAP':URL}
+    inputdic = {'Name_act':account_name, 'Name_m':model_name, 'name' :name, 'age':age,'country':country,'state':state, 'sex':sex,'LKP':LKP,'horcells':sidecells,'vercells':sidecells,'totcells' : totalcells, 'cellwidth' : 5, 'regionwidth' : 25,'uplat':uplat,'rightlon':rightlon,'downlat':downlat,'leftlon':leftlon,'MAP':URL}
     inputdic['subject_category'] = subject_category
     inputdic['subject_subcategory'] = subject_subcategory
     inputdic['scenario'] = scenario
@@ -2101,6 +2149,8 @@ def case_ref(request):
     age = active_case.Age
     name = active_case.case_name
     sex = active_case.Sex
+    country = active_case.country
+    state = active_case.state    
     LKP = '('+active_case.lastlat + ',' +active_case.lastlon + ')'
     totalcells = active_case.totalcellnumber
     sidecells = active_case.sidecellnumber
@@ -2126,7 +2176,7 @@ def case_ref(request):
 
     # Create Input dictionary
 
-    inputdic = { 'name' :name, 'age':age, 'sex':sex,'LKP':LKP,'horcells':sidecells,'vercells':sidecells,'totcells' : totalcells, 'cellwidth' : 5, 'regionwidth' : 25,'uplat':uplat,'rightlon':rightlon,'downlat':downlat,'leftlon':leftlon,'MAP':URL}
+    inputdic = { 'name' :name, 'age':age,'country':country,'state':state, 'sex':sex,'LKP':LKP,'horcells':sidecells,'vercells':sidecells,'totcells' : totalcells, 'cellwidth' : 5, 'regionwidth' : 25,'uplat':uplat,'rightlon':rightlon,'downlat':downlat,'leftlon':leftlon,'MAP':URL}
     inputdic['subject_category'] = subject_category
     inputdic['subject_subcategory'] = subject_subcategory
     inputdic['scenario'] = scenario
