@@ -569,6 +569,9 @@ def process_batch_tests(request):
         newtest.save()
 
         file_move_safe(path, new_grayfile, 65536, True)
+
+        # create string for saving thumbnail 128x128
+        thumb = USER_GRAYSCALE + "thumb_" + str(newtest.ID2).replace(':','_') + ".png"
         
         newtest.grayrefresh = int(newtest.grayrefresh) + 1
         s = USER_GRAYSCALE + str(newtest.ID2).replace(':','_')
@@ -580,6 +583,20 @@ def process_batch_tests(request):
         # set the path
         newtest.greyscale_path = s
         newtest.save()
+        
+        from PIL import Image
+        im = Image.open(s)
+        im = im.convert('RGB')
+        im.thumbnail((128,128), Image.ANTIALIAS)
+        im.save(thumb,'PNG') 
+
+        # thumbnail is saved in USER_GRAYSCALE dir with name:
+        # save as thumb_User_Model_Case.png    
+    
+        #debugx
+        print >>sys.stderr, "DEBUGX:"
+        print >>sys.stderr, str(thumb)
+                
         response = newtest.rate()
         os.unlink(newtest.greyscale_path)
 
