@@ -55,6 +55,8 @@ class ZipUploadForm(forms.Form):
         return False            
 
     def is_valid_image(self, path):
+        #from PIL import Image
+        #from PIL import ImageOps        
         from PIL import Image
         from PIL import ImageOps        
 

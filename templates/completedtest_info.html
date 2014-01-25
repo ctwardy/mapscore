@@ -1,5 +1,7 @@
 {% include "header.html" %}
-
+<script src="/static/js/jquery-2.1.0.min.js"></script>
+<script src="/static/js/testcase-thumb-hover.js"></script>
+<script src="/static/js/jquery.tablesorter.min.js"></script>
 
 <div style =' margin-left: 0% ; margin-top: 130px; margin-right: 0%; margin-bottom: 0px; color:black; overflow-y:hidden; overflow-x:hidden;'  >
 
@@ -11,24 +13,75 @@
 	<br>
 	
 	
-	<div style ='background-color: #FFFF99 ;border:double ; width: 600px; padding-top:30px '>
+	<div style ='background-color: #FFFF99 ;border:double ; width: 600px; padding-top:30px; '>
+		<style type="text/css">
+			table.tablesorter {
+				font-size: 18px;
+				width: 430;
+				border: 1px solid;
+			}
+			table.tablesorter th {
+				text-align: left;
+				padding: 5px;
+			}
+			table.tablesorter td {
+				padding: 5px;
+			    border: 1px solid black;
+				text-align:right;
+				width: 200px;				
+			}
+
+			table.tablesorter .header {
+				background-image: url(/static/css/tablesorter/bg.png);
+				background-repeat: no-repeat;
+				border-left: 1px solid #FFF;
+				border-right: 1px solid #000;
+				border-top: 1px solid #FFF;
+				padding-left: 30px;
+				padding-top: 8px;
+				height: auto;
+			}
+			table.tablesorter .headerSortUp {
+				background-image: url(/static/css/tablesorter/asc.png);
+				background-repeat: no-repeat;
+			}
+			table.tablesorter .headerSortDown {
+				background-image: url(/static/css/tablesorter/desc.png);
+				background-repeat: no-repeat;
+			}
+		  .popup{
+		      position:absolute;
+		      width:128px;
+		      height:128px;
+		  }
+		  .popup img{
+		      width:128px;
+		      height:128px;
+		  }		  
+		</style>
+		<table id="testCaseTable" class="tablesorter">
+			<thead>
+			<tr>
+				<th>Test Case Name</th>
+				<th>Test Rating</th>							
+			</tr>
+		</thead>
+		<tbody>
+    	{% for i in completed_lst %}
 	
-	{% for i in completed_lst %}
-	
-	
-			<form action ='/completedtest_modellink/' name = 'inputform1'>
-			<input type = 'hidden' name ='completedtest' value = '{{i}}'>
-			<button type = 'submit' style ='border:0px; background-color:#FFFF99;color:blue;cursor:pointer'> <u><b> {{i}} </b></u> </button>
-			</form>
-		
-		
+		<tr>
+			<td><a class="testcase" href="/nonactive_test/?Nonactive_Testin={{i.test_name}}" data-thumbexists="{{i.thumbexists}}" data-thumb="{{i.thumb}}">{{i.test_name}}</a></td>
+			<td>{{i.test_rating}}</td>			
+
+		</tr>		
 		{% endfor %}
+		</tbody>
+		</table>
 		<br><br>
 	</div>
 	
-	
 	<br><br>
-	
+	<div class="popup" style="display:none;border:2px solid;">Popup</div>
 	
 	<br>
 	

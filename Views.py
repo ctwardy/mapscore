@@ -36,8 +36,7 @@ import cStringIO
 import time
 import re
 import os
-#from PIL import Image
-import Image
+from PIL import Image
 import zipfile
 from django.core.servers.basehttp import FileWrapper
 from django.core.context_processors import csrf
@@ -571,7 +570,7 @@ def process_batch_tests(request):
         file_move_safe(path, new_grayfile, 65536, True)
 
         # create string for saving thumbnail 128x128
-        thumb = USER_GRAYSCALE + "thumb_" + str(newtest.ID2).replace(':','_') + ".png"
+        thumb = MEDIA_DIR + "thumb_" + str(newtest.ID2).replace(':','_') + ".png"
         
         newtest.grayrefresh = int(newtest.grayrefresh) + 1
         s = USER_GRAYSCALE + str(newtest.ID2).replace(':','_')
@@ -590,7 +589,7 @@ def process_batch_tests(request):
         im.thumbnail((128,128), Image.ANTIALIAS)
         im.save(thumb,'PNG') 
 
-        # thumbnail is saved in USER_GRAYSCALE dir with name:
+        # thumbnail is saved in MEDIA_DIR dir with name:
         # save as thumb_User_Model_Case.png    
     
         #debugx
@@ -1641,7 +1640,7 @@ def acceptgrayscale_confirm(request):
     s += '_%s.png' % str(request.session['active_test'].grayrefresh)
 
     # create string for saving thumbnail 128x128
-    thumb = USER_GRAYSCALE + "thumb_" + str(request.session['active_test'].ID2).replace(':','_') + ".png"
+    thumb = MEDIA_DIR + "thumb_" + str(request.session['active_test'].ID2).replace(':','_') + ".png"
 
     shutil.move(request.session['active_test'].greyscale_path, s)
 
@@ -1793,6 +1792,8 @@ def setcompletedtest(request):
 def nonactivetest(request):
 
     AUTHENTICATE()
+
+
 
     active_test = request.session['active_test']
     active_case = active_test.test_case
@@ -2163,7 +2164,14 @@ def completedtest_info(request):
 
     for i in list(request.session['active_model'].model_tests.all()):
         if i.Active == False:
-            completed_lst.append(str(i.test_name))
+            thumb = MEDIA_DIR + "thumb_" + str(i.ID2).replace(':','_') + ".png"
+            thumbexists = False
+            if os.path.isfile(thumb):
+                thumbexists = True
+#            i.append({'thumb':str(USER_GRAYSCALE + "thumb_" + str(i.ID2).replace(':','_') + ".png")})
+#            completed_lst.append(i,{'thumb':str(USER_GRAYSCALE + "thumb_" + str(i.ID2).replace(':','_') + ".png")})
+#            completed_lst.append(str(i.test_name))
+            completed_lst.append({'test_name':i.test_name, 'test_rating':i.test_rating, 'thumb':thumb, 'thumbexists':thumbexists})
 
     inputdic ={'completed_lst': completed_lst}
 
@@ -2320,18 +2328,6 @@ def returnfrom_profile(request):
 
     elif request.session['nav'] == '7':
         return render_to_response('scenario_to_test.html',inputdic)
-
-#-------------------------------------------------------------------------------------
-def completedtest_modellink(request):
-
-
-    AUTHENTICATE_EITHER()
-
-    completedtest = str(request.GET['completedtest'])
-    request.session['completedtest'] = completedtest
-    request.session['completedtest_lookup'] = True
-    return redirect('/model_menu/')
-
 
 #----------------------------------------------------------------------------------
 def case_hyperin(request):

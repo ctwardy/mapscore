@@ -1,8 +1,8 @@
 from django.db import models
 import math
 import random
-#from PIL import Image
-import Image
+from PIL import Image
+#import Image
 from django import forms
 import os
 

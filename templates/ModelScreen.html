@@ -103,31 +103,8 @@
 	
 	<p style = "color :black">
 		<i>
-		To access a completed test, please enter the name of the test below:</i> <br>
+		To access a completed test, click the button below to get a list:</i> <br>
 	</p>
-	
-	{% if failure %}
-	<P> Invalid Test Entry </p>
-  	{% endif %}
-	
-	
-	<br>
-	
-	<form action = "/nonactive_test/" method = "get">
-	
-		{% if completedtest %} <input maxlength = '30' type ='text'
-                                      name = 'Nonactive_Testin' value ='{{completedtest}}'> 
-        {% else %} <input maxlength = '30' type ='text' name = 'Nonactive_Testin'>  
-        {% endif %}
-		
-			 
-		<input type ='submit' value = 'Submit'/>
-		
-		</select> 
-		
-		
-	</form>
-	<br>
 	
 	
 	<form action = "/completedtest_info/" method = "get" name = "show completed test info">
