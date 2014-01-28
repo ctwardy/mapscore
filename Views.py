@@ -2168,9 +2168,6 @@ def completedtest_info(request):
             thumbexists = False
             if os.path.isfile(thumb):
                 thumbexists = True
-#            i.append({'thumb':str(USER_GRAYSCALE + "thumb_" + str(i.ID2).replace(':','_') + ".png")})
-#            completed_lst.append(i,{'thumb':str(USER_GRAYSCALE + "thumb_" + str(i.ID2).replace(':','_') + ".png")})
-#            completed_lst.append(str(i.test_name))
             completed_lst.append({'test_name':i.test_name, 'test_rating':i.test_rating, 'thumb':thumb, 'thumbexists':thumbexists})
 
     inputdic ={'completed_lst': completed_lst}
