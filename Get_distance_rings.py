@@ -1,7 +1,7 @@
 import os
 import sys
 import arcpy
-
+import shutil
 
 inws = arcpy.GetParameterAsText(0)
 arcpy.env.workspace = inws
@@ -294,7 +294,7 @@ for i in range(len(key)):
         terr = terrain[i]
         fname = gettif(sc,ecoreg,terr)#gets the appropriate distance tif for each point in the pointlist
         point_name = "C:\Users\Eric Cawi\Documents\SAR\test_cases\Distance_" + key[i]+".tif" # the proper format for the thingy
-        arcpy.CopyFeatures_management(fname,point_name) #copies the file raster to a raster with the proper format for file upload
+        shutil.copy(fname,point_name) #arcpy copy wasn't working.  This hopefully does.
 
 exit;
 
