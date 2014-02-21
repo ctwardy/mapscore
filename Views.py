@@ -2561,9 +2561,13 @@ def upload_casefile(request):
 
         # Only save if find location in bounds
         if New_Case.findx == "Out of Bounds" or New_Case.findy == "Out of Bounds":
-
-            New_Case.delete()
+            #print New_Case.case_name + " is out of bounds"
+            # saving anyway
+            print New_Case.case_name + " is out of bounds but saving anyway"            
+            New_Case.save()
+            #New_Case.delete()
         else:
+            print New_Case.case_name + " is in of bounds"            
             New_Case.save()
 
         line = filein.readline()
