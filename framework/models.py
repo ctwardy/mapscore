@@ -1132,115 +1132,73 @@ class Test(models.Model):
 
 		return correctlist
 
-#...............................................................................................
-# Rating script
-#..............................................................................................
+#.........................................................................................
+# Rating scripts
+#.........................................................................................
+    def getmap(self):
+        '''Load the image and force it to be grayscale.
+           Return a values as a (5001,5001) numpy array.
+		   This should be faster than the old 'for' loop checking pixels for RGB.
+
+		   TODO: 
+		     * If the image is already greyscale, does this still convert?
+			 * Can we open direct to numpy array and avoid second conversion?
+			 * What if Image throws and exception?
+			 
+        '''
+		Path = self.greyscale_path
+		Im = Image.open(Path).convert(mode="L")
+		values = np.array(Im.getdata())
+        return values.reshape((5001,5001))
 
 	def rate(self):
+        '''Scores the image using Rossmo's metric: r = (n+.5m)/N; R = (.5-r)/.5
 
-		Path =self.greyscale_path
+		We assume each pixel has the probability for that cell.
+			n = the #pixels with probability greater than the find location
+			m = the #pixels with probability equal to that of the find location
+			N = total #pixels in the image
 
-		Im = Image.open(Path)
-		PixelArray = Im.load()
-		Bands = Im.getbands()
-		AllValues = Im.getdata()
+		Rossmo's R ranges from -1..1.  In our version, random or single-color
+		maps get a score of 0.  
 
-		#Determine if ImageRGB 
+		For find locations outside the bounding box, we simply compare the total
+		probability inside the bounding box with the remainder "Rest of World"
+		or ROW probability. If the model probs sum to 1 or more, then we use
+		a conventional split with ROW=5% and bounding box=95%.  In that case,
+		r = .95 and R = -.9.  
 
-		if Bands[0] == "R" and Bands[1] =="G" and Bands[2] == "B":
+        2014-02:
+         * Refactored load to getmap(), and removed duplicate code.
+         * Replaced inefficient loop with numpy ops. Thanks msonwalk for template!
+		 * Handled case where findloc is outside the image. (ROW)
 
-			#Ensure Image is Greyscale
-			Check = 0
-			for i in AllValues:
-				if i[0] == i[1] and i[1] == i[2]:
-					Check = Check
-				else:
-					Check = Check + 1
+        '''
+        x,y = int(self.test_case.findx), int(self.test_case.findy)
+        values = self.getmap()			# a numpy array
+        N = np.size(values)				# num pixels
+        assert(N == 5001*5001)
 
-			if Check == 0:
-				# Extract find location pixel value
-				FindArray = PixelArray[int(self.test_case.findx),int(self.test_case.findy)]
-				FindValue = FindArray[1]
-
-				TotalUnits = 0
-				Greater = 0
-				Equal = 0
-				for i in AllValues:
-					TotalUnits = TotalUnits + 1
-					if i[1] > FindValue:
-						Greater = Greater + 1
-					if i[1] == FindValue:
-						Equal = Equal + 1
-
-				# get r value
-				r = (float(Greater)+ (float(Equal)/2)) / float(TotalUnits)
-
-				#Get r value
-				R = (0.5 - r)/0.5
-
-				# Set rating
-				self.test_rating = round(R,6)
-
-				# ping Model
-
-				self.Active = False
-				self.save()
-				self.model_set.all()[0].update_rating()
-
-
-				return 0
-
-
-			# Not Greyscale
-			else:		
-				return 1
-
-
-		# Determine if image greyscale		
-		elif Bands[0] == "L" or Bands[0] == "P":
-
-
-
-			# Extract find location pixel value
-			FindArray = PixelArray[int(self.test_case.findx),int(self.test_case.findy)]
-			FindValue = FindArray
-
-			TotalUnits = 0
-			Greater = 0
-			Equal = 0
-			for i in AllValues:
-				TotalUnits = TotalUnits + 1
-				if i > FindValue:
-					Greater = Greater + 1
-				elif i == FindValue:
-					Equal = Equal + 1	
-
-			# get r value
-			r = (float(Greater)+ (float(Equal)/2)) / float(TotalUnits)
-
-			#Get r value
-			R = (0.5 - r)/0.5
-
-			#Set rating 
-			self.test_rating =  round(R,5)
-
-			# ping Model
-
-			self.Active = False
-			self.save()
-			self.model_set.all()[0].update_rating()
-
-
-			return 0
-
-		# Not Greyscale or Rgb
+		
+		if (0 <= x <= 5000) and (0 <= y <= 5000):
+        	p = values[x,y]				# prob at find location
+			n = np.sum(values > p)		# num pixels > p
+			m = np.sum(values == p)		# num pixels == p
+			r = (n + m/2.)/N    		# Uses decimal to force float division
 		else:
+			p = 1. - np.sum(values)		# prob for ROW
+			if p < 0 or p > 1:			# model didn't consider ROW
+				p = .05					# assume 5% for ROW
+			r = 1-p						# Assume we search bbox before ROW
 
-			return 2
+		R = (.5-r)/.5					# Rescale to -1..1
 
-
-		# Save
-		self.save()
+    	# Store result and update model
+		self.test_rating = round(R,6)
+        self.Active = False
+        self.save()
+        self.model_set.all()[0].update_rating()
+        return 0						# could return r,R
 
 #----------------------------------------------------------------------------------
 # Define Model Class
