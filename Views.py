@@ -1256,7 +1256,7 @@ def grid_test_result(request):
 
     #run assessment and capture result
 
-    result = request.session['active_test'].Assessment(pt1x,pt1y,pt2x,pt2y,pt3x,pt3y,pt4x,pt4y,pt5x,pt5y,pt6x,pt6y,pt7x,pt7y,pt8x,pt8y,pt9x,pt9y)
+#    result = request.session['active_test'].Assessment(pt1x,pt1y,pt2x,pt2y,pt3x,pt3y,pt4x,pt4y,pt5x,pt5y,pt6x,pt6y,pt7x,pt7y,pt8x,pt8y,pt9x,pt9y)
 
 
     #-------------------------------------------------
