@@ -971,6 +971,7 @@ def setactive_test(request):
 
 #-------------------------------------------------------------------------------------------
 def Activate_instructions(request):
+    '''Enables instructions screen, and calls instructions page.'''
 
     AUTHENTICATE()
 
@@ -982,341 +983,40 @@ def Activate_instructions(request):
 
 #-------------------------------------------------------------------
 def tst_instructions(request):
+    '''Show the instructions for creating images.'''
 
     AUTHENTICATE()
-    if int(request.session['active_test'].nav) == 2:
-
-        if request.session['active_test'].show_instructions == True:
-            request.session['active_test'].show_instructions = False
-            request.session['active_test'].save()
-            return render_to_response('tst_instruct2.html')
-        else:
-            return redirect('/test_active/')
-
-
+    if request.session['active_test'].show_instructions == True:
+        request.session['active_test'].show_instructions = False
+        request.session['active_test'].save()
+        return render_to_response('tst_instructions.html')
     else:
-        if request.session['active_test'].show_instructions == True:
-            request.session['active_test'].show_instructions = False
-            request.session['active_test'].save()
-            return render_to_response('tst_instructions.html')
-        else:
-            return redirect('/test_active/')
+        return redirect('/test_active/')
 
 #-------------------------------------------------------------------------------------------
 
 def active_test(request):
-
+    '''Retrieve data for the active test and render file_up.html.
+    
+    This used to administer the gridtest if you hadn't already passed.
+    
+    TODO: there is no need to define all these local variables.
+    
+    '''
     AUTHENTICATE()
 
     #request.session['active_test'] = Test.objects.get(ID2 = request.session['active_test'].ID2)
     active_test = request.session['active_test']
     print str(active_test.nav) + '-----nav'
-
-    # If you have not passed  or conducted current test
-    if int(active_test.nav) == 0:
-
-        active_test = request.session['active_test']
-        active_case = active_test.test_case
-
-        pt1 = '(' + str(active_test.Lat1) + ',' + str(active_test.Lon1) +')'
-        pt2 = '(' + str(active_test.Lat2 )+ ',' + str(active_test.Lon2)+ ')'
-        pt3 = '(' + str(active_test.Lat3 )+ ',' + str(active_test.Lon3)+ ')'
-        pt4 = '(' + str(active_test.Lat4 )+ ',' + str(active_test.Lon4)+ ')'
-        pt5 = '(' + str(active_test.Lat5 )+ ',' + str(active_test.Lon5)+ ')'
-        pt6 = '(' + str(active_test.Lat6 )+ ',' + str(active_test.Lon6)+ ')'
-        pt7 = '(' + str(active_test.Lat7 )+ ',' + str(active_test.Lon7)+ ')'
-        pt8 = '(' + str(active_test.Lat8 )+ ',' + str(active_test.Lon8)+ ')'
-        pt9 = '(' + str(active_test.Lat9 )+ ',' + str(active_test.Lon9)+ ')'
-
-        url = active_test.test_url
-
-
-        LKP = '('+active_case.lastlat + ',' +active_case.lastlon + ')'
-        totalcells = active_case.totalcellnumber
-        sidecells = active_case.sidecellnumber
-        uplat = active_case.upright_lat
-        rightlon = active_case.upright_lon
-        downlat = active_case.downright_lat
-        leftlon = active_case.upleft_lon
-
-        inputdic = {'pt1':pt1,'pt2':pt2,'pt3':pt3,'pt4':pt4,'pt5':pt5,'pt6':pt6,'pt7':pt7,'pt8':pt8,'pt9':pt9,'pic':url,'LKP':LKP,'totalcells':totalcells,'sidecells':sidecells,'uplat':uplat,'rightlon':rightlon,'downlat':downlat,'leftlon':leftlon}
-        inputdic['rand'] = str(random.randint(1,1000000000000))
-        return render_to_response('grid_intest.html',inputdic)
-
-    # If you have failed current test
-    elif int(active_test.nav) == 1:
-        time.sleep(1)
-        return redirect('/grid_testresult/')
-
-
-    # If you passed your test
-    elif int(active_test.nav) == 2 and request.session['active_test'].Validated == True:
-
-        active_test = request.session['active_test']
-        active_case = active_test.test_case
-
-
-        age = active_case.Age
-        name = active_case.case_name
-        sex = active_case.Sex
-        country = active_case.country
-        state = active_case.state        
-        LKP = '('+active_case.lastlat + ',' +active_case.lastlon + ')'
-        totalcells = active_case.totalcellnumber
-        sidecells = active_case.sidecellnumber
-        uplat = active_case.upright_lat
-        rightlon = active_case.upright_lon
-        downlat = active_case.downright_lat
-        leftlon = active_case.upleft_lon
-
-        account_name = request.session['active_account'].institution_name
-        model_name = request.session['active_model'].model_nameID
-        URL = active_case.URL
-
-        subject_category = active_case.subject_category
-        subject_subcategory = active_case.subject_subcategory
-        scenario   =  active_case.scenario
-        subject_activity  = active_case.subject_activity
-        number_lost  = active_case.number_lost
-        group_type = active_case.group_type
-        ecoregion_domain  = active_case.ecoregion_domain
-        ecoregion_division = active_case.ecoregion_division
-        terrain     = active_case.terrain
-        total_hours = active_case.total_hours
-
-
-
-
-
-    # Create Input dictionary
-
-        inputdic = {'Name_act':account_name, 'Name_m':model_name, 'name' :name, 'age':age,'country':country,'state':state, 'sex':sex,'LKP':LKP,'horcells':sidecells,'vercells':sidecells,'totcells' : totalcells, 'cellwidth' : 5, 'regionwidth' : 25,'uplat':uplat,'rightlon':rightlon,'downlat':downlat,'leftlon':leftlon,'MAP':URL}
-        inputdic['subject_category'] = subject_category
-        inputdic['subject_subcategory'] = subject_subcategory
-        inputdic['scenario'] = scenario
-        inputdic['subject_activity'] = subject_activity
-        inputdic['number_lost'] = number_lost
-        inputdic['group_type'] = group_type
-        inputdic['ecoregion_domain'] = ecoregion_domain
-        inputdic['ecoregion_division'] = ecoregion_division
-        inputdic['terrain'] = terrain
-        inputdic['total_hours'] = total_hours
-        inputdic['layer'] = active_case.UploadedLayers
-
-        inputdic.update(csrf(request))
-        return render_to_response('file_up.html',inputdic)
-
-#---------------------------------------------------------------
-
-def grid_test_result(request):
-
-    AUTHENTICATE()
-
+    active_test.nav == 2      # Assume we passed the grid test
     active_test = request.session['active_test']
     active_case = active_test.test_case
 
-    # If test already run; not regenerated
-
-    if int(active_test.nav) == 1:
-        pt1x = active_test.usr_p1x
-        pt1y = active_test.usr_p1y
-        pt2x = active_test.usr_p2x
-        pt2y = active_test.usr_p2y
-        pt3x = active_test.usr_p3x
-        pt3y = active_test.usr_p3y
-        pt4x = active_test.usr_p4x
-        pt4y = active_test.usr_p4y
-        pt5x = active_test.usr_p5x
-        pt5y = active_test.usr_p5y
-        pt6x = active_test.usr_p6x
-        pt6y = active_test.usr_p6y
-        pt7x = active_test.usr_p7x
-        pt7y = active_test.usr_p7y
-        pt8x = active_test.usr_p8x
-        pt8y = active_test.usr_p8y
-        pt9x = active_test.usr_p9x
-        pt9y = active_test.usr_p9y
-
-    # if test not already run
-    else:
-        # Get user input of points
-        pt1x = request.GET['pt1x']
-        pt1y = request.GET['pt1y']
-
-        pt2x = request.GET['pt2x']
-        pt2y = request.GET['pt2y']
-
-        pt3x = request.GET['pt3x']
-        pt3y = request.GET['pt3y']
-
-        pt4x = request.GET['pt4x']
-        pt4y = request.GET['pt4y']
-
-        pt5x = request.GET['pt5x']
-        pt5y = request.GET['pt5y']
-
-        pt6x = request.GET['pt6x']
-        pt6y = request.GET['pt6y']
-
-        pt7x = request.GET['pt7x']
-        pt7y = request.GET['pt7y']
-
-        pt8x = request.GET['pt8x']
-        pt8y = request.GET['pt8y']
-
-        pt9x = request.GET['pt9x']
-        pt9y = request.GET['pt9y']
-
-        # run match and verify input
-
-        pattern ='^[0-9]+$'
-
-        count = 0
-
-        LKP = '('+active_case.lastlat + ',' +active_case.lastlon + ')'
-        totalcells = active_case.totalcellnumber
-        sidecells = active_case.sidecellnumber
-        uplat = active_case.upright_lat
-        rightlon = active_case.upright_lon
-        downlat = active_case.downright_lat
-        leftlon = active_case.upleft_lon
-
-
-        inputdic01 ={'pt1x_i':pt1x,'pt1y_i':pt1y,'pt2x_i':pt2x,'pt2y_i':pt2y,'pt3x_i':pt3x,'pt3y_i':pt3y,'pt4x_i':pt4x,'pt4y_i':pt4y,'pt5x_i':pt5x,'pt6x_i':pt6x,'pt6y_i':pt6y,'pt7x_i':pt7x,'pt7y_i':pt7y,'pt8x_i':pt8x,'pt8y_i':pt8y,'pt9x_i':pt9x,'pt9y_i':pt9y,'LKP':LKP,'totalcells':totalcells,'sidecells':sidecells,'uplat':uplat,'rightlon':rightlon,'downlat':downlat,'leftlon':leftlon}
-        if re.match(pattern,pt1x) == None or re.match(pattern,pt1y) == None:
-            inputdic01['fail1'] = True
-            count = count + 1
-
-        if re.match(pattern,pt2x) == None or re.match(pattern,pt2y) == None:
-            inputdic01['fail2'] = True
-            count = count + 1
-
-        if re.match(pattern,pt3x) == None or re.match(pattern,pt3y) == None:
-            inputdic01['fail3'] = True
-            count = count + 1
-
-        if re.match(pattern,pt4x) == None or re.match(pattern,pt4y) == None:
-            inputdic01['fail4'] = True
-            count = count + 1
-
-        if re.match(pattern,pt5x) == None or re.match(pattern,pt5y) == None:
-            inputdic01['fail5'] = True
-            count = count + 1
-
-        if re.match(pattern,pt6x) == None or re.match(pattern,pt6y) == None:
-            inputdic01['fail6'] = True
-            count = count + 1
-
-        if re.match(pattern,pt7x) == None or re.match(pattern,pt7y) == None:
-            inputdic01['fail7'] = True
-            count = count + 1
-
-        if re.match(pattern,pt8x) == None or re.match(pattern,pt8y) == None:
-            inputdic01['fail8'] = True
-            count = count + 1
-
-        if re.match(pattern,pt9x) == None or re.match(pattern,pt9y) == None:
-            inputdic01['fail9'] = True
-            count = count + 1
-
-        # IF input errors, return input form to user with suggestions
-        if count >0:
-
-            pt1 = '(' + str(active_test.Lat1) + ',' + str(active_test.Lon1) +')'
-            pt2 = '(' + str(active_test.Lat2 )+ ',' + str(active_test.Lon2)+ ')'
-            pt3 = '(' + str(active_test.Lat3 )+ ',' + str(active_test.Lon3)+ ')'
-            pt4 = '(' + str(active_test.Lat4 )+ ',' + str(active_test.Lon4)+ ')'
-            pt5 = '(' + str(active_test.Lat5 )+ ',' + str(active_test.Lon5)+ ')'
-            pt6 = '(' + str(active_test.Lat6 )+ ',' + str(active_test.Lon6)+ ')'
-            pt7 = '(' + str(active_test.Lat7 )+ ',' + str(active_test.Lon7)+ ')'
-            pt8 = '(' + str(active_test.Lat8 )+ ',' + str(active_test.Lon8)+ ')'
-            pt9 = '(' + str(active_test.Lat9 )+ ',' + str(active_test.Lon9)+ ')'
-
-            url = active_test.test_url
-
-            inputdic01['pt1'] = pt1
-            inputdic01['pt2'] = pt2
-            inputdic01['pt3'] = pt3
-            inputdic01['pt4'] = pt4
-            inputdic01['pt5'] = pt5
-            inputdic01['pt6'] = pt6
-            inputdic01['pt7'] = pt7
-            inputdic01['pt8'] = pt8
-            inputdic01['pt9'] = pt9
-            inputdic01['pic'] = url
-
-            inputdic01['fail'] = True
-
-
-
-
-
-            return render_to_response('grid_intest.html',inputdic01)
-
-
-    #run assessment and capture result
-
-#    result = request.session['active_test'].Assessment(pt1x,pt1y,pt2x,pt2y,pt3x,pt3y,pt4x,pt4y,pt5x,pt5y,pt6x,pt6y,pt7x,pt7y,pt8x,pt8y,pt9x,pt9y)
-
-
-    #-------------------------------------------------
-    #status input
-
-    status = []
-    for i in result:
-        if i == True:
-            status.append('Pass')
-        if i == False:
-            status.append('Fail')
-    #-----------------------------------------------------
-
-    #pt_sgrid coordinate
-
-    pt_sgrid =[]
-    pt_sgrid.append('(' + str(pt1x) + ',' + str(pt1y) + ')')
-    pt_sgrid.append('(' + str(pt2x) + ',' + str(pt2y) + ')')
-    pt_sgrid.append('(' + str(pt3x) + ',' + str(pt3y) + ')')
-    pt_sgrid.append('(' + str(pt4x) + ',' + str(pt4y) + ')')
-    pt_sgrid.append('(' + str(pt5x) + ',' + str(pt5y) + ')')
-    pt_sgrid.append('(' + str(pt6x) + ',' + str(pt6y) + ')')
-    pt_sgrid.append('(' + str(pt7x) + ',' + str(pt7y) + ')')
-    pt_sgrid.append('(' + str(pt8x) + ',' + str(pt8y) + ')')
-    pt_sgrid.append('(' + str(pt9x) + ',' + str(pt9y) + ')')
-
-    #---------------------------------------------------------------
-    # pt_latlon coordinates
-
-    pt_latlon = []
-    pt_latlon.append('(' + str(active_test.Lat1) + ',' + str(active_test.Lon1) + ')')
-    pt_latlon.append('(' + str(active_test.Lat2) + ',' + str(active_test.Lon2 )+ ')')
-    pt_latlon.append('(' + str(active_test.Lat3) + ',' + str(active_test.Lon3 )+ ')')
-    pt_latlon.append('(' + str(active_test.Lat4 )+ ',' + str(active_test.Lon4 )+ ')')
-    pt_latlon.append( '(' + str(active_test.Lat5 )+ ',' + str(active_test.Lon5) + ')')
-    pt_latlon.append('(' + str(active_test.Lat6 )+ ',' + str(active_test.Lon6 )+ ')')
-    pt_latlon.append('(' + str(active_test.Lat7 )+ ',' + str(active_test.Lon7) + ')')
-    pt_latlon.append('(' + str(active_test.Lat8) + ',' + str(active_test.Lon8) + ')')
-    pt_latlon.append('(' + str(active_test.Lat9) + ',' + str(active_test.Lon9) + ')')
-
-    #--------------------------------------------------------------
-    # pt_agrid
-
-    pt_agrid = []
-
-    pt_agrid.append('(' + str(active_test.pt1x) + ',' + str(active_test.pt1y) + ')')
-    pt_agrid.append('(' + str(active_test.pt2x) + ',' + str(active_test.pt2y) + ')')
-    pt_agrid.append('(' + str(active_test.pt3x) + ',' + str(active_test.pt3y) + ')')
-    pt_agrid.append('(' + str(active_test.pt4x) + ',' + str(active_test.pt4y) + ')')
-    pt_agrid.append('(' + str(active_test.pt5x) + ',' + str(active_test.pt5y) + ')')
-    pt_agrid.append('(' + str(active_test.pt6x) + ',' + str(active_test.pt6y) + ')')
-    pt_agrid.append('(' + str(active_test.pt7x) + ',' + str(active_test.pt7y) + ')')
-    pt_agrid.append('(' + str(active_test.pt8x) + ',' + str(active_test.pt8y) + ')')
-    pt_agrid.append('(' + str(active_test.pt9x) + ',' + str(active_test.pt9y) + ')')
-
-
-    url = request.session['active_test'].test_url
-
-    active_case = active_test.test_case
-
+    age = active_case.Age
+    name = active_case.case_name
+    sex = active_case.Sex
+    country = active_case.country
+    state = active_case.state        
     LKP = '('+active_case.lastlat + ',' +active_case.lastlon + ')'
     totalcells = active_case.totalcellnumber
     sidecells = active_case.sidecellnumber
@@ -1324,225 +1024,43 @@ def grid_test_result(request):
     rightlon = active_case.upright_lon
     downlat = active_case.downright_lat
     leftlon = active_case.upleft_lon
-    inputdic = {'pic':url, 'pt_agrid':pt_agrid,'status':status,'pt_latlon':pt_latlon,'pt_sgrid':pt_sgrid,'LKP':LKP,'totalcells':totalcells,'sidecells':sidecells,'uplat':uplat,'rightlon':rightlon,'downlat':downlat,'leftlon':leftlon}
 
-    # If you passed, mark on test
-    if False not in result:
+    account_name = request.session['active_account'].institution_name
+    model_name = request.session['active_model'].model_nameID
+    URL = active_case.URL
 
-        request.session['active_test'].nav = 1
-        request.session['active_test'].save()
+    subject_category = active_case.subject_category
+    subject_subcategory = active_case.subject_subcategory
+    scenario   =  active_case.scenario
+    subject_activity  = active_case.subject_activity
+    number_lost  = active_case.number_lost
+    group_type = active_case.group_type
+    ecoregion_domain  = active_case.ecoregion_domain
+    ecoregion_division = active_case.ecoregion_division
+    terrain     = active_case.terrain
+    total_hours = active_case.total_hours
 
-        return render_to_response('grid_affirmation_Pass.html',inputdic)
+    # Create Input dictionary
 
-    # If you fail, progress
-    else:
+    inputdic = {'Name_act':account_name, 'Name_m':model_name, 'name' :name, 'age':age,
+                'country':country,'state':state, 'sex':sex,'LKP':LKP,'horcells':sidecells,
+                'vercells':sidecells,'totcells' : totalcells, 'cellwidth' : 5,
+                'regionwidth' : 25,'uplat':uplat,'rightlon':rightlon,'downlat':downlat,
+                'leftlon':leftlon,'MAP':URL}
+    inputdic['subject_category'] = subject_category
+    inputdic['subject_subcategory'] = subject_subcategory
+    inputdic['scenario'] = scenario
+    inputdic['subject_activity'] = subject_activity
+    inputdic['number_lost'] = number_lost
+    inputdic['group_type'] = group_type
+    inputdic['ecoregion_domain'] = ecoregion_domain
+    inputdic['ecoregion_division'] = ecoregion_division
+    inputdic['terrain'] = terrain
+    inputdic['total_hours'] = total_hours
+    inputdic['layer'] = active_case.UploadedLayers
 
-        request.session['active_test'].nav = 1
-        request.session['active_test'].save()
-        #Prevent Cached image
-        inputdic['rand'] = str(random.randint(1,1000000000000))
-        return render_to_response('grid_affirmation_Fail.html',inputdic)
-
-#----------------------------------------------------------------------
-def regen_test(request):
-
-    AUTHENTICATE()
-
-    request.session['active_test'].nav = 0
-    os.remove(request.session['active_test'].test_url2)
-    request.session['active_test'].generate_testpoints()
-    request.session['active_test'].save()
-    return redirect('/test_active/')
-
-#-------------------------------------------------------------------------
-
-def passtest(request):
-
-    AUTHENTICATE()
-
-    active_test = request.session['active_test']
-    request.session['active_test'].Validated = True
-    request.session['active_test'].nav = 2
-    request.session['active_test'].save()
-    os.remove(request.session['active_test'].test_url2)
-
-    request.session['active_test'].show_instructions = True
-    request.session['active_test'].save()
-
-    request.session['active_model'].gridvalidated = True
-    request.session['active_model'].save()
-    return redirect('/test_instructions/')
-
-#------------------------------------------------------------------------
-def Bulkin(request):
-
-    AUTHENTICATE()
-
-    active_test = request.session['active_test']
-    inall = request.GET['Bulkin']
-    stringlst = request.GET['Bulkin'].split()
-    active_case = active_test.test_case
-
-    # Verify input
-    pattern ='^[0-9]+$'
-
-    LKP = '('+active_case.lastlat + ',' +active_case.lastlon + ')'
-    totalcells = active_case.totalcellnumber
-    sidecells = active_case.sidecellnumber
-    upright = '('+active_case.upright_lat  + ',' +active_case.upright_lon + ')'
-    downleft = '('+active_case.downleft_lat     + ',' +active_case.downleft_lon + ')'
-    downright = '('+active_case.downright_lat  + ',' +active_case.downright_lon + ')'
-    upleft = '('+active_case.upleft_lat  + ',' +active_case.upleft_lon + ')'
-
-
-    inputdic01 ={'inall':inall,'LKP':LKP,'totalcells':totalcells,'sidecells':sidecells,'upright':upright,'downleft':downleft,'downright':downright,'upleft':upleft}
-
-    count01 = 0
-    if len(stringlst) > 18:
-        count01 = count01 + 1
-        inputdic01['fail_10'] = True
-
-
-    if len(stringlst) < 18:
-        count01 = count01 + 1
-        inputdic01['fail_11'] = True
-
-    # If length failure
-
-    if count01 > 0:
-
-        pt1 = '(' + str(active_test.Lat1) + ',' + str(active_test.Lon1) +')'
-        pt2 = '(' + str(active_test.Lat2 )+ ',' + str(active_test.Lon2)+ ')'
-        pt3 = '(' + str(active_test.Lat3 )+ ',' + str(active_test.Lon3)+ ')'
-        pt4 = '(' + str(active_test.Lat4 )+ ',' + str(active_test.Lon4)+ ')'
-        pt5 = '(' + str(active_test.Lat5 )+ ',' + str(active_test.Lon5)+ ')'
-        pt6 = '(' + str(active_test.Lat6 )+ ',' + str(active_test.Lon6)+ ')'
-        pt7 = '(' + str(active_test.Lat7 )+ ',' + str(active_test.Lon7)+ ')'
-        pt8 = '(' + str(active_test.Lat8 )+ ',' + str(active_test.Lon8)+ ')'
-        pt9 = '(' + str(active_test.Lat9 )+ ',' + str(active_test.Lon9)+ ')'
-
-        url = active_test.test_url
-
-        inputdic01['pt1'] = pt1
-        inputdic01['pt2'] = pt2
-        inputdic01['pt3'] = pt3
-        inputdic01['pt4'] = pt4
-        inputdic01['pt5'] = pt5
-        inputdic01['pt6'] = pt6
-        inputdic01['pt7'] = pt7
-        inputdic01['pt8'] = pt8
-        inputdic01['pt9'] = pt9
-        inputdic01['pic'] = url
-
-        inputdic01['fail_t'] = True
-
-        return render_to_response('grid_intest.html',inputdic01)
-
-    # If length proper ...test content
-
-    active_test.usr_p1x = stringlst[0]
-    active_test.usr_p1y = stringlst[1]
-    active_test.usr_p2x = stringlst[2]
-    active_test.usr_p2y = stringlst[3]
-    active_test.usr_p3x = stringlst[4]
-    active_test.usr_p3y = stringlst[5]
-    active_test.usr_p4x = stringlst[6]
-    active_test.usr_p4y = stringlst[7]
-    active_test.usr_p5x = stringlst[8]
-    active_test.usr_p5y = stringlst[9]
-    active_test.usr_p6x = stringlst[10]
-    active_test.usr_p6y = stringlst[11]
-    active_test.usr_p7x = stringlst[12]
-    active_test.usr_p7y = stringlst[13]
-    active_test.usr_p8x = stringlst[14]
-    active_test.usr_p8y = stringlst[15]
-    active_test.usr_p9x = stringlst[16]
-    active_test.usr_p9y = stringlst[17]
-
-
-
-
-
-
-    count = 0
-    if re.match(pattern,stringlst[0]) == None or re.match(pattern,stringlst[1]) == None :
-        count = count + 1
-        inputdic01['fail_1'] = True
-
-    if re.match(pattern,stringlst[2]) == None or  re.match(pattern,stringlst[3]) == None :
-        count = count + 1
-        inputdic01['fail_2'] = True
-
-    if re.match(pattern,stringlst[4]) == None or re.match(pattern,stringlst[5]) == None:
-        count = count + 1
-        inputdic01['fail_3'] = True
-
-    if re.match(pattern,stringlst[6]) == None or re.match(pattern,stringlst[7]) == None :
-        count = count + 1
-        inputdic01['fail_4'] = True
-
-
-    if re.match(pattern,stringlst[8]) == None or re.match(pattern,stringlst[9]) == None :
-        count = count + 1
-        inputdic01['fail_5'] = True
-
-    if re.match(pattern,stringlst[10]) == None or  re.match(pattern,stringlst[11]) == None :
-        count = count + 1
-        inputdic01['fail_6'] = True
-
-    if re.match(pattern,stringlst[12]) == None or re.match(pattern,stringlst[13]) == None:
-        count = count + 1
-        inputdic01['fail_7'] = True
-
-    if re.match(pattern,stringlst[14]) == None or re.match(pattern,stringlst[15]) == None  :
-        count = count + 1
-        inputdic01['fail_8'] = True
-
-    if re.match(pattern,stringlst[16]) == None or re.match(pattern,stringlst[17]) == None:
-        count = count + 1
-        inputdic01['fail_9'] = True
-
-
-
-
-
-    # If failure
-    if count > 0:
-
-        pt1 = '(' + str(active_test.Lat1) + ',' + str(active_test.Lon1) +')'
-        pt2 = '(' + str(active_test.Lat2 )+ ',' + str(active_test.Lon2)+ ')'
-        pt3 = '(' + str(active_test.Lat3 )+ ',' + str(active_test.Lon3)+ ')'
-        pt4 = '(' + str(active_test.Lat4 )+ ',' + str(active_test.Lon4)+ ')'
-        pt5 = '(' + str(active_test.Lat5 )+ ',' + str(active_test.Lon5)+ ')'
-        pt6 = '(' + str(active_test.Lat6 )+ ',' + str(active_test.Lon6)+ ')'
-        pt7 = '(' + str(active_test.Lat7 )+ ',' + str(active_test.Lon7)+ ')'
-        pt8 = '(' + str(active_test.Lat8 )+ ',' + str(active_test.Lon8)+ ')'
-        pt9 = '(' + str(active_test.Lat9 )+ ',' + str(active_test.Lon9)+ ')'
-
-        url = active_test.test_url
-
-        inputdic01['pt1'] = pt1
-        inputdic01['pt2'] = pt2
-        inputdic01['pt3'] = pt3
-        inputdic01['pt4'] = pt4
-        inputdic01['pt5'] = pt5
-        inputdic01['pt6'] = pt6
-        inputdic01['pt7'] = pt7
-        inputdic01['pt8'] = pt8
-        inputdic01['pt9'] = pt9
-        inputdic01['pic'] = url
-
-        inputdic01['fail_t'] = True
-
-
-        return render_to_response('grid_intest.html',inputdic01)
-
-
-    # If Pass
-    active_test.nav = 1
-    active_test.save()
-
-    return redirect('/grid_testresult/')
+    inputdic.update(csrf(request))
+    return render_to_response('file_up.html',inputdic)
 
 #-------------------------------------------------------------------------
 # Load Image
@@ -2351,10 +1869,13 @@ def case_hyperin(request):
 #------------------------------------------------------------------------------------
 
 def upload_casefile(request):
+    '''Add a whole case file to the server.
+    
+    TODO: This could be a whole lot simpler.
+    '''
 
     AUTHENTICATE('admintoken')
-    # Take in file - save to server
-    #string = 'C:\Users\Nathan Jones\Django Website\MapRateWeb\case_in\input_unsorted.txt'
+
     string = 'case_in/input_unsorted.csv'
     destination = open(string,'wb+')
 
@@ -2372,126 +1893,84 @@ def upload_casefile(request):
     for csvlist in csvreader:
         count = 0
         csvstring = ""
-
         if counttotal > 0:
-
             for i in csvlist:
-
-
                 count = count + 1
-
                 if count == len(csvlist):
-
                     csvstring = csvstring + i + "$"
-
                 else:
                     csvstring = csvstring + i + "|"
-
             masterlist.append(csvstring)
-
         counttotal = counttotal + 1
-
     filea.close()
 
     input1 = str(masterlist)
-
     print "\n\n------------------------------------------------------------\n\n"
     print masterlist
 
     input1 = input1[2:len(input1)-2]
-
-
     newstring = ''
     store = None
     store1 = None
     store2 = None
     store3 = None
     for n in input1:
-
         if store != None and (n =='t' or n =='n'):
             store = None
-
         elif store1 != None and n == ',':
             store2 = store1 + n
             store1 = None
-
         elif store2 != None and n == ' ':
             store3 = store2 + n
             store2 = None
         elif store3 != None and (n == "'" or n == '"' ):
             store3 = None
             newstring = newstring + ' '
-
-
         else:
             if store != None:
                 newstring = newstring + str(store)
                 store = None
-
             if store1 != None:
                 newstring = newstring + str(store1)
                 store1 = None
-
             if store2 != None:
                 newstring = newstring + str(store2)
                 store2 = None
-
             if store3 != None:
                 newstring = newstring + str(store3)
                 store3 = None
-
             if n == '$':
                 newstring = newstring +'\n'
-
             elif n == "\\":
                 store = '\\'
-
             elif n == "'" or n=='"':
                 store1 = n
-
             else:
                 newstring = newstring + n
 
-
-
     # get rid of " characters (of no use)
-    finalstring = ''
-    for g in newstring:
-        g = str(g)
-        if g != '"':
-            finalstring = finalstring + g
-
-
+    finalstring = newstring.replace('"','')
 
     # Save filtered file
     sortedaddress = 'case_in/input_srt.txt'
     file2 = open(sortedaddress,'wb+')
-
     file2.write(finalstring)
     file2.close()
 
 
     filein = open(sortedaddress,'r')
-
     line = filein.readline()
     #remove whitespace
     pattern = r'^\s*(.*)\s*$'
-
-
     while line != '':
         items = ''
 
         #Accounting for server adding \r after \n
         if line[0] =='\\' and line[1] == 'r':
             line = line[2:]
-
         if line == '':
-
             break
-
         items = line.split('|')
-
-
 
         name = str(re.match(pattern,items[0]).group(1))
         key = str(re.match(pattern,items[1]).group(1))
@@ -2522,9 +2001,7 @@ def upload_casefile(request):
         search_hours = str(re.match(pattern,items[24]).group(1))
         comments = str(re.match(pattern,items[25]).group(1))
 
-
         New_Case = Case(
-
             lastlat = LKP_lat,
             lastlon = LKP_lon,
             findlat = find_lat,
@@ -2551,22 +2028,9 @@ def upload_casefile(request):
             county = county1,
             populationdensity = populationdensity1,
             weather = weather1,
-
-
-
-
             )
         New_Case.save()
         New_Case.initialize()
-
-        # Only save if find location in bounds
-        if New_Case.findx == "Out of Bounds" or New_Case.findy == "Out of Bounds":
-#            New_Case.delete()
-            print New_Case.case_name + " is out of bounds but saving anyway."
-            New_Case.save()            
-        else:
-            New_Case.save()
-
         line = filein.readline()
 
     filein.close()
@@ -2574,16 +2038,10 @@ def upload_casefile(request):
     os.remove(sortedaddress)
 
     for case in Case.objects.all():
-
         case.UploadedLayers = False
-        case.save()
-
         if os.path.exists(str(case.LayerField)):
             case.UploadedLayers = True
-            case.save()
-
-
-
+        case.save()
 
     return render_to_response('bulkcasereg_complete.html')
 
@@ -5522,47 +4980,6 @@ def reg_conditions(request):
     return render_to_response('regconditions.html')
 
 
-#---------------------------------------------------------------------------------
-def DownloadGridsync(request):
-
-    #------------------------------------------------------------------
-    # Token Verification
-    try:
-        if request.session['usertoken'] == False:
-            return render_to_response('noaccess.html',{})
-    except:
-        return render_to_response('noaccess.html',{})
-
-    #----------------------------------------------------------------
-
-
-    active_test = request.session['active_test']
-
-    instring =   str(active_test.Lat1) + ',' + str(active_test.Lon1) + '\r\n' + str(active_test.Lat2 )+ ',' + str(active_test.Lon2) + '\r\n'
-    instring = instring  + str(active_test.Lat3 )+ ',' + str(active_test.Lon3) + '\r\n'+ str(active_test.Lat4 )+ ',' + str(active_test.Lon4) + '\r\n'
-    instring = instring  + str(active_test.Lat5 )+ ',' + str(active_test.Lon5) + '\r\n' + str(active_test.Lat6 )+ ',' + str(active_test.Lon6) + '\r\n'
-    instring = instring + str(active_test.Lat7 )+ ',' + str(active_test.Lon7) + '\r\n'+ str(active_test.Lat8 )+ ',' + str(active_test.Lon8)    + '\r\n'
-    instring = instring + str(active_test.Lat9 )+ ',' + str(active_test.Lon9)
-
-
-    #image = Image.open(NameFile)
-
-    #wrap = FileWrapper(NameFile)
-
-    resp = HttpResponse(content_type = 'text/plain')
-
-    #resp['Content-Length'] = os.path.getsize(NameFile)
-
-    resp['Content-Disposition'] = 'attachment; filename= GridSyncPts.txt'
-
-    #image.save(resp,'png')
-
-    resp.write(instring)
-
-
-    return resp
-
-
 #----------------------------------------------------------------------------------------
 def DownloadParam(request):
 
@@ -5929,39 +5346,4 @@ def NextSequentialTestSwitch(request):
         return render_to_response('nomorecases.html')
 
     return redirect("/new_test/")
-
-#---------------------------------------------------------------------------------
-def DownloadGridsyncsol(request):
-
-    AUTHENTICATE()
-
-    active_test = request.session['active_test']
-
-    instring =   str(active_test.pt1x) + ' ' + str(active_test.pt1y) + '\r\n' + str(active_test.pt2x )+ ' ' + str(active_test.pt2y) + '\r\n'
-    instring = instring  + str(active_test.pt3x )+ ' ' + str(active_test.pt3y) + '\r\n'+ str(active_test.pt4x )+ ' ' + str(active_test.pt4y) + '\r\n'
-    instring = instring  + str(active_test.pt5x )+ ' ' + str(active_test.pt5y) + '\r\n' + str(active_test.pt6x )+ ' ' + str(active_test.pt6y) + '\r\n'
-    instring = instring + str(active_test.pt7x )+ ' ' + str(active_test.pt7y) + '\r\n'+ str(active_test.pt8x )+ ' ' + str(active_test.pt8y)    + '\r\n'
-    instring = instring + str(active_test.pt9x )+ ' ' + str(active_test.pt9y)
-
-
-    #image = Image.open(NameFile)
-
-    #wrap = FileWrapper(NameFile)
-
-    resp = HttpResponse(content_type = 'text/plain')
-
-    #resp['Content-Length'] = os.path.getsize(NameFile)
-
-    resp['Content-Disposition'] = 'attachment; filename= GridSyncPts.txt'
-
-    #image.save(resp,'png')
-
-    resp.write(instring)
-
-
-    return resp
-
-
-
-
 
