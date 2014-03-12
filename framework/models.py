@@ -332,7 +332,7 @@ class Model(models.Model):
             self.model_avgrating = 'unrated'
         else:
             ratings = [float(t.test_rating) for t in tests]
-            self.model_avgrating = round(np.average(ratings)5)
+            self.model_avgrating = round(np.average(ratings),5)
         self.save()
 
 
