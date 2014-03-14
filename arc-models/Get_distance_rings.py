@@ -287,6 +287,13 @@ for value in range(len(stateabbrv)):
         key.append(totname);
         keystr = ''
 
+for i in range(len(cat_list)):
+	raster_name = "C:/Users/Eric Cawi/Documents/SAR/tifs/" + cat_list[i] + ".tif"
+	transform_name = "C:/Users/Eric Cawi/Documents/Sar/tifs/transform" + cat_list[i] + ".tif"
+	transform_raster = 5*Int(Log2(raster_name))+255
+	transform_raster.save(transform_name)
+	
+
 for i in range(len(key)):
         
         sc = subject_category[i]
