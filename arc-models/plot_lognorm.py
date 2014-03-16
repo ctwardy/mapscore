@@ -57,38 +57,48 @@ def get_axis(s, axarr):
         return axarr[2,2]
     
 X = np.linspace(0,5,200)  # km
-linestyles = ['-','--','-.',':']
-cyclers = {}
+linestyles = {'Temp Mtn':('g','-'),
+              'Dry':('Sienna',':'),
+              'Dry Mtn':('Sienna',':'),
+              'Dry Flat':('tan','-.'),
+              'Urban':('Crimson','--'),
+              'Else':('k',':')
+              }
 fig, axarray = plt.subplots(3, 3, sharex='col', sharey='row')
-fig.set_size_inches(8,6)
-fig.suptitle("Lognormal Probability Density by Category (km)", fontsize=14)
 for line in data[1:]:
     categ, mu, sigma = line
-    if 'else' in categ:
+    if 'else' in categ.lower():
         continue
     scale, shape = np.exp(float(mu)), float(sigma)
-    Y = lognorm.pdf(X, [shape], scale=scale)
+    lnorm = lognorm([shape],scale=scale)
+    qtile = lnorm.ppf(.25)
     axis,title = get_axis(categ, axarray)
-    try:
-        linecycler = cyclers[axis]
-    except KeyError:
-        cyclers[axis] = cycle(linestyles)
-        linecycler = cyclers[axis]
-    axis.plot(X,Y,next(linecycler),label=categ[len(title):])
+    label=categ[len(title):].strip()
+    lc,ls = linestyles[label]
+    axis.plot(X, lnorm.pdf(X), color=lc, ls=ls, label=label, linewidth=2)
+    #axis.vlines(qtile,0, lnorm.pdf(qtile),linestyle='-',color=lc,alpha=.2)
+    axis.vlines(qtile,0,.05,linestyle=ls,color=lc,alpha=.6)
     axis.set_title(title)
     axis.legend()
     
 # Fine-tune figure; hide x ticks for top plots and y ticks for right plots
-plt.setp([a.get_xticklabels() for a in axarr[0, :]], visible=False)
-plt.setp([a.get_yticklabels() for a in axarr[:, 1]], visible=False)
+plt.setp([a.get_xticklabels() for a in axarray[0, :]], visible=False)
+plt.setp([a.get_yticklabels() for a in axarray[:, 1]], visible=False)
+# Hide empty subplots
+plt.setp(axarray[0,2], visible=False)
+plt.setp(axarray[1,2], visible=False)
 [ax.set_xlabel('DistIPP (km)') for ax in axarray[2,:]]
 [ax.set_ylabel('Probability Density') for ax in axarray[:,0]]
-plt.setp(axarray[0,2], visible=False)
-plt.setp(axarray[2,2], visible=False)
+fig.set_size_inches(8,6)
+fig.suptitle("Lognormal Probability Density by Category (km)", fontsize=20)
 
 
 plt.ylim((0,1.2))
 plt.legend()
+fig.text(.7,.7,r'$\rho(x) = \mathrm{lognormal}(x, \mu, \sigma)$',ha='left',fontsize=20)
+fig.text(.7,.6,
+         r'''$\rho(x) = \frac{1}{x \sigma \sqrt{2\pi}} \exp\left(\frac{\ln(x) - \mu}{\sqrt{2 \sigma^2}}\right)$''',
+         ha='left',fontsize=20)
 #plt.tight_layout()
 #plt.savefig('lognormals.pdf')
 plt.show()
