@@ -25,8 +25,8 @@ stdev_list = [1.115701619, 1.375214308, 1.37931074, 1.115285789, 1.071310929, \
 	1.526816248, 1.869920265, 1.319448938, 1.211225499, 1.080614521, \
 1.059808558, 1.261038675, 1.613561718, 1.206598012, 1.334012835]
 
-dist_array = numpy.zeros(5001,5001)
-lognormal_array = numpy.zeros(5001,5001)
+dist_array = numpy.zeros((5001,5001))
+lognormal_array = numpy.zeros((5001,5001))
 #make euclidean distances
 for x in range(5001):
 	dx = abs(2501 - x)*5
