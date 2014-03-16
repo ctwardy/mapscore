@@ -4,7 +4,7 @@ import sys
 
 import math #want the math library for the 
 import numpy
-import scipy
+import scipy.misc
 
 fname= "C:/Users/Eric Cawi/Documents/Sar"
 distances =[[0.4,0.8,2.4,5.6], [0.1,0.2,0.6,2.0], [0.1,0.2,0.6,2.0], [0.4,1.2,2.0,5.1],\
@@ -40,7 +40,7 @@ for i in range(len(distances)):
 	png_name = fname + "/lognormal_pngs/" + cat_list[i] + ".png"
 	#compute normal distribution on logarithm of distances
 	scaling = 1/(stdev_list[i]*math.sqrt(2*math.pi))
-	temp_array = numpy.subtract(lognormal_array,mean_list(i))
+	temp_array = numpy.subtract(lognormal_array,mean_list[i])
 	temp_array = numpy.square(temp_array)
 	temp_array = numpy.negative(temp_array)
 	temp_array = numpy.divide(temp_array,2*(stdev_list[i]*stdev_list[i]))
@@ -51,6 +51,12 @@ for i in range(len(distances)):
 	temp_array = numpy.multiply(temp_array.astype(int),5)
 	temp_array = numpy.add(temp_array,255)
 	scipy.misc.imsave(png_name, temp_array)
+	
+	
+	
+
+
+
 	
 	
 	
