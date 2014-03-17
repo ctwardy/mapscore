@@ -4,7 +4,8 @@ import sys
 
 import math #want the math library for the 
 import numpy
-import scipy.misc
+import scipy
+from scipy import misc
 
 fname= "C:/Users/Eric Cawi/Documents/Sar"
 distances =[[0.4,0.8,2.4,5.6], [0.1,0.2,0.6,2.0], [0.1,0.2,0.6,2.0], [0.4,1.2,2.0,5.1],\
@@ -50,13 +51,7 @@ for i in range(len(distances)):
 	temp_array = numpy.log2(temp_array)#transform the guys to integersfor the png
 	temp_array = numpy.multiply(temp_array.astype(int),5)
 	temp_array = numpy.add(temp_array,255)
-	scipy.misc.imsave(png_name, temp_array)
-	
-	
-	
-
-
-
+	misc.imsave(png_name, temp_array)
 	
 	
 	
