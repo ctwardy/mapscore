@@ -178,15 +178,23 @@ class Case(models.Model):
         sidepixels = 500
         #Generate url
         url = 'http://maps.google.com/maps/api/staticmap?center='
-        url += '%s,%s&size=%dx%d' % (self.lastlat, self.lastlon, sidepixels, sidepixels)
-        url += '&path=color:0x0000ff|weight:5' % (self.upleft_lat, self.upleft_lon)
-        url += '|%s,%s|%s,%s|%s,%s|%s,%s|' % (self.upleft_lat, self.upleft_lon,
-                                                  self.upright_lat, self.upright_lon,
-                                                  self.downright_lat, self.downright_lon,
-                                                  self.downleft_lat, self.downleft_lon)
-        url += "&markers=color:red%7Clabel:L%7c" + str(self.lastlat) + ',' + str(self.lastlon)
+        url = url + str(self.lastlat) + ',' + str(self.lastlon)
+        url = url + '&size=' + str(sidepixels) +'x' + str(sidepixels)
+        url = url + '&path=color:0x0000ff|weight:5' 
+        url = url + '|' + str(self.upleft_lat) + ',' +str(self.upleft_lon) + '|'
+        url = url + str(self.upright_lat) + ',' +str(self.upright_lon) + '|'
+        url = url + str(self.downright_lat) + ',' +str(self.downright_lon) + '|'
+        url = url + str(self.downleft_lat) + ',' +str(self.downleft_lon)
+        url = url + '|' + str(self.upleft_lat) + ',' +str(self.upleft_lon) 
+        url = url + "&markers=color:red%7Clabel:L%7c" + str(self.lastlat) + ',' + str(self.lastlon)
+        #url = url + "&markers=color:green%7Clabel:A%7c" + str(self.upleft_lat) + ',' +str(self.upleft_lon)
+        #url = url + "&markers=color:green%7Clabel:B%7c" + str(self.upright_lat) + ',' +str(self.upright_lon)
+        #url = url +   "&markers=color:green%7Clabel:C%7c" + str(self.downright_lat) + ',' +str(self.downright_lon)
+        #url = url +   "&markers=color:green%7Clabel:D%7c" + str(self.downleft_lat) + ',' +str(self.downleft_lon)
 
-        URLfind = url + "&markers=color:yellow%7Clabel:F%7c%s,%s" % (self.findlat,self.findlon)
+        URLfind = url +  "&markers=color:yellow%7Clabel:F%7c" + str(self.findlat) + ',' +str(self.findlon)
+
+
 
         url = url + '&maptype=hybrid&sensor=false'
         URLfind = URLfind + '&maptype=hybrid&sensor=false'
