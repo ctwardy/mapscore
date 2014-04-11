@@ -416,8 +416,8 @@ def batch_test_upload(request):
              return render_to_response('noaccess.html',{})
     except:
          return render_to_response('noaccess.html',{})
-    
-    context_instance=RequestContext(request)    
+
+    context_instance=RequestContext(request)
     case_list = []
     update_list = []
     if request.method == 'POST':
@@ -445,27 +445,27 @@ def batch_test_upload(request):
                     status += ", image deleted"
                     bc += 1
                 update_list.append((path, fname, file_size, model, case, status))
-                
+
             request.session['gcount'] = gc
-            request.session['bcount'] = bc            
+            request.session['bcount'] = bc
             request.session['batch_list'] = update_list
 
             return render_to_response('batch_test_upload_confirm.html',
-                {'case_list': update_list, 'gcount': gc, 'bcount': bc}, 
+                {'case_list': update_list, 'gcount': gc, 'bcount': bc},
                 context_instance=RequestContext(request)
             )
-            
+
     else:
-    
+
         form = ZipUploadForm() # A empty, unbound form
 
-    return render_to_response('batch_test_upload.html',{'form': form}, 
+    return render_to_response('batch_test_upload.html',{'form': form},
         context_instance=RequestContext(request)
     )
-#-----------------------------------------------------------------    
+#-----------------------------------------------------------------
 def batch_test_upload_final(request):
     AUTHENTICATE() # this functions doesn't work, needs fixen'
-    
+
     try:
          if request.session['admintoken'] == False and request.session['usertoken'] == False:
              return render_to_response('noaccess.html',{})
@@ -474,20 +474,20 @@ def batch_test_upload_final(request):
 
     if request.method != 'POST':
         return render_to_response('AccountScreen.html', {})
-    
+
     result_data = []
 
     if request.session.get("batch_list") == False:
         result = "Error, contact batch_list session was not found."
         return render_to_response('batch_test_upload_final.html',{'result': result,
             'result_data': result_data})
-    
+
     if request.session["batch_list"] == "completed":
         result = "completed"
         return render_to_response('batch_test_upload_final.html',{'result': result,
             'result_data': result_data})
 
-    
+
     if 'abort' in request.POST:
         # User aborted, so delete all the ready temp grayscales
         for index, (path, fname, file_size, model, case, status) in enumerate(request.session.get("batch_list")):
@@ -498,18 +498,18 @@ def batch_test_upload_final(request):
                     pass
         result = "abort"
         return render_to_response('batch_test_upload_final.html',{'result': result,
-            'result_data': result_data})        
+            'result_data': result_data})
 
     (result, result_data) = process_batch_tests(request)
-        
+
     return render_to_response('batch_test_upload_final.html',{'result': result,
         'result_data': result_data})
-#-----------------------------------------------------------------    
+#-----------------------------------------------------------------
 def process_batch_tests(request):
-    
+
     # we need to know what the active account is, store simplify
     act_account = str(request.session['active_account'].ID2)
-    
+
     tests_list = request.session.get("batch_list")
     result_data = []
     for index, (path, fname, file_size, model, case, status) in enumerate(tests_list):
@@ -517,15 +517,15 @@ def process_batch_tests(request):
             continue
         #let's get active model object
         a_model = Model.objects.get(ID2 = act_account + ":" + str(model)) #str prolly isn't needed
-        
+
         # get active case, already verified it exists so skip error check for now
         a_case = Case.objects.get(case_name=str(case))
-        
+
         # note similar code to below also exists in create_test()
-        
+
         # set ID2 for this test case "User:Model:Case"
         ID2 = str(a_model.ID2) + ':' + str(a_case.case_name)
-        
+
         # First check to see if this test already exists
         # and if yes, delete existing one to prevent duplicates
         try:
@@ -539,24 +539,24 @@ def process_batch_tests(request):
             #delete the test_model_link first
             OldLink = Test_Model_Link.objects.get(test = findtest.id)
             OldLink.delete()
-            #then delete existing test 
+            #then delete existing test
             findtest.delete()
-        
+
         #create new test:
         newtest = Test( test_case = a_case,
             test_name = a_case.case_name,
             ID2 = ID2 )
 
         newtest.save()
-        
+
         Link = Test_Model_Link( test = newtest,
                     model = a_model)
         Link.save()
         newtest.setup()
         newtest.save()
-        
+
         # copy grayscale from temp to media for storage
-        grayrefresh = int(newtest.grayrefresh) + 1 
+        grayrefresh = int(newtest.grayrefresh) + 1
         newtest.grayrefresh = grayrefresh
 
         #not sure why we have to put this in the media directory ?
@@ -571,7 +571,7 @@ def process_batch_tests(request):
 
         # create string for saving thumbnail 128x128
         thumb = MEDIA_DIR + "thumb_" + str(newtest.ID2).replace(':','_') + ".png"
-        
+
         newtest.grayrefresh = int(newtest.grayrefresh) + 1
         s = USER_GRAYSCALE + str(newtest.ID2).replace(':','_')
         s += '_%s.png' % str(newtest.grayrefresh)
@@ -582,20 +582,20 @@ def process_batch_tests(request):
         # set the path
         newtest.greyscale_path = s
         newtest.save()
-        
+
         from PIL import Image
         im = Image.open(s)
         im = im.convert('RGB')
         im.thumbnail((128,128), Image.ANTIALIAS)
-        im.save(thumb,'PNG') 
+        im.save(thumb,'PNG')
 
         # thumbnail is saved in MEDIA_DIR dir with name:
-        # save as thumb_User_Model_Case.png    
-    
+        # save as thumb_User_Model_Case.png
+
         #debugx
         print >>sys.stderr, "DEBUGX:"
         print >>sys.stderr, str(thumb)
-                
+
         response = newtest.rate()
         os.unlink(newtest.greyscale_path)
 
@@ -605,7 +605,7 @@ def process_batch_tests(request):
         request.session['active_account'].save()
         #---------------------------------------------------------------
         result_data.append((model,case,newtest.ID2,newtest.test_rating,"ok"))
-        
+
     request.session['batch_list'] = "completed"
     return (0,result_data)
 #-----------------------------------------------------------------
@@ -914,24 +914,24 @@ def create_test(request):
     #return render_to_response('TestCreated.html')
 
     tempcase = request.session['active_case_temp']
-    
+
     # Need to avoid creating duplicate tests for given model/case
     # idea: delete exisitng test model link and test, then create new one ?
-    ID2 = str(request.session['active_model'].ID2) + ':' + str(tempcase.case_name)    
+    ID2 = str(request.session['active_model'].ID2) + ':' + str(tempcase.case_name)
     try:
         findtest = Test.objects.get(ID2 = ID2)
     except Test.DoesNotExist:
         findtest = None
-        
+
     if findtest != None:
         print >>sys.stderr, 'DEBUG:\n'
         print >>sys.stderr, str(findtest.id) + ":" + str(findtest.ID2)
         #delete the test_model_link first
         OldLink = Test_Model_Link.objects.get(test = findtest.id)
         OldLink.delete()
-        #then delete existing test 
+        #then delete existing test
         findtest.delete()
-        
+
     newtest = Test( test_case = tempcase,
         test_name = tempcase.case_name,
         ID2 = ID2 )
@@ -997,11 +997,11 @@ def tst_instructions(request):
 
 def active_test(request):
     '''Retrieve data for the active test and render file_up.html.
-    
+
     This used to administer the gridtest if you hadn't already passed.
-    
+
     TODO: there is no need to define all these local variables.
-    
+
     '''
     AUTHENTICATE()
 
@@ -1016,7 +1016,7 @@ def active_test(request):
     name = active_case.case_name
     sex = active_case.Sex
     country = active_case.country
-    state = active_case.state        
+    state = active_case.state
     LKP = '('+active_case.lastlat + ',' +active_case.lastlon + ')'
     totalcells = active_case.totalcellnumber
     sidecells = active_case.sidecellnumber
@@ -1166,15 +1166,15 @@ def acceptgrayscale_confirm(request):
     im = Image.open(s)
     im = im.convert('RGB')
     im.thumbnail((128,128), Image.ANTIALIAS)
-    im.save(thumb,'PNG') 
+    im.save(thumb,'PNG')
 
     # thumbnail is saved in USER_GRAYSCALE dir with name:
-    # save as thumb_User_Model_Case.png    
-    
+    # save as thumb_User_Model_Case.png
+
     #debugx
     #print >>sys.stderr, "DEBUGX:"
     #print >>sys.stderr, str(thumb)
-    
+
     # set the path
     request.session['active_test'].greyscale_path = s
     request.session['active_test'].save()
@@ -1389,18 +1389,18 @@ def get_sorted_models(allmodels):
     return sorted(rated_models,
                   key=attrgetter('model_avgrating'),
                   reverse=True)
-                  
+
 #------------------------------------------------------------------------------
 def confidence_interval(scores):
     '''Return the 95% CI of the mean as (lowerbound, upperbound).
-    
+
     @param scores: iterable of float with relevant scores
-    
+
     Because we are trying to infer bounds on the actual
     (population) performance of the model, from limited samples,
     we use +- 1.96 * SEM, the standard error of the mean.
             SEM = stdev / sqrt(N)
-    
+
     '''
     N,avg,stdev = 0,0.0,0.0
     try:
@@ -1412,7 +1412,7 @@ def confidence_interval(scores):
     except:
         print >> sys.stderr, 'No 95%% CI. N=%d, avg=%6.2f, std=%6.2f' % (N, avg, stdev)
         return (0,0)
-        
+
 #----------------------------------------------------------------------------------------------------------------------------------------------------
 def Leader_model(request):
     '''Create the leaderboard.'''
@@ -1420,7 +1420,7 @@ def Leader_model(request):
 
     sorted_models = get_sorted_models(Model.objects.all())
     # Build Leaderboard
-    inputlist = []        
+    inputlist = []
     for model in sorted_models:
         # Read info
         account = model.account_set.all()[0]
@@ -1705,7 +1705,7 @@ def case_ref(request):
     name = active_case.case_name
     sex = active_case.Sex
     country = active_case.country
-    state = active_case.state    
+    state = active_case.state
     LKP = '('+active_case.lastlat + ',' +active_case.lastlon + ')'
     totalcells = active_case.totalcellnumber
     sidecells = active_case.sidecellnumber
@@ -1870,7 +1870,7 @@ def case_hyperin(request):
 
 def upload_casefile(request):
     '''Add a whole case file to the server.
-    
+
     TODO: This could be a whole lot simpler.
     '''
 
@@ -2029,19 +2029,19 @@ def upload_casefile(request):
             populationdensity = populationdensity1,
             weather = weather1,
             )
-        New_Case.save()
         New_Case.initialize()
+        New_Case.save()
         line = filein.readline()
 
     filein.close()
     os.remove(string)
     os.remove(sortedaddress)
 
-    for case in Case.objects.all():
-        case.UploadedLayers = False
-        if os.path.exists(str(case.LayerField)):
-            case.UploadedLayers = True
-        case.save()
+#    for case in Case.objects.all():
+#        case.UploadedLayers = False
+#        if os.path.exists(str(case.LayerField)):
+#            case.UploadedLayers = True
+#        case.save()
 
     return render_to_response('bulkcasereg_complete.html')
 
@@ -3087,11 +3087,11 @@ def switchboard_toscenario(request):
         for j in i.account_models.all():
             scenarioclick = 0
             tests = j.model_tests.all()
-            finished_tests = [x for x in tests 
+            finished_tests = [x for x in tests
                 if not x.Active
                 and x.test_case.scenario == name]
             N = len(finished_tests)
-            if N <= 0:  
+            if N <= 0:
                 # No finished cases
                 continue
 
@@ -3099,7 +3099,7 @@ def switchboard_toscenario(request):
             username = i.username
             scores = [float(x.test_rating) for x in finished_tests]
             avg_rating = np.mean(scores)
-            entry = [i.institution_name, j.model_nameID, 
+            entry = [i.institution_name, j.model_nameID,
                      '%5.3f'%avg_rating, N, username]
             if N < 2:
                 entry.extend([-1, 1, True])  # std=False, sm.sample=True
@@ -3111,9 +3111,9 @@ def switchboard_toscenario(request):
                     entry.extend([lowerbound, upperbound, False])
             inputlst.append(entry)
             #print >> sys.stderr, entry
-    
-    
-    # Sort Data  
+
+
+    # Sort Data
     # TODO Replace with Simple call!
 
     tempterm = ''
@@ -5346,4 +5346,3 @@ def NextSequentialTestSwitch(request):
         return render_to_response('nomorecases.html')
 
     return redirect("/new_test/")
-
