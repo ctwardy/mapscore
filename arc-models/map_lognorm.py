@@ -33,6 +33,19 @@ from PIL import Image
 from PIL import PngImagePlugin
 from scipy.stats import lognorm
 from scipy import misc
+
+def tag_image(filename, mu, sigma, Ptot):
+    '''Add model metadata to the image.
+    TODO: use "with" statement?  Close image?
+
+    '''
+    im = Image.open(filename)
+    meta = PngImagePlugin.PngInfo()
+    meta.add_text("mean",str(mu))
+    meta.add_text("stdev",str(sigma))
+    meta.add_text("pden sum",str(pden_sum))
+    im.save(filename, "png", pnginfo = meta)
+
 data = []
 with open('lognorm_params.csv') as f:
     for row in f:
@@ -48,23 +61,20 @@ for line in data[1:]:
     lnorm = lognorm([shape],scale=scale)
     qtiles = [lnorm.ppf(q) for q in [.25,.50,.75]]
 
-    z=lnorm.pdf(dist)
-    z = np.exp(z) #retransform into regular space
-    z = np.divide(z,500*500)
+    z = lnorm.pdf(dist)
+    #z = np.exp(z) #retransform into regular space  # Not sure that makes sense. -crt.
+    Z = np.divide(z, np.sum(z))   # Divide by sum(pdens) not by #pixels.
+    # But actually what we need is to look up or calculate the *probability*
+    # outside the bbox.  Two simple approximations:
+    # a) Get the prob out past 12.5km from integrating the lnorm pdf. (lnorm.survival?)
+    # b) Generate to say 25km, take sum(to 12.5km) / sum(all); clip
     
     pden_sum = np.sum(z)
-    print"sum is %f" % pden_sum
-
-    #checking to see what sums are, can input to metadata as well
+    print"size=%d, sum_z=%f, sum_Z=%f" % (np.size(z), pden_sum, np.sum(Z))
    
     plt.title(categ)
     plt.imshow(z,cmap='gist_gray')
     plt.colorbar()
-    plt.imsave('lognormal_pngs_test2/%s.png' % categ, z, cmap='gist_gray')
-    #writing metadata to image file
-    im = Image.open('lognormal_pngs_test2/%s.png' % categ)
-    meta = PngImagePlugin.PngInfo()
-    meta.add_text("mean",str(mu))
-    meta.add_text("stdev",str(sigma))
-    meta.add_text("pden sum",str(pden_sum))
-    im.save('lognormal_pngs_test2/%s.png' % categ, "png", pnginfo = meta)
+    name = 'lognormal_pngs_test2/%s.png' % categ
+    plt.imsave(name, z, cmap='gist_gray')
+    tag_image(name, mu, sigma, pden_sum)
