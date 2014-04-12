@@ -7,3 +7,7 @@ todo.txt
 settings.py
 temp.txt
 probmap
+
+*.zip
+
+*.png

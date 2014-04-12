@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+
+		<!-- Always force latest IE rendering engine (even in intranet) & Chrome Frame
+		Remove this if you use the .htaccess -->
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+
+		<title>Search and Rescue-VA</title>
+		<meta name="description" content="" />
+		<meta name="author" content="MS" />
+
+		<meta name="viewport" content="width=device-width; initial-scale=1.0" />
+
+		<!-- Replace favicon.ico & apple-touch-icon.png in the root of your domain and delete these references -->
+		<link rel="shortcut icon" href="/favicon.ico" />
+		<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+		
+		<!--
+		<script src="mxn.google.geocoder.js"></script>-->
+		<script
+	src="http://maps.google.com/maps/api/js?sensor=false"
+				type="text/javascript"></script>
+	<script type="text/javascript" src="mxn.js?(googlev3)"></script>
+		<style type="text/css">
+			div#mymap{
+				width:600px;
+				height:450px;
+			}
+		</style>
+
+			
+<script type="text/javascript">
+function create_map(){
+
+var mapstraction
+var markerlost,markerfound;
+
+mapstraction = new mxn.Mapstraction('mymap', 'googlev3');
+var centerRadius = new mxn.Radius(new
+mxn.LatLonPoint(31.43493334,-110.23233333),10);
+
+mapstraction.addPolyline(centerRadius.getPolyline(mxn.util.milesToKM(1), '#0000CC'));
+mapstraction.addPolyline(centerRadius.getPolyline(mxn.util.milesToKM(2), '#4D4DDB'));
+mapstraction.addPolyline(centerRadius.getPolyline(mxn.util.milesToKM(3), '#9999EB'));
+mapstraction.addPolyline(centerRadius.getPolyline(mxn.util.milesToKM(4), '#E6E6FA'));
+
+markerlost = new mxn.Marker(new mxn.LatLonPoint(31.43493334,-110.23233333));
+markerfound = new mxn.Marker(new mxn.LatLonPoint(31.39535001, -110.1093333));
+mapstraction.addControls({zoom:'large'});
+mapstraction.setMapType("TERRAIN");
+mapstraction.enableScrollWheelZoom()
+var centerlatlon = new mxn.LatLonPoint(31.43493334,-110.23233333)
+				
+mapstraction.setCenterAndZoom(centerlatlon, 14);	
+
+
+var html1 = "<div><strong>" + "Arizona 05 Case Details. " + "</strong>"+"<a href='https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ8B9xAN8dZfd3LLH1bBq_zMUuEw0zx386obqll_xGQ49BYoZEiIA' id='Info1'> Site Image  </a> </br>"+ "<table> <tr>" + " <td id='Details1'> Summary Information about the case   </td> "+  "<td id='address'></td></tr></table> " +
+"<br>"+ "<table><tr>" + "<td><a href='/'>"+"Directions     "+ "</a></td>" +"<td><a href='/'>"+ "Other Events" + "</a></td>" +"<td><a href='/'>"+ "Contact" + "</a></td>" +"<td><a href='/'>"+ "Send Email"  + "</a></td></tr></table></div>" ;
+
+
+markerlost.setIcon('http://sarbayesalpha.wikidot.com/local--files/overlay/person_lost.png',[20,20])
+markerlost.setShadowIcon('http://sarbayesalpha.wikidot.com/local--files/overlay/shadow-person_lost.png',[31,20])
+
+markerfound.setIcon('http://sarbayesalpha.wikidot.com/local--files/overlay/person_found.png',[20,20])
+markerfound.setShadowIcon('http://sarbayesalpha.wikidot.com/local--files/overlay/shadow-person_found.png',[31,20])
+
+markerlost.setInfoBubble(html1)
+markerfound.setInfoBubble("Arizona 05 Found Location")
+
+mapstraction.addMarker(markerlost)
+mapstraction.addMarker(markerfound)
+mapstraction.autoCenterAndZoom();
+}
+
+</script>
+
+
+</head>
+<body onload="create_map()">
+  <div id= "mymap"></div>
+</body>	
+
+</html>
