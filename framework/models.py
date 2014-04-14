@@ -17,13 +17,13 @@ import os
 class Case(models.Model):
 
     # Define Database Table Fields
-    #input parameters    
+    #input parameters
     country = models.CharField(max_length = 50)
     state =  models.CharField(max_length = 50)
     county = models.CharField(max_length = 50)
     populationdensity = models.CharField(max_length = 50)
     weather = models.CharField(max_length = 50)
-        
+
     lastlat = models.CharField(max_length = 50)
     lastlon = models.CharField(max_length = 50)
     findlat = models.CharField(max_length = 50)
@@ -73,7 +73,7 @@ class Case(models.Model):
     def GreatSphere(self,LatIn):
         '''Calculate the longitude cellsize at this latitude.
         Uses a Great Sphere approximation.
-        
+
         '''
 
         Lat = math.radians(float(LatIn))
@@ -153,25 +153,25 @@ class Case(models.Model):
         self.generate_image_url()
 
         # We used to show FindLoc only for the first 20 trials
-        # but right now we are always showing it.        
+        # but right now we are always showing it.
         #if self.id <= 20:
         #    self.showfind = True
-        
+
         self.showfind = True
 
         # Try to fill in a missing Total_Time
         if str(self.total_hours).lower() == 'unknown':
             try:
-                self.total_hours = float(self.notify_hours) + float(self.search_hours)         
+                self.total_hours = float(self.notify_hours) + float(self.search_hours)
             except ValueError:
-                pass        
-        
+                pass
+
         # Set Layer Location
         self.LayerField  = "Layers/%s_%s.zip" % (self.id, self.case_name)
         self.UploadedLayers = False
-        
 
-#----------------------------------------------------------------------------------    
+
+#----------------------------------------------------------------------------------
     def generate_image_url(self):
         '''Generates image URL using Google Maps
         '''
@@ -180,12 +180,12 @@ class Case(models.Model):
         url = 'http://maps.google.com/maps/api/staticmap?center='
         url = url + str(self.lastlat) + ',' + str(self.lastlon)
         url = url + '&size=' + str(sidepixels) +'x' + str(sidepixels)
-        url = url + '&path=color:0x0000ff|weight:5' 
+        url = url + '&path=color:0x0000ff|weight:5'
         url = url + '|' + str(self.upleft_lat) + ',' +str(self.upleft_lon) + '|'
         url = url + str(self.upright_lat) + ',' +str(self.upright_lon) + '|'
         url = url + str(self.downright_lat) + ',' +str(self.downright_lon) + '|'
         url = url + str(self.downleft_lat) + ',' +str(self.downleft_lon)
-        url = url + '|' + str(self.upleft_lat) + ',' +str(self.upleft_lon) 
+        url = url + '|' + str(self.upleft_lat) + ',' +str(self.upleft_lon)
         url = url + "&markers=color:red%7Clabel:L%7c" + str(self.lastlat) + ',' + str(self.lastlon)
         #url = url + "&markers=color:green%7Clabel:A%7c" + str(self.upleft_lat) + ',' +str(self.upleft_lon)
         #url = url + "&markers=color:green%7Clabel:B%7c" + str(self.upright_lat) + ',' +str(self.upright_lon)
@@ -222,15 +222,15 @@ class Test(models.Model):
 
     test_url = models.CharField(max_length = 300)
     test_url2 = models.CharField(max_length = 300)
-    greyscale_path = models.CharField(max_length = 300)
-    greyrefresh =  models.CharField(max_length = 10)
+    grayscale_path = models.CharField(max_length = 300)
+    grayrefresh =  models.CharField(max_length = 10)
 
     def setup(self):
-        self.greyrefresh = 0
+        self.grayrefresh = 0
         self.test_rating = 'unrated'
         self.Active = True
         self.nav = 0
-        self.show_instructions = True        
+        self.show_instructions = True
         self.save()
 
 
@@ -238,17 +238,17 @@ class Test(models.Model):
     # Rating scripts
     #.........................................................................................
     def getmap(self):
-        '''Load the image and force it to be greyscale.
+        '''Load the image and force it to be grayscale.
            Return a values as a (5001,5001) numpy array.
            This should be faster than the old 'for' loop checking pixels for RGB.
 
-           TODO: 
-             * If the image is already greyscale, does this still convert?
+           TODO:
+             * If the image is already grayscale, does this still convert?
              * Can we open direct to numpy array and avoid second conversion?
              * What if Image throws and exception?
-             
+
         '''
-        Path = self.greyscale_path
+        Path = self.grayscale_path
         Im = Image.open(Path).convert(mode="L")
         values = np.array(Im.getdata())
         return values.reshape((5001,5001))
@@ -263,13 +263,13 @@ class Test(models.Model):
             N = total #pixels in the image
 
         Rossmo's R ranges from -1..1.  Using Koester's correction, random or single-color
-        maps get a score of 0.  
+        maps get a score of 0.
 
         For find locations outside the bounding box, we simply compare the total
         probability inside the bounding box with the remainder "Rest of World"
         or ROW probability. If the model probs sum to 1 or more (which it will
         for PNG images), then we use a conventional split with ROW=5% and
-        bounding box=95%.  In that case, r = .95 and R = -.9.  
+        bounding box=95%.  In that case, r = .95 and R = -.9.
 
         2014-02:
          * Refactored load to getmap(), and removed duplicate code.
@@ -282,7 +282,7 @@ class Test(models.Model):
         N = np.size(values)                # num pixels
         assert(N == 5001*5001)
 
-        
+
         if (0 <= x <= 5000) and (0 <= y <= 5000):
             p = values[x,y]                # prob at find location
             n = np.sum(values > p)        # num pixels > p
@@ -320,7 +320,7 @@ class Model(models.Model):
     ID2 = models.CharField(max_length = 100)
     Description = models.TextField()
 
-    
+
     def setup(self):
         '''Models start out unrated.'''
         self.model_avgrating = 'unrated'
@@ -400,5 +400,3 @@ class terminated_accounts(models.Model):
     institution_name = models.CharField(max_length = 30)
     modelsi = models.CharField(max_length = 30)
     deleted_models = models.CharField(max_length = 10)
-
-

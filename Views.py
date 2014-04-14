@@ -564,7 +564,7 @@ def process_batch_tests(request):
         new_grayfile = MEDIA_DIR
         new_grayfile += str(newtest.ID2.replace(':','_'))
         new_grayfile += '_%d.png' % grayrefresh
-        newtest.greyscale_path = new_grayfile
+        newtest.grayscale_path = new_grayfile
         newtest.save()
 
         file_move_safe(path, new_grayfile, 65536, True)
@@ -577,10 +577,10 @@ def process_batch_tests(request):
         s += '_%s.png' % str(newtest.grayrefresh)
 
         # Remove served Grayscale image
-        file_move_safe(newtest.greyscale_path, s, 65536, True)
-#        shutil.move(newtest.greyscale_path, s)
+        file_move_safe(newtest.grayscale_path, s, 65536, True)
+#        shutil.move(newtest.grayscale_path, s)
         # set the path
-        newtest.greyscale_path = s
+        newtest.grayscale_path = s
         newtest.save()
 
         from PIL import Image
@@ -597,7 +597,7 @@ def process_batch_tests(request):
         print >>sys.stderr, str(thumb)
 
         response = newtest.rate()
-        os.unlink(newtest.greyscale_path)
+        os.unlink(newtest.grayscale_path)
 
         # record rating
         #---------------------------------------------------------------
@@ -1078,8 +1078,8 @@ def load_image(request):
     string += str(active_test.ID2).replace(':','_')
     string += '_%d.png' % grayrefresh
 
-    # Save the greyscale file path to the test object
-    active_test.greyscale_path = string
+    # Save the grayscale file path to the test object
+    active_test.grayscale_path = string
     active_test.save()
 
 
@@ -1096,7 +1096,7 @@ def confirm_grayscale(request):
     AUTHENTICATE()
 
     # Verify Image
-    image_in = Image.open(request.session['active_test'].greyscale_path)
+    image_in = Image.open(request.session['active_test'].grayscale_path)
     s = str(request.session['active_test'].ID2).replace(':','_')
     served_Location = '/%s%s_%s.png' % (MEDIA_DIR, s, str(request.session['active_test'].grayrefresh))
     inputdic = {'grayscale':served_Location}
@@ -1136,10 +1136,10 @@ def denygrayscale_confirm(request):
     AUTHENTICATE()
 
     # Remove served Grayscale image
-    os.remove(request.session['active_test'].greyscale_path)
+    os.remove(request.session['active_test'].grayscale_path)
 
     # Wipe the path
-    request.session['active_test'].greyscale_path = 'none'
+    request.session['active_test'].grayscale_path = 'none'
     request.session['active_test'].save()
 
     return redirect('/test_active/')
@@ -1160,7 +1160,7 @@ def acceptgrayscale_confirm(request):
     # create string for saving thumbnail 128x128
     thumb = MEDIA_DIR + "thumb_" + str(request.session['active_test'].ID2).replace(':','_') + ".png"
 
-    shutil.move(request.session['active_test'].greyscale_path, s)
+    shutil.move(request.session['active_test'].grayscale_path, s)
 
     from PIL import Image
     im = Image.open(s)
@@ -1176,7 +1176,7 @@ def acceptgrayscale_confirm(request):
     #print >>sys.stderr, str(thumb)
 
     # set the path
-    request.session['active_test'].greyscale_path = s
+    request.session['active_test'].grayscale_path = s
     request.session['active_test'].save()
 
     return redirect('/Rate_Test/')
@@ -1195,7 +1195,7 @@ def Rate(request):
     # Resync Model
     request.session['active_model'] = Model.objects.get(ID2 = request.session['active_model'].ID2)
 
-    os.remove(request.session['active_test'].greyscale_path)
+    os.remove(request.session['active_test'].grayscale_path)
 
 
     # record rating
