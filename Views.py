@@ -424,8 +424,8 @@ def batch_test_upload(request):
         form = ZipUploadForm(request.POST, request.FILES)
         if form.is_valid():
             case_list = form.process_zip_file()
-            gc = 0
-            bc = 0
+            gc = 0 #good count
+            bc = 0 #bad count
             for index, (path, fname, file_size, model, case, status) in enumerate(case_list):
                 if status == "ready":
                     model_count = Model.objects.filter(ID2 = str(request.session['active_account'].ID2 +":"+ model)).count()
@@ -1868,183 +1868,73 @@ def case_hyperin(request):
         return render_to_response('scenario_to_test.html',inputdic)
 #------------------------------------------------------------------------------------
 
-def upload_casefile(request):
-    '''Add a whole case file to the server.
 
-    TODO: This could be a whole lot simpler.
-    '''
+def upload_casefile(request):
+    # bulk add new cases to the database
+    # should use a CSV file, most easily generated in Excel
+    # Comma separated and quotes for text delimiter
+    # be tolerant about use of carriage returns (win vs mac vs linux)
 
     AUTHENTICATE('admintoken')
 
-    string = 'case_in/input_unsorted.csv'
-    destination = open(string,'wb+')
+    file = request.FILES['casecsv']
+    # use python csv reader, tell it to expect excel style
+    # CSV with delimiter: , and quote char as quotes ""
+    data = [row for row in csv.reader(file.read().splitlines(),
+                                      dialect=csv.excel_tab, delimiter=',',
+                                      quotechar='"')]
+    # If the first line looks like the header, ignore it
+    if data[0][0] == 'Name':
+        data.pop(0)
+    case_report = []
 
-    for chunk in request.FILES['casecsv'].chunks():
-        destination.write(chunk)
-    destination.close()
-
-    # Filter input file
-    filea = open(string,'rb')
-    csvreader = csv.reader(filea,delimiter = '|')
-    masterlist = []
-
-    # Write new CSV String, add to masterlist
-    counttotal = 0
-    for csvlist in csvreader:
-        count = 0
-        csvstring = ""
-        if counttotal > 0:
-            for i in csvlist:
-                count = count + 1
-                if count == len(csvlist):
-                    csvstring = csvstring + i + "$"
-                else:
-                    csvstring = csvstring + i + "|"
-            masterlist.append(csvstring)
-        counttotal = counttotal + 1
-    filea.close()
-
-    input1 = str(masterlist)
-    print "\n\n------------------------------------------------------------\n\n"
-    print masterlist
-
-    input1 = input1[2:len(input1)-2]
-    newstring = ''
-    store = None
-    store1 = None
-    store2 = None
-    store3 = None
-    for n in input1:
-        if store != None and (n =='t' or n =='n'):
-            store = None
-        elif store1 != None and n == ',':
-            store2 = store1 + n
-            store1 = None
-        elif store2 != None and n == ' ':
-            store3 = store2 + n
-            store2 = None
-        elif store3 != None and (n == "'" or n == '"' ):
-            store3 = None
-            newstring = newstring + ' '
-        else:
-            if store != None:
-                newstring = newstring + str(store)
-                store = None
-            if store1 != None:
-                newstring = newstring + str(store1)
-                store1 = None
-            if store2 != None:
-                newstring = newstring + str(store2)
-                store2 = None
-            if store3 != None:
-                newstring = newstring + str(store3)
-                store3 = None
-            if n == '$':
-                newstring = newstring +'\n'
-            elif n == "\\":
-                store = '\\'
-            elif n == "'" or n=='"':
-                store1 = n
-            else:
-                newstring = newstring + n
-
-    # get rid of " characters (of no use)
-    finalstring = newstring.replace('"','')
-
-    # Save filtered file
-    sortedaddress = 'case_in/input_srt.txt'
-    file2 = open(sortedaddress,'wb+')
-    file2.write(finalstring)
-    file2.close()
-
-
-    filein = open(sortedaddress,'r')
-    line = filein.readline()
-    #remove whitespace
-    pattern = r'^\s*(.*)\s*$'
-    while line != '':
-        items = ''
-
-        #Accounting for server adding \r after \n
-        if line[0] =='\\' and line[1] == 'r':
-            line = line[2:]
-        if line == '':
-            break
-        items = line.split('|')
-
-        name = str(re.match(pattern,items[0]).group(1))
-        key = str(re.match(pattern,items[1]).group(1))
-
-        country1 = str(re.match(pattern,items[2]).group(1))
-        state1 =  str(re.match(pattern,items[3]).group(1))
-        county1 = str(re.match(pattern,items[4]).group(1))
-        populationdensity1 = str(re.match(pattern,items[5]).group(1))
-        weather1 = str(re.match(pattern,items[6]).group(1))
-
-        subject_category = str(re.match(pattern,items[7]).group(1))
-        subject_subcategory = str(re.match(pattern,items[8]).group(1))
-        scenario = str(re.match(pattern,items[9]).group(1))
-        subject_activity = str(re.match(pattern,items[10]).group(1))
-        age = str(re.match(pattern,items[11]).group(1))
-        sex = str(re.match(pattern,items[12]).group(1))
-        number_lost = str(re.match(pattern,items[13]).group(1))
-        group_type = str(re.match(pattern,items[14]).group(1))
-        ecoregion_Domain = str(re.match(pattern,items[15]).group(1))
-        ecoregion_Division = str(re.match(pattern,items[16]).group(1))
-        terrain = str(re.match(pattern,items[17]).group(1))
-        LKP_lat = str(re.match(pattern,items[18]).group(1))
-        LKP_lon = str(re.match(pattern,items[19]).group(1))
-        find_lat = str(re.match(pattern,items[20]).group(1))
-        find_lon = str(re.match(pattern,items[21]).group(1))
-        total_hours = str(re.match(pattern,items[22]).group(1))
-        notify_hours = str(re.match(pattern,items[23]).group(1))
-        search_hours = str(re.match(pattern,items[24]).group(1))
-        comments = str(re.match(pattern,items[25]).group(1))
-
-        New_Case = Case(
-            lastlat = LKP_lat,
-            lastlon = LKP_lon,
-            findlat = find_lat,
-            findlon = find_lon,
-            case_name = name,
-            Age = age,
-            Sex = sex,
-            key = key,
-            subject_category = subject_category,
-            subject_subcategory = subject_subcategory,
-            scenario  = scenario,
-            subject_activity = subject_activity,
-            number_lost = number_lost,
-            group_type = group_type,
-            ecoregion_domain = ecoregion_Domain,
-            ecoregion_division = ecoregion_Division,
-            terrain = terrain,
-            total_hours = total_hours,
-            notify_hours = notify_hours,
-            search_hours = search_hours,
-            comments = comments,
-            country = country1,
-            state =     state1,
-            county = county1,
-            populationdensity = populationdensity1,
-            weather = weather1,
+    for row in data:
+        #print >>sys.stderr, row #debugx
+        new_case = Case(
+            case_name = row[0],
+            key = row[1],
+            country = row[2],
+            state =     row[3],
+            county = row[4],
+            populationdensity = row[5],
+            weather = row[6],
+            subject_category = row[7],
+            subject_subcategory = row[8],
+            scenario  = row[9],
+            subject_activity = row[10],
+            Age = row[11],
+            Sex = row[12],
+            number_lost = row[13],
+            group_type = row[14],
+            ecoregion_domain = row[15],
+            ecoregion_division = row[16],
+            terrain = row[17],
+            lastlat = row[18],
+            lastlon = row[19],
+            findlat = row[20],
+            findlon = row[21],
+            total_hours = row[22],
+            notify_hours = row[23],
+            search_hours = row[24],
+            comments = row[25],
             )
-        New_Case.initialize()
-        New_Case.save()
-        line = filein.readline()
+        # look and see if this case already exists, ignore it if it does
+        # we may need a mechanism for updating an existing case somehow in the
+        # future...
+        try:
+            find_case = Case.objects.get(case_name = new_case.case_name)
+        except Case.DoesNotExist:
+            find_case = None
+        # Case does exist:
+        if find_case != None:
+            print >>sys.stderr, 'WARN: ' + new_case.case_name + ' already exists in framework_case, ignoring\n'
+            row.append("Ignored, name exists")
+        else:
+            new_case.initialize()
+            new_case.save()
+            row.append("Success")
 
-    filein.close()
-    os.remove(string)
-    os.remove(sortedaddress)
-
-#    for case in Case.objects.all():
-#        case.UploadedLayers = False
-#        if os.path.exists(str(case.LayerField)):
-#            case.UploadedLayers = True
-#        case.save()
-
-    return render_to_response('bulkcasereg_complete.html')
-
+    return render_to_response('bulkcasereg_complete.html', {'result': data})
 
 #-------------------------------------------------------------------------------
 def exportcaselibrary(request):
@@ -2077,7 +1967,7 @@ def exportcaselibrary(request):
 
     file.close
 
-    return render_to_response('casexport_complete.html')
+    return render_to_response('casexport_complete.html',{'data': data})
 
 #--------------------------------------------------------------------------------------
 def Manage_Account(request):
