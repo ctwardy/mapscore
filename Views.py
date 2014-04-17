@@ -924,8 +924,8 @@ def create_test(request):
         findtest = None
 
     if findtest != None:
-        print >>sys.stderr, 'DEBUG:\n'
-        print >>sys.stderr, str(findtest.id) + ":" + str(findtest.ID2)
+        #print >>sys.stderr, 'DEBUG:\n'
+        #print >>sys.stderr, str(findtest.id) + ":" + str(findtest.ID2)
         #delete the test_model_link first
         OldLink = Test_Model_Link.objects.get(test = findtest.id)
         OldLink.delete()
@@ -946,7 +946,8 @@ def create_test(request):
     newtest.save()
     request.session['active_test'] = newtest
     request.session['createcheck'] = True
-    return render_to_response('TestCreated.html')
+
+    return redirect('/test_active/')
 
 #-------------------------------------------------------------------
 def setactive_test(request):

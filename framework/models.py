@@ -7,6 +7,7 @@ import random
 from PIL import Image
 #import Image
 from django import forms
+from numpy import *
 import os
 
 # Create your models here.
@@ -250,7 +251,7 @@ class Test(models.Model):
         '''
         Path = self.grayscale_path
         Im = Image.open(Path).convert(mode="L")
-        values = np.array(Im.getdata())
+        values = array(Im.getdata())
         return values.reshape((5001,5001))
 
     def rate(self):
@@ -279,14 +280,14 @@ class Test(models.Model):
         '''
         x,y = int(self.test_case.findx), int(self.test_case.findy)
         values = self.getmap()            # a numpy array
-        N = np.size(values)                # num pixels
+        N = size(values)                # num pixels
         assert(N == 5001*5001)
 
 
         if (0 <= x <= 5000) and (0 <= y <= 5000):
             p = values[x,y]                # prob at find location
-            n = np.sum(values > p)        # num pixels > p
-            m = np.sum(values == p)        # num pixels == p
+            n = sum(values > p)        # num pixels > p
+            m = sum(values == p)        # num pixels == p
             r = (n + m/2.)/N            # Uses decimal to force float division
         else:
             p = 1. - np.sum(values)        # prob for ROW
@@ -340,7 +341,7 @@ class Model(models.Model):
             self.model_avgrating = 'unrated'
         else:
             ratings = [float(t.test_rating) for t in tests]
-            self.model_avgrating = round(np.average(ratings),5)
+            self.model_avgrating = round(average(ratings),5)
         self.save()
 
 
