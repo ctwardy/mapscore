@@ -148,8 +148,8 @@ class Case(models.Model):
 
 
         # Screen Coords of FindLoc, with (0,0) in the top left
-        findx = int((FindLon - leftbound) / Hor_step)
-        findy = int((upbound - FindLat) / ver_step)
+        self.findx = int((FindLon - leftbound) / Hor_step)
+        self.findy = int((upbound - FindLat) / ver_step)
 
         self.generate_image_url()
 

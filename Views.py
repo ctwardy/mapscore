@@ -592,10 +592,6 @@ def process_batch_tests(request):
         # thumbnail is saved in MEDIA_DIR dir with name:
         # save as thumb_User_Model_Case.png
 
-        #debugx
-        print >>sys.stderr, "DEBUGX:"
-        print >>sys.stderr, str(thumb)
-
         response = newtest.rate()
         os.unlink(newtest.grayscale_path)
 
@@ -1171,10 +1167,6 @@ def acceptgrayscale_confirm(request):
 
     # thumbnail is saved in USER_GRAYSCALE dir with name:
     # save as thumb_User_Model_Case.png
-
-    #debugx
-    #print >>sys.stderr, "DEBUGX:"
-    #print >>sys.stderr, str(thumb)
 
     # set the path
     request.session['active_test'].grayscale_path = s
@@ -1928,7 +1920,6 @@ def upload_casefile(request):
             find_case = None
         # Case does exist:
         if find_case != None:
-            print >>sys.stderr, 'WARN: ' + new_case.case_name + ' already exists in framework_case, ignoring\n'
             row.append("Ignored, name exists")
         else:
             new_case.initialize()
