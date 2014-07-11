@@ -1266,16 +1266,14 @@ def submissionreview(request):
     inputdic['find_pt'] = findpoint
     inputdic['find_grid'] = findgrid
     inputdic['rating'] = rating
-
-    if active_case.showfind == True:
-        inputdic['showfind'] = True
+    inputdic['showfind'] = True
 
 
 
 
     request.session['active_test'].save()
 
-    return render_to_response('Submissionreview.html',inputdic)
+    return render_to_response('Submissionreview.html', inputdic)
 
 
 #------------------------------------------------------------------------------------------------
@@ -1365,11 +1363,9 @@ def nonactivetest(request):
     inputdic['find_pt'] = findpoint
     inputdic['find_grid'] = findgrid
     inputdic['rating'] = rating
+    inputdic['showfind'] = True
 
-    if active_case.showfind == True:
-        inputdic['showfind'] = True
-
-    return render_to_response('nonactive_test.html',inputdic)
+    return render_to_response('nonactive_test.html', inputdic)
 
 #----------------------------------------------------------------------------------------------------------------------------------------------------
 def get_sorted_models(allmodels):
