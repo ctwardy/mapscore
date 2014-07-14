@@ -1246,6 +1246,7 @@ def submissionreview(request):
 
     URL2 = active_case.URLfind
     rating = str(request.session['active_test'].test_rating)
+    showfind = active_case.showfind
 
 
 
@@ -1266,7 +1267,7 @@ def submissionreview(request):
     inputdic['find_pt'] = findpoint
     inputdic['find_grid'] = findgrid
     inputdic['rating'] = rating
-    inputdic['showfind'] = True
+    inputdic['showfind'] = showfind
 
 
 
@@ -1341,8 +1342,16 @@ def nonactivetest(request):
 
 
 
+    # URLfind is incorrect
+    # Google Maps will bring the first marker to the front
+    # Therefore, the found point needs to be put first
     URL2 = active_case.URLfind
+    marker_red, marker_yellow, end = (URL2.find('markers=color:red'), 
+        URL2.find('markers=color:yellow'), URL2.find('maptype'))
+    URL2 = URL2[:marker_red] + URL2[marker_yellow:end] + URL2[marker_red:marker_yellow] + URL2[end:]
+
     rating = str(request.session['active_test'].test_rating)
+    showfind = active_case.showfind
 
 
 
@@ -1363,7 +1372,7 @@ def nonactivetest(request):
     inputdic['find_pt'] = findpoint
     inputdic['find_grid'] = findgrid
     inputdic['rating'] = rating
-    inputdic['showfind'] = True
+    inputdic['showfind'] = showfind
 
     return render_to_response('nonactive_test.html', inputdic)
 
