@@ -945,27 +945,6 @@ def create_test(request):
 
     return redirect('/test_active/')
 
-#-------------------------------------------------------------------
-def setactive_test(request):
-
-    AUTHENTICATE()
-
-    intest = request.GET['test_in_active']
-    print intest
-    if intest == '0':
-        return redirect('/model_menu/')
-
-    else:
-        testname = str(request.session['active_model'].ID2) + ':' + str(intest)
-        try:
-            request.session['active_test'] = Test.objects.get(ID2 = testname)
-            return redirect('/test_instructions/')
-        except Test.MultipleObjectsReturned:
-            # Really this shouldn't be allowed to happen
-            tests = Test.objects.filter(ID2 = testname)
-            request.session['active_test'] = tests[0]
-            return redirect('/test_instructions/')
-
 #-------------------------------------------------------------------------------------------
 def Activate_instructions(request):
     '''Enables instructions screen, and calls instructions page.'''
@@ -1200,6 +1179,14 @@ def Rate(request):
 
     return redirect('/submissionreview/')
 
+def show_find_pt(URL2):
+    # Google Maps will bring the first marker to the front
+    # Therefore, the find point needs to be put first in the URL
+    marker_red, marker_yellow, end = (URL2.find('markers=color:red'), 
+        URL2.find('markers=color:yellow'), URL2.find('maptype'))
+    return URL2[:marker_red] + URL2[marker_yellow:end] + URL2[marker_red:marker_yellow] + URL2[end:]
+
+
 #-----------------------------------------------------------------------------
 def submissionreview(request):
 
@@ -1244,7 +1231,7 @@ def submissionreview(request):
 
 
 
-    URL2 = active_case.URLfind
+    URL2 = show_find_pt(active_case.URLfind)
     rating = str(request.session['active_test'].test_rating)
     showfind = active_case.showfind
 
@@ -1342,14 +1329,7 @@ def nonactivetest(request):
 
 
 
-    # URLfind is incorrect
-    # Google Maps will bring the first marker to the front
-    # Therefore, the found point needs to be put first
-    URL2 = active_case.URLfind
-    marker_red, marker_yellow, end = (URL2.find('markers=color:red'), 
-        URL2.find('markers=color:yellow'), URL2.find('maptype'))
-    URL2 = URL2[:marker_red] + URL2[marker_yellow:end] + URL2[marker_red:marker_yellow] + URL2[end:]
-
+    URL2 = show_find_pt(active_case.URLfind)
     rating = str(request.session['active_test'].test_rating)
     showfind = active_case.showfind
 
@@ -5131,33 +5111,6 @@ def DownloadLayersadmin(request):
     resp.write(writeinfo)
 
     return resp
-
-
-#-------------------------------------------------------------------------------
-def old_casetypeselect(request):
-    AUTHENTICATE()
-    if False:
-        # only one active test at a time
-        count001 = 0
-        for i in request.session['active_model'].model_tests.all():
-            if i.Active == True:
-                count001 = count001 +1
-        if count001 >0:
-            return render_to_response('TestWelcome_alreadyactive.html')
-
-        # If all tests completed
-        count2 = 0
-        for i in request.session['active_model'].model_tests.all():
-            if i.Active == False:
-                count2 = count2 +1
-        if int(count2) == int(len(Case.objects.all())):
-            return render_to_response('nomorecases.html')
-    type_lst = []
-    for i in Case.objects.all():
-        if str(i.subject_category) not in  type_lst:
-            type_lst.append(str(i.subject_category))
-
-    return render_to_response('Testselect.html',{'types':type_lst})
 
 
 #--------------------------------------------------------------------------------
