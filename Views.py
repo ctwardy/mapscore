@@ -945,50 +945,11 @@ def create_test(request):
 
     return redirect('/test_active/')
 
-#-------------------------------------------------------------------
-def setactive_test(request):
-
-    AUTHENTICATE()
-
-    intest = request.GET['test_in_active']
-    print intest
-    if intest == '0':
-        return redirect('/model_menu/')
-
-    else:
-        testname = str(request.session['active_model'].ID2) + ':' + str(intest)
-        try:
-            request.session['active_test'] = Test.objects.get(ID2 = testname)
-            return redirect('/test_instructions/')
-        except Test.MultipleObjectsReturned:
-            # Really this shouldn't be allowed to happen
-            tests = Test.objects.filter(ID2 = testname)
-            request.session['active_test'] = tests[0]
-            return redirect('/test_instructions/')
-
-#-------------------------------------------------------------------------------------------
-def Activate_instructions(request):
-    '''Enables instructions screen, and calls instructions page.'''
-
-    AUTHENTICATE()
-
-    request.session['active_test'].show_instructions = True
-    request.session['active_test'].save()
-    return redirect('/test_instructions/')
-
-
 
 #-------------------------------------------------------------------
 def tst_instructions(request):
     '''Show the instructions for creating images.'''
-
-    AUTHENTICATE()
-    if request.session['active_test'].show_instructions == True:
-        request.session['active_test'].show_instructions = False
-        request.session['active_test'].save()
-        return render_to_response('tst_instructions.html')
-    else:
-        return redirect('/test_active/')
+    return render_to_response('tst_instructions.html')
 
 #-------------------------------------------------------------------------------------------
 
@@ -1200,6 +1161,14 @@ def Rate(request):
 
     return redirect('/submissionreview/')
 
+def show_find_pt(URL2):
+    # Google Maps will bring the first marker to the front
+    # Therefore, the find point needs to be put first in the URL
+    marker_red, marker_yellow, end = (URL2.find('markers=color:red'), 
+        URL2.find('markers=color:yellow'), URL2.find('maptype'))
+    return URL2[:marker_red] + URL2[marker_yellow:end] + URL2[marker_red:marker_yellow] + URL2[end:]
+
+
 #-----------------------------------------------------------------------------
 def submissionreview(request):
 
@@ -1244,8 +1213,9 @@ def submissionreview(request):
 
 
 
-    URL2 = active_case.URLfind
+    URL2 = show_find_pt(active_case.URLfind)
     rating = str(request.session['active_test'].test_rating)
+    showfind = active_case.showfind
 
 
 
@@ -1266,16 +1236,14 @@ def submissionreview(request):
     inputdic['find_pt'] = findpoint
     inputdic['find_grid'] = findgrid
     inputdic['rating'] = rating
-
-    if active_case.showfind == True:
-        inputdic['showfind'] = True
+    inputdic['showfind'] = showfind
 
 
 
 
     request.session['active_test'].save()
 
-    return render_to_response('Submissionreview.html',inputdic)
+    return render_to_response('Submissionreview.html', inputdic)
 
 
 #------------------------------------------------------------------------------------------------
@@ -1343,8 +1311,9 @@ def nonactivetest(request):
 
 
 
-    URL2 = active_case.URLfind
+    URL2 = show_find_pt(active_case.URLfind)
     rating = str(request.session['active_test'].test_rating)
+    showfind = active_case.showfind
 
 
 
@@ -1365,11 +1334,9 @@ def nonactivetest(request):
     inputdic['find_pt'] = findpoint
     inputdic['find_grid'] = findgrid
     inputdic['rating'] = rating
+    inputdic['showfind'] = showfind
 
-    if active_case.showfind == True:
-        inputdic['showfind'] = True
-
-    return render_to_response('nonactive_test.html',inputdic)
+    return render_to_response('nonactive_test.html', inputdic)
 
 #----------------------------------------------------------------------------------------------------------------------------------------------------
 def get_sorted_models(allmodels):
@@ -5126,33 +5093,6 @@ def DownloadLayersadmin(request):
     resp.write(writeinfo)
 
     return resp
-
-
-#-------------------------------------------------------------------------------
-def old_casetypeselect(request):
-    AUTHENTICATE()
-    if False:
-        # only one active test at a time
-        count001 = 0
-        for i in request.session['active_model'].model_tests.all():
-            if i.Active == True:
-                count001 = count001 +1
-        if count001 >0:
-            return render_to_response('TestWelcome_alreadyactive.html')
-
-        # If all tests completed
-        count2 = 0
-        for i in request.session['active_model'].model_tests.all():
-            if i.Active == False:
-                count2 = count2 +1
-        if int(count2) == int(len(Case.objects.all())):
-            return render_to_response('nomorecases.html')
-    type_lst = []
-    for i in Case.objects.all():
-        if str(i.subject_category) not in  type_lst:
-            type_lst.append(str(i.subject_category))
-
-    return render_to_response('Testselect.html',{'types':type_lst})
 
 
 #--------------------------------------------------------------------------------

@@ -96,7 +96,6 @@ class Case(models.Model):
     # Define Initialization Method
     def initialize(self):
 
-        self.showfind = False
         SideLength_km_ex = 25         # length of bounding box in km
         cellside_m = 5                # length of cell (pixel) in m
         SideLength_m_ex = SideLength_km_ex * 1000
