@@ -6,18 +6,18 @@
 <br>
 <center>
 
-	<h1> You may now run your model based on the information provided <br>
-		and upload the results<h1>
-<form action = "/activate_inst/" method = "get" name = "Instructions">
-		<button name = "Instructions" type = "submit" value = "HTML">
-		Instructions
-		</button>
+    <h1> You may now run your model based on the information provided <br>
+        and upload the results<h1>
+<form action = "/test_instructions/" method = "get" name = "Instructions">
+        <button name = "Instructions" type = "submit" value = "HTML">
+        Instructions
+        </button>
 </form>
 
 <form action = "/DownloadParam/" method = "get" name = "DWNLDPTS">
-		<button name = "DWNLD_PTS" type = "submit" value = "HTML">
-		Download Parameters
-		</button>
+        <button name = "DWNLD_PTS" type = "submit" value = "HTML">
+        Download Parameters
+        </button>
 </form>
 
 
@@ -27,12 +27,12 @@
 
 <form action = "/DownloadLayers/" method = "get" name = "DWNLDPTS">
 
-		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-		&nbsp;
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        &nbsp;
 
-		<button name = "DWNLD_PTS" type = "submit" value = "HTML">
-		Download Layers
-		</button></form>
+        <button name = "DWNLD_PTS" type = "submit" value = "HTML">
+        Download Layers
+        </button></form>
 
 {% endif %}
 
@@ -43,73 +43,73 @@
 </center>
 
 <div style = 'padding-left:25px;' >
-		<image src = '{{MAP}}' style = 'border:solid; border-width:5px;float:left'>
+        <image src = '{{MAP}}' style = 'border:solid; border-width:5px;float:left'>
 
-		<div style ='position:absolute;padding-top:550px;padding-left:0px'>
-		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-		<a href = 'http://code.google.com/apis/maps/terms.html'> Google Maps API - Terms </a>
-		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-		<a href ='http://www.google.com/privacy.html'> Google Privacy Page </a>
+        <div style ='position:absolute;padding-top:550px;padding-left:0px'>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        <a href = 'http://code.google.com/apis/maps/terms.html'> Google Maps API - Terms </a>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        <a href ='http://www.google.com/privacy.html'> Google Privacy Page </a>
 
-		<p style='padding-right:10px'> By using this service you are
-		agreeing to be bound by Google's Terms of Use.</p>
-		</div>
+        <p style='padding-right:10px'> By using this service you are
+        agreeing to be bound by Google's Terms of Use.</p>
+        </div>
 
 
         <div style = 'padding-left:525px;' >
-	      <p style = "background-color:#FFFF99 ; border: double;
+          <p style = "background-color:#FFFF99 ; border: double;
                       width: 475px; padding-left:30px">
-	        <br>
-		    <b>Test Case Name:</b> {{name}}
-		    <br><br>
+            <br>
+            <b>Test Case Name:</b> {{name}}
+            <br><br>
 
-		    <b>Required Coordinate System:</b>  WGS_84<br>
-		    <br>
+            <b>Required Coordinate System:</b>  WGS_84<br>
+            <br>
 
-		    <b><u>Subject(s) Information:</b></u><br>
-		    <br>
-		    <b>Subject age:</b> {{age}}<br>
-		    <b>Subject sex:</b> {{sex}}<br>
-		    <b>Subject Category:</b> {{subject_category }}<br>
-		    <b>Scenario: </b>{{scenario    }}<br>
-		    <b>Subject Sub-Category:</b> {{subject_subcategory }}<br>
-		    <b>Subject Activity:</b> {{subject_activity   }}<br>
-		    <b>Group Type:</b> {{group_type}}<br>
-		    <b>Number Lost:</b> {{number_lost  }}<br>
-
-
-		    <br>
-		    <b><u>Search Region Information:</b></u><br>
-		    <br>
-			<b>Country: </b>{{country}}<br/>
-			<b>State: </b>{{state}}<br/>
-		    <b>Terrain: </b>{{terrain  }}<br>
-		    <b>Ecoregion Domain: </b>{{ecoregion_domain  }}<br>
-		    <b>Ecoregion Division: </b>{{ecoregion_division }}<br>
-		    <b>Total hours before Located: </b>{{total_hours }}<br>
-		    <br>
-
-		    <b>Last Known Position:</b> {{LKP}}<br>
-		    <b># Horizontal cells: </b>{{horcells}}<br>
-		    <b># Vertical cells: </b>{{vercells}}<br>
-		    <b>Total # cells: </b>{{totcells}}<br>
-		    <b>Est. Cell width:</b> {{cellwidth}} meters<br>
-		    <b>Est. Search Region width:</b> {{regionwidth}} Kilometers<br>
-
-		    <br>
+            <b><u>Subject(s) Information:</b></u><br>
+            <br>
+            <b>Subject age:</b> {{age}}<br>
+            <b>Subject sex:</b> {{sex}}<br>
+            <b>Subject Category:</b> {{subject_category }}<br>
+            <b>Scenario: </b>{{scenario    }}<br>
+            <b>Subject Sub-Category:</b> {{subject_subcategory }}<br>
+            <b>Subject Activity:</b> {{subject_activity   }}<br>
+            <b>Group Type:</b> {{group_type}}<br>
+            <b>Number Lost:</b> {{number_lost  }}<br>
 
 
+            <br>
+            <b><u>Search Region Information:</b></u><br>
+            <br>
+            <b>Country: </b>{{country}}<br/>
+            <b>State: </b>{{state}}<br/>
+            <b>Terrain: </b>{{terrain  }}<br>
+            <b>Ecoregion Domain: </b>{{ecoregion_domain  }}<br>
+            <b>Ecoregion Division: </b>{{ecoregion_division }}<br>
+            <b>Total hours before Located: </b>{{total_hours }}<br>
+            <br>
+
+            <b>Last Known Position:</b> {{LKP}}<br>
+            <b># Horizontal cells: </b>{{horcells}}<br>
+            <b># Vertical cells: </b>{{vercells}}<br>
+            <b>Total # cells: </b>{{totcells}}<br>
+            <b>Est. Cell width:</b> {{cellwidth}} meters<br>
+            <b>Est. Search Region width:</b> {{regionwidth}} Kilometers<br>
+
+            <br>
 
 
 
-		    <b><u>Search Region Boundary Points:</b></u><br>
-		    <br>
-		    <b>Upper Lat:</b>&nbsp;&nbsp; {{uplat}}<br>
-		    <b>Lower Lat:</b> &nbsp; {{downlat}}<br>
-		    <b>Right Lon:</b>&nbsp;&nbsp;{{rightlon}}<br>
-		    <b>Left Lon:</b>&nbsp;&nbsp;&nbsp;&nbsp;{{leftlon}}<br>
-		    <br>
-		  </p>
+
+
+            <b><u>Search Region Boundary Points:</b></u><br>
+            <br>
+            <b>Upper Lat:</b>&nbsp;&nbsp; {{uplat}}<br>
+            <b>Lower Lat:</b> &nbsp; {{downlat}}<br>
+            <b>Right Lon:</b>&nbsp;&nbsp;{{rightlon}}<br>
+            <b>Left Lon:</b>&nbsp;&nbsp;&nbsp;&nbsp;{{leftlon}}<br>
+            <br>
+          </p>
         </div>
 </div>
 
@@ -131,12 +131,12 @@ system. <b>New!</b> You may revise your test later on.
 <br><br><br>
 <form action = "/upload_file/" method="post" enctype="multipart/form-data" name = "Upload File">
 
-		{% csrf_token %}
+        {% csrf_token %}
 
-		<input type = 'file' name ='grayscale'><br><br>
-		<button name = "Upload File" type = "submit" value = "HTML">
-		Submit File
-		</button>
+        <input type = 'file' name ='grayscale'><br><br>
+        <button name = "Upload File" type = "submit" value = "HTML">
+        Submit File
+        </button>
 </form>
 <br><br><br>
 </div>
@@ -151,9 +151,9 @@ system. <b>New!</b> You may revise your test later on.
 
 <form action = "/model_menu/" method = "get" name = "Return to Model Menu">
 
-		<button name = "Return To Model Menu" type = "submit" value = "HTML">
-		Return To Model Menu
-		</button>
+        <button name = "Return To Model Menu" type = "submit" value = "HTML">
+        Return To Model Menu
+        </button>
 </form>
 </center>
 

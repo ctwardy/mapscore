@@ -945,29 +945,11 @@ def create_test(request):
 
     return redirect('/test_active/')
 
-#-------------------------------------------------------------------------------------------
-def Activate_instructions(request):
-    '''Enables instructions screen, and calls instructions page.'''
-
-    AUTHENTICATE()
-
-    request.session['active_test'].show_instructions = True
-    request.session['active_test'].save()
-    return redirect('/test_instructions/')
-
-
 
 #-------------------------------------------------------------------
 def tst_instructions(request):
     '''Show the instructions for creating images.'''
-
-    AUTHENTICATE()
-    if request.session['active_test'].show_instructions == True:
-        request.session['active_test'].show_instructions = False
-        request.session['active_test'].save()
-        return render_to_response('tst_instructions.html')
-    else:
-        return redirect('/test_active/')
+    return render_to_response('tst_instructions.html')
 
 #-------------------------------------------------------------------------------------------
 
