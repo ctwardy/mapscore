@@ -42,14 +42,17 @@ def attract(current_r, current_theta, current_cell, sweep, rast, rast_res):
 def avg_speed(current_cell_sl, new_theta,dr, walking_speeds, sl_res):
 	#will figure out average speed/distance, need to clarify with Dr. Twardy
 	#for simplicity, take average of walking speed of current cell and new cell, as long as there aren;t huge spikes this should be somewhat accurate for the average walking speed of the two places
-	dx = math.floor(dr*math.cos(new_theta)/sl_res)
-	dy = math.floor(dr*math.sin(new_theta)/sl_res)
-	first_speed = walking_speeds[current_cell_sl[0]][current_cell_sl[1]
-	last_speed = walking_speeds[current_cell_sl[0]+dy][current_cell_sl[1]+dx]
+	dx = math.floor(dr*np.cos(new_theta)/sl_res)
+	dy = math.floor(dr*np.sin(new_theta)/sl_res)
+	newy = current_cell_sl[0]+dy
+	newx = current_cell_sl[1] + dx
+	first_speed = walking_speeds[current_cell_sl[0]][current_cell_sl[1]]
+	last_speed = walking_speeds[newy][newx]
 	speed = (first_speed+last_speed)/2
 	return speed
 	
 def main():
+
 	#have land cover and slope, reclassify land cover for impedance
 	#have elevation map, use arcpy to calculate slope for each cell might not need this
 	#use raster to numpy array to get numpy arrays of each thing
@@ -62,11 +65,11 @@ def main():
 	sl = np.ones((833,833))
 	#before getting inverse of slope use array to make walking speed array
 	# for simplicity right now using tobler's hiking function and multiplying with the impedance weight
-	walking_speeds = 6*np.exp(-3.5*np.abs(sl+.05))*1000/3600 # speed in kmph*1000 m/km *1hr/3600s
-	sl = 1/sl
+	walking_speeds = 6*np.exp(-3.5*np.abs(np.add(sl,.05)))*1/3.6 # speed in kmph*1000 m/km *1hr/3600s
+	sl = np.divide(1,sl)
 	imp = np.ones((833,833))
 	#walking speed weighted with land cover here from doherty paper, which uses a classification as 25 = 25% slower than normal, 100 = 100% slower than normal walking speed
-	imp_weight = (100-imp)/100
+	imp_weight = np.divide(np.subtract(100,imp),100)
 	walking speeds = np.multiply(imp_weight, walking_speeds) #since 1 arcsecond is roughy 30 meters the dimensions will hopefully work out
 	imp = 1/imp #lower impedance is higher here, will work for probabilities
 	#create easy numpy array for walking speed accross cell for walking speed calculations later
@@ -97,6 +100,7 @@ def main():
 	current_cell_sl = [sl_shape[0]/2 - 1, sl_shape[1]/2 - 1]
 	
 	for i in range(1000):
+		print i
 		t = 0
 		current_r = r[i]
 		current_theta = theta[i]
@@ -105,7 +109,7 @@ def main():
 			
 			#look in current direction, need to figure out how to do the sweep of slope
 			slope_sweep = attract(current_r, current_theta,current_cel_sl,sweep,sl, sl_res)
-			impedance_sweep = attrct(current_r,current_theta,current_cell_imp,sweep, imp, imp_res)
+			impedance_sweep = attract(current_r,current_theta,current_cell_imp,sweep, imp, imp_res)
 			#goal: have relative attractiveness of both slope and land cover by taking values
 			#for slope might have a function that takes the least average change in each direction
 			#then take reciprocal to make smaller numbers bigger and take each change/sum of total to get relative goodness
@@ -114,8 +118,8 @@ def main():
 			probabilities = np.concatenate(attract,[stay,rev])
 			#create a random variable with each of the 12 choices assigned the appropriate probability
 			dist = rv_discrete(values = (range(len(sweep)), probabilities))
-			index = dist.rvs(size = 1)
-			dtheta = sweep[index]
+			ind = dist.rvs(size = 1)
+			dtheta = sweep[ind]
 			
 			if (dtheta ==0):
 				v = 0 #staying put, no change
@@ -151,7 +155,7 @@ def main():
 			slx = math.floor(x/sl_res)
 			sly = math.floor(y/sl_res)
 			current_cell_imp = np.add(current_cell_imp , [impx,impy])
-			current_cell_sl = np.dd(current_cell_sl, [slx,sly])
+			current_cell_sl = np.add(current_cell_sl, [slx,sly])
 
 	#now that we have final positions for 1000 hikers at endtime the goal is to display/plot
 	probs = np.zeros((500,500))#represents 50 meter cells with ipp at center, will get resized
