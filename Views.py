@@ -94,7 +94,7 @@ def main_page(request):
     request.session['completedtest'] = ''
     request.session['completedtest_lookup'] = False
     request.session['failure'] = False
-    request.session['active_case_temp'] = 'none'
+    request.session['active_case'] = 'none'
     request.session['active_test'] = 'none'
     request.session['active_account'] = 'none'
     request.session['active_model'] = 'none'
@@ -332,7 +332,7 @@ def account_access(request):
     request.session['failure'] = False
     request.session['nav'] ='none'
     request.session['inputdic'] = 'none'
-    request.session['active_case_temp'] = 'none'
+    request.session['active_case'] = 'none'
     request.session['active_test'] = 'none'
     request.session['active_model'] = 'none'
 
@@ -701,7 +701,7 @@ def model_access(request):
 
     AUTHENTICATE()
 
-    request.session['active_case_temp'] = 'none'
+    request.session['active_case'] = 'none'
     request.session['active_test'] = 'none'
     request.session['createcheck'] = False
 
@@ -862,7 +862,7 @@ def newtest(request):
     AUTHENTICATE()
 
     # Use names requested by TestWelcome.html so we can use locals() later.
-    case = request.session['active_case_temp']
+    case = request.session['active_case']
     MAP = case.URL
     Name_act = request.session['active_account'].institution_name
     Name_m = request.session['active_model'].model_nameID
@@ -909,7 +909,7 @@ def create_test(request):
     #Old code had notification page.Clunky.
     #return render_to_response('TestCreated.html')
 
-    tempcase = request.session['active_case_temp']
+    tempcase = request.session['active_case']
 
     # Need to avoid creating duplicate tests for given model/case
     # idea: delete exisitng test model link and test, then create new one ?
@@ -5108,63 +5108,75 @@ def TesttypeSwitch(request):
     AUTHENTICATE()
 
     selection = request.GET['typein2']
-    if selection ==0:
+    if selection == '0':
         return redirect("/casetypeselect/")
 
-    for i in Case.objects.all():
-        if i.subject_category==selection:
-            counter01 = 0
-            havecase = False
-            for j in request.session['active_model'].model_tests.all():
-                if i.case_name == j.test_case.case_name:
-                    counter01 = counter01+1
-
-            if counter01 == 0:
-                request.session['active_case_temp'] = i
-                havecase = True
-                break
-
-    if havecase == False:
-        return render_to_response('nomorecasestype.html',{'selection':selection})
-
-    return redirect("/new_test/")
+    for case in Case.objects.all():
+        if case.subject_category == selection and case not in request.session['active_model'].model_tests.all():
+            request.session['active_case'] = case
+            return redirect('/test/')
+    return render_to_response('nomorecases.html', {'selection' : selection})
 
 #--------------------------------------------------------------------------------
 def TestNameSwitch(request):
     AUTHENTICATE()
     selection = request.GET['casename']
-    if selection ==0:
-        return redirect("/casetypeselect/")
+    if selection == '0':
+        return redirect('/casetypeselect/')
 
-    havecase = False
     try:
-        request.session['active_case_temp'] = Case.objects.get(case_name=selection)
-        return redirect("/new_test/")
+        request.session['active_case'] = Case.objects.get(case_name=selection)
+        return redirect('/test/')
     except Case.DoesNotExist:
         return render_to_response('nomorecasestype.html',{'selection':selection})
     else:
         # Multiple Cases Found -- Pick the first
         cases = Case.objects.filter(case_name = selection)
-        request.session['active_case_temp'] = cases[0]
-        return redirect("/new_test/")
+        request.session['active_case'] = cases[0]
+        return redirect("/test/")
 
 #--------------------------------------------------------------------------------
 
 def NextSequentialTestSwitch(request):
     AUTHENTICATE()
 
-    for i in Case.objects.all():
-        counter01 = 0
-        havecase = False
-        for j in request.session['active_model'].model_tests.all():
-            if i.case_name == j.test_case.case_name:
-                counter01 = counter01+1
+    havecase = False
+    tested_cases = [test.test_case for test in request.session['active_model'].model_tests.all()]
+    for case in Case.objects.all():
+        if case not in tested_cases:
+            request.session['active_case'] = case
+            return redirect('/test/')
+    return render_to_response('nomorecases.html')
 
-        if counter01 == 0:
-            request.session['active_case_temp'] = i
-            havecase = True
-            break
-    if havecase == False:
-        return render_to_response('nomorecases.html')
+def test(request):
+    active_case = request.session['active_case']
+    age = active_case.Age
+    name = active_case.case_name
+    sex = active_case.Sex
+    country = active_case.country
+    state = active_case.state
+    LKP = '('+active_case.lastlat + ',' +active_case.lastlon + ')'
+    totalcells = active_case.totalcellnumber
+    sidecells = active_case.sidecellnumber
+    uplat = active_case.upright_lat
+    rightlon = active_case.upright_lon
+    downlat = active_case.downright_lat
+    leftlon = active_case.upleft_lon
 
-    return redirect("/new_test/")
+    account_name = request.session['active_account'].institution_name
+    model_name = request.session['active_model'].model_nameID
+    URL = active_case.URL
+
+    subject_category = active_case.subject_category
+    subject_subcategory = active_case.subject_subcategory
+    scenario   =  active_case.scenario
+    subject_activity  = active_case.subject_activity
+    number_lost  = active_case.number_lost
+    group_type = active_case.group_type
+    ecoregion_domain  = active_case.ecoregion_domain
+    ecoregion_division = active_case.ecoregion_division
+    terrain     = active_case.terrain
+    total_hours = active_case.total_hours
+    MAP = active_case.URL
+    
+    return render_to_response('file_up.html', locals())

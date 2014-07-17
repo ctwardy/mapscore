@@ -122,6 +122,7 @@ urlpatterns = patterns('',
               ('^NextSequentialTestSwitch/$',NextSequentialTestSwitch),
               ('^TesttypeSwitch/$',TesttypeSwitch),
               ('^TestNameSwitch/$',TestNameSwitch),
+              ('^test/$', test),
            
               (r'^robots\.txt$', lambda r: HttpResponse("User-agent: *\nDisallow: /", mimetype="text/plain")),
              
