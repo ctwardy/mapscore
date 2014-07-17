@@ -1,7 +1,7 @@
 #motion model simulation
 import numpy as np
-import arcpy as arc #need to convert rasters to np arrays
-from arcpy.sa import * #spatial analyst for the thing
+#import arcpy as arc #need to convert rasters to np arrays
+#from arcpy.sa import * #spatial analyst for the thing
 import matplotlib.pyplot as plt                      
 import matplotlib.image as img
 from PIL import Image
@@ -54,17 +54,17 @@ def main():
 	#have elevation map, use arcpy to calculate slope for each cell might not need this
 	#use raster to numpy array to get numpy arrays of each thing
 	#use formula from ... to calculate walking speed across each cell
-	arc.env.workspace = "C:\Users\Eric Cawi\Documents\SAR\Motion Model Test"
-	elev_slope = Slope("NED","DEGREE",1)
-	impedance = Reclassify("land_cover","Value", RemapValue([[]]
+	#arc.env.workspace = "C:\Users\Eric Cawi\Documents\SAR\Motion Model Test"
+	#elev_slope = Slope("NED","DEGREE",1)
+	#impedance = Reclassify("land_cover","Value", RemapValue([[]]
 	impedance_weight = .5
 	slope_weight = .5
-	sl = arc.RasterToNumpyArray(elev_slope)
+	sl = np.ones((833,833))
 	#before getting inverse of slope use array to make walking speed array
 	# for simplicity right now using tobler's hiking function and multiplying with the impedance weight
-	walking_speeds = 6*np.exp(-3.5*np.abs(sl+.05))
+	walking_speeds = 6*np.exp(-3.5*np.abs(sl+.05))*1000/3600 # speed in kmph*1000 m/km *1hr/3600s
 	sl = 1/sl
-	imp = arc.RasterToNumpyArray(impedance)
+	imp = np.ones((833,833))
 	#walking speed weighted with land cover here from doherty paper, which uses a classification as 25 = 25% slower than normal, 100 = 100% slower than normal walking speed
 	imp_weight = (100-imp)/100
 	walking speeds = np.multiply(imp_weight, walking_speeds) #since 1 arcsecond is roughy 30 meters the dimensions will hopefully work out
@@ -75,7 +75,7 @@ def main():
 	imp_res = 30 #30 meter impedance resolution from the land cover dataset
 	imp_shape = imp.shape
 	sl_shape = sl.shape
-	sl_res = 25000/sl_shape[0] #NED should be a square so this should work for both ways
+	sl_res = 25000/sl_shape[0] #NED should be a square so this should work for both ways, should be integer division
 
 	end_time = 120 #arbitrary 2 hours
 	#establish initial conditions in polar coordinates, using polar coordinates because i think it's easier to deal with the angles
@@ -95,12 +95,14 @@ def main():
 
 	current_cell_imp = [imp_shape[0]/2 - 1, imp_shape[1]/2 - 1] #-1 is to compensate for the indeces starting at 0, starting at middle of array should represent the ipp
 	current_cell_sl = [sl_shape[0]/2 - 1, sl_shape[1]/2 - 1]
-	t = 0
-	while t < end_time:
-		print t
-		for i in range(1000):
-			current_r = r[i]
-			current_theta = theta[i]
+	
+	for i in range(1000):
+		t = 0
+		current_r = r[i]
+		current_theta = theta[i]
+		while t < end_time:
+			print t
+			
 			#look in current direction, need to figure out how to do the sweep of slope
 			slope_sweep = attract(current_r, current_theta,current_cel_sl,sweep,sl, sl_res)
 			impedance_sweep = attrct(current_r,current_theta,current_cell_imp,sweep, imp, imp_res)
@@ -137,9 +139,9 @@ def main():
 				theta_new = current_theta+asin
 				v = avg_speed(current_cell_sl,dtheta,dr,walking_speeds,sl_res)#some way to figure out either average speed or distance traveled along the line chosen
 				dt = 120/v
-                        #update for current time step
-                        r[i] = r_new
-                        theta[i] = theta_new
+			#update for current time step
+			r[i] = r_new
+			theta[i] = theta_new
 			t+=dt
 			#update current_cell for slope and impedance
 			x = r[i]*np.cos(theta[i])
@@ -176,12 +178,12 @@ def main():
 		for j in range(500):
 			if pobs[i][j]>.0001:
 				probs[i][j] = probs[i][j]*(1-prob_0)#scaling everything to sum to 1
-	case_name = #whichever case I use for the test
+	case_name = 'test'
 	#example plotting for testing:
 	plt.title("Motion Model Test")
 	plt.imshow(probs,cmap = 'cist_gray')
 	plt.colorbar()
-        name = 'motion_model_test/%s.png' %case_name
+        name = 'C:/Users/Eric Cawi/Documents/SAR/motion_model_test/%s.png' %case_name
         plt.imsave(name, probs, cmap = 'gist_gray')
         tag_image(name, prob_outside)
         #now want to resize the image to be 5001 x5001 as required by mapscore
