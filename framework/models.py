@@ -229,7 +229,7 @@ class Test(models.Model):
     def setup(self):
         self.grayrefresh = 0
         self.test_rating = 'unrated'
-        self.Active = True
+        self.Active = False
         self.nav = 0
         self.show_instructions = True
         self.save()
@@ -299,7 +299,6 @@ class Test(models.Model):
 
         # Store result and update model
         self.test_rating = round(R,6)
-        #self.Active = False
         self.save()
         self.model_set.all()[0].update_rating()
         return 0                        # could return r,R

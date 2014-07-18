@@ -109,7 +109,7 @@ def main_page(request):
     inputlist = []
     # copy values for leaderboard table
     for model in sorted_models:
-        num_finished = len(model.model_tests.all())
+        num_finished = sum((not test.Active for test in model.model_tests.all()))
         if num_finished >= 5:
             inputlist.append(
                 [model.account_set.all()[0].institution_name,
@@ -1094,7 +1094,8 @@ def nonactive_test(request):
     AUTHENTICATE()
     intest_raw = str(request.GET['Nonactive_Testin'])
     intest = intest_raw.strip()
-    completed_lst = [i.test_name for i in request.session['active_model'].model_tests.all()]
+    completed_lst = [test.test_name for test in 
+        request.session['active_model'].model_tests.all() if not test.Active]
     #debugx
     print >>sys.stderr, 'DEBUG:\n'
     print >>sys.stderr, intest
@@ -1196,7 +1197,8 @@ def Leader_model(request):
         username = account.username
         name = model.model_nameID
         rating = float(model.model_avgrating)
-        finished_tests = model.model_tests.all()
+        tests = model.model_tests.all()
+        finished_tests = [test for test in tests if not test.Active]
         N = len(finished_tests)
         scores = [float(x.test_rating) for x in finished_tests]
 
@@ -1312,7 +1314,8 @@ def switchboard_totest(request):
             return render_to_response('Leaderboard_Testfail.html',inputdic)
 
     # If entry is valid
-    matchedtests = Test.objects.all()
+    all_tests = Test.objects.all()
+    matched_tests = [test for test in all_tests if test.test_name == casename and not test.Active]
     sorted_tests = sorted(matched_tests,
                           key=attrgetter('test_rating'),
                           reverse=True)
@@ -1392,8 +1395,9 @@ def testcaseshow(request):
         name =    'Model Name: ' + str(i.model_nameID)
         lst = []
         lst.append(name)
-        for j in list(i.model_tests.all()):\
-            lst.append(str( j.test_name))
+        for j in list(i.model_tests.all()):
+            if not j.Active:
+                lst.append(str( j.test_name))
 
         Completed_list.append(lst)
 
@@ -1444,8 +1448,9 @@ def completedtest_info(request):
     completed_lst = []
 
     for i in list(request.session['active_model'].model_tests.all()):
-        thumb = MEDIA_DIR + "thumb_" + str(i.ID2).replace(':','_') + ".png"
-        completed_lst.append({'test_name':i.test_name, 'test_rating':i.test_rating, 'thumb':thumb, 'thumbexists':os.path.isfile(thumb)})
+        if not i.Active:
+            thumb = MEDIA_DIR + "thumb_" + str(i.ID2).replace(':','_') + ".png"
+            completed_lst.append({'test_name':i.test_name, 'test_rating':i.test_rating, 'thumb':thumb, 'thumbexists':os.path.isfile(thumb)})
 
     return render_to_response('completedtest_info.html', {'completed_lst': completed_lst})
 
@@ -2734,7 +2739,7 @@ def switchboard_toscenario(request):
             scenarioclick = 0
             tests = j.model_tests.all()
             finished_tests = [x for x in tests
-                if x.test_case.scenario == name]
+                if x.test_case.scenario == name and not x.Active]
             N = len(finished_tests)
             if N <= 0:
                 # No finished cases
