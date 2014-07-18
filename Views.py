@@ -119,6 +119,7 @@ def main_page(request):
 
     # Limit to Top-10
     inputdic = {'Scorelist': inputlist[:9]}
+    inputdic.update(csrf(request))
 
     return render_to_response('Main.html', inputdic)
 
@@ -336,8 +337,8 @@ def account_access(request):
 
     if request.session['active_account'] == 'none':
 
-        User_in = str(request.GET['Username'])
-        Pass_in = str(request.GET['Password'])
+        User_in = str(request.POST['Username'])
+        Pass_in = str(request.POST['Password'])
 
         # Verify user
         user = auth.authenticate(username = User_in , password = Pass_in)
@@ -758,7 +759,7 @@ def model_access(request):
 def admin_login(request):
 
     request.session['Superlogin'] = False
-    return render_to_response('AdminLogin.html')
+    return render_to_response('AdminLogin.html', csrf(request))
 #---------------------------------------------------------------
 
 def admin_account(request):
@@ -767,8 +768,8 @@ def admin_account(request):
 
     if request.session['Superlogin'] == False:
 
-        User_in = request.GET['Username']
-        Pass_in = request.GET['Password']
+        User_in = str(request.POST['Username'])
+        Pass_in = str(request.POST['Password'])
 
         # Verify user
         user = auth.authenticate(username = User_in , password = Pass_in)
