@@ -47,7 +47,7 @@ from mapscore.forms import ZipUploadForm
 #MEDIA_DIR = 'C:/Users/Nathan Jones/Django Website/MapRateWeb/media/'
 #USER_GRAYSCALE = 'C:/Users/Nathan Jones/Django Website/MapRateWeb/user_grayscale/'
 MEDIA_DIR = 'media/'         # for the server
-USER_GRAYSCALE = 'user_grayscale/'
+USER_GRAYSCALE = 'media/'
 
 # console print e.g.:
 #print >>sys.stderr, 'Goodbye, cruel world!'
@@ -95,7 +95,6 @@ def main_page(request):
     request.session['completedtest_lookup'] = False
     request.session['failure'] = False
     request.session['active_case'] = 'none'
-    request.session['active_test'] = 'none'
     request.session['active_account'] = 'none'
     request.session['active_model'] = 'none'
     request.session['Superlogin'] = False
@@ -110,7 +109,7 @@ def main_page(request):
     inputlist = []
     # copy values for leaderboard table
     for model in sorted_models:
-        num_finished = sum((not test.Active for test in model.model_tests.all()))
+        num_finished = len(model.model_tests.all())
         if num_finished >= 5:
             inputlist.append(
                 [model.account_set.all()[0].institution_name,
@@ -333,7 +332,6 @@ def account_access(request):
     request.session['nav'] ='none'
     request.session['inputdic'] = 'none'
     request.session['active_case'] = 'none'
-    request.session['active_test'] = 'none'
     request.session['active_model'] = 'none'
 
     if request.session['active_account'] == 'none':
@@ -702,7 +700,6 @@ def model_access(request):
     AUTHENTICATE()
 
     request.session['active_case'] = 'none'
-    request.session['active_test'] = 'none'
     request.session['createcheck'] = False
 
     # If not coming from Account
@@ -710,23 +707,14 @@ def model_access(request):
         account_name = request.session['active_account'].institution_name
         model_name = request.session['active_model'].model_nameID
         AllTests = request.session['active_model'].model_tests.all()
-        activetests = []
-        for i in AllTests:
-            if i.Active == True:
-                activetests.append(i.test_name)
-
-        nonactivetests = []
-        for i in AllTests:
-            if i.Active == False:
-                nonactivetests.append(i.test_name)
 
         rating = request.session['active_model'].model_avgrating
         print rating
-        input_dic = {'rating':rating,'Name_act':account_name, 'Name_m':model_name, 'activetest_list':activetests,'nonactivetest_list':nonactivetests}
+        input_dic = {'rating':rating,'Name_act':account_name, 'Name_m':model_name}
 
         # If incorrect completed test entered
         if request.session['failure'] == True:
-            input_dic = {'failure':True,'rating':rating,'Name_act':account_name, 'Name_m':model_name, 'activetest_list':activetests,'nonactivetest_list':nonactivetests}
+            input_dic = {'failure':True,'rating':rating,'Name_act':account_name, 'Name_m':model_name}
             request.session['failure'] = False
 
         #if returning from completed selection
@@ -750,19 +738,9 @@ def model_access(request):
             model_name = request.session['active_model'].model_nameID
 
             AllTests = request.session['active_model'].model_tests.all()
-            activetests = []
-            for i in AllTests:
-                if i.Active == True:
-                    activetests.append(i.test_name)
-
-
-            nonactivetests = []
-            for i in AllTests:
-                if i.Active == False:
-                    nonactivetests.append(i.test_name)
 
             rating = request.session['active_model'].model_avgrating
-            input_dic = {'rating':rating,'Name_act':account_name, 'Name_m':model_name, 'activetest_list':activetests,'nonactivetest_list':nonactivetests}
+            input_dic = {'rating':rating,'Name_act':account_name, 'Name_m':model_name}
 
 
             # If incorrect completed test entered
@@ -855,180 +833,45 @@ def Casereg(request):
     return render_to_response('Casereg.html',inputdic)
 
 
-#------------------------------------------------------------------------
-
-def newtest(request):
-
-    AUTHENTICATE()
-
-    # Use names requested by TestWelcome.html so we can use locals() later.
-    case = request.session['active_case']
-    MAP = case.URL
-    Name_act = request.session['active_account'].institution_name
-    Name_m = request.session['active_model'].model_nameID
-
-    age = case.Age
-    name = case.case_name
-    sex = case.Sex
-    country = case.country
-    state = case.state
-    LKP = '('+case.lastlat + ',' +case.lastlon + ')'
-    subject_category = case.subject_category
-    subject_subcategory = case.subject_subcategory
-    scenario   =  case.scenario
-    subject_activity  = case.subject_activity
-    number_lost  = case.number_lost
-    group_type = case.group_type
-    ecoregion_domain  = case.ecoregion_domain
-    ecoregion_division = case.ecoregion_division
-    terrain     = case.terrain
-    total_hours = case.total_hours
-
-    totcells = int(float(case.totalcellnumber))
-    horcells = vercells = case.sidecellnumber
-    cellwidth = 5 # meters
-    regionwidth = 25 # km
-    uplat = case.upright_lat
-    rightlon = case.upright_lon
-    downlat = case.downright_lat
-    leftlon = case.upleft_lon
-
-    # That's a lot of variables. We'll use the 'locals()' trick
-    # instead of creating an input dictionary.
-
-    return render_to_response('TestWelcome.html', locals())
-
-#------------------------------------------------------------------------------------------
-def create_test(request):
-    AUTHENTICATE()
-
-    # If refresh
-    if request.session['createcheck'] == True:
-        return redirect('/test_instructions/')
-
-    #Old code had notification page.Clunky.
-    #return render_to_response('TestCreated.html')
-
-    tempcase = request.session['active_case']
-
-    # Need to avoid creating duplicate tests for given model/case
-    # idea: delete exisitng test model link and test, then create new one ?
-    ID2 = str(request.session['active_model'].ID2) + ':' + str(tempcase.case_name)
-    try:
-        findtest = Test.objects.get(ID2 = ID2)
-    except Test.DoesNotExist:
-        findtest = None
-
-    if findtest != None:
-        #print >>sys.stderr, 'DEBUG:\n'
-        #print >>sys.stderr, str(findtest.id) + ":" + str(findtest.ID2)
-        #delete the test_model_link first
-        OldLink = Test_Model_Link.objects.get(test = findtest.id)
-        OldLink.delete()
-        #then delete existing test
-        findtest.delete()
-
-    newtest = Test( test_case = tempcase,
-        test_name = tempcase.case_name,
-        ID2 = ID2 )
-
-    newtest.save()
-
-    Link = Test_Model_Link( test = newtest,
-                model = request.session['active_model'])
-
-    Link.save()
-    newtest.setup()
-    newtest.save()
-    request.session['active_test'] = newtest
-    request.session['createcheck'] = True
-
-    return redirect('/test_active/')
-
 
 #-------------------------------------------------------------------
 def tst_instructions(request):
     '''Show the instructions for creating images.'''
     return render_to_response('tst_instructions.html')
 
-#-------------------------------------------------------------------------------------------
-
-def active_test(request):
-    '''Retrieve data for the active test and render file_up.html.
-
-    This used to administer the gridtest if you hadn't already passed.
-
-    TODO: there is no need to define all these local variables.
-
-    '''
-    AUTHENTICATE()
-
-    #request.session['active_test'] = Test.objects.get(ID2 = request.session['active_test'].ID2)
-    active_test = request.session['active_test']
-    print str(active_test.nav) + '-----nav'
-    active_test.nav == 2      # Assume we passed the grid test
-    active_test = request.session['active_test']
-    active_case = active_test.test_case
-
-    age = active_case.Age
-    name = active_case.case_name
-    sex = active_case.Sex
-    country = active_case.country
-    state = active_case.state
-    LKP = '('+active_case.lastlat + ',' +active_case.lastlon + ')'
-    totalcells = active_case.totalcellnumber
-    sidecells = active_case.sidecellnumber
-    uplat = active_case.upright_lat
-    rightlon = active_case.upright_lon
-    downlat = active_case.downright_lat
-    leftlon = active_case.upleft_lon
-
-    account_name = request.session['active_account'].institution_name
-    model_name = request.session['active_model'].model_nameID
-    URL = active_case.URL
-
-    subject_category = active_case.subject_category
-    subject_subcategory = active_case.subject_subcategory
-    scenario   =  active_case.scenario
-    subject_activity  = active_case.subject_activity
-    number_lost  = active_case.number_lost
-    group_type = active_case.group_type
-    ecoregion_domain  = active_case.ecoregion_domain
-    ecoregion_division = active_case.ecoregion_division
-    terrain     = active_case.terrain
-    total_hours = active_case.total_hours
-
-    # Create Input dictionary
-
-    inputdic = {'Name_act':account_name, 'Name_m':model_name, 'name' :name, 'age':age,
-                'country':country,'state':state, 'sex':sex,'LKP':LKP,'horcells':sidecells,
-                'vercells':sidecells,'totcells' : totalcells, 'cellwidth' : 5,
-                'regionwidth' : 25,'uplat':uplat,'rightlon':rightlon,'downlat':downlat,
-                'leftlon':leftlon,'MAP':URL}
-    inputdic['subject_category'] = subject_category
-    inputdic['subject_subcategory'] = subject_subcategory
-    inputdic['scenario'] = scenario
-    inputdic['subject_activity'] = subject_activity
-    inputdic['number_lost'] = number_lost
-    inputdic['group_type'] = group_type
-    inputdic['ecoregion_domain'] = ecoregion_domain
-    inputdic['ecoregion_division'] = ecoregion_division
-    inputdic['terrain'] = terrain
-    inputdic['total_hours'] = total_hours
-    inputdic['layer'] = active_case.UploadedLayers
-
-    inputdic.update(csrf(request))
-    return render_to_response('file_up.html',inputdic)
 
 #-------------------------------------------------------------------------
 # Load Image
 
+def make_test(model, case):
+    ID2 = str(model.ID2) + ':' + str(case.case_name)
+    try:
+        findtest = Test.objects.get(ID2=ID2)
+    except Test.DoesNotExist:
+        findtest = None
+    
+    if findtest != None:
+        OldLink = Test_Model_Link.objects.get(test = findtest.id)
+        OldLink.delete()
+        findtest.delete()
+
+    newtest = Test(test_case=case, test_name=case.case_name, ID2=ID2)
+    newtest.save()
+
+    Link = Test_Model_Link(test=newtest, model=model)
+    Link.save()
+    newtest.setup()
+    newtest.save()
+    return newtest
+
 def load_image(request):
 
     AUTHENTICATE()
-
+    model, case = request.session['active_model'], request.session['active_case']
+    request.session['tmp_test'] = make_test(model, case)
+    
     # increment counter
-    active_test = request.session['active_test']
+    active_test = request.session['tmp_test']
     grayrefresh = int(active_test.grayrefresh) + 1
     active_test.grayrefresh = grayrefresh
 
@@ -1040,13 +883,12 @@ def load_image(request):
     active_test.grayscale_path = string
     active_test.save()
 
-
     destination = open(string,'wb+')
 
     for chunk in request.FILES['grayscale'].chunks():
         destination.write(chunk)
     destination.close()
-
+    
     return redirect('/confirm_grayscale/')
 
 #--------------------------------------------------------------------------
@@ -1054,9 +896,9 @@ def confirm_grayscale(request):
     AUTHENTICATE()
 
     # Verify Image
-    image_in = Image.open(request.session['active_test'].grayscale_path)
-    s = str(request.session['active_test'].ID2).replace(':','_')
-    served_Location = '/%s%s_%s.png' % (MEDIA_DIR, s, str(request.session['active_test'].grayrefresh))
+    image_in = Image.open(request.session['tmp_test'].grayscale_path)
+    s = str(request.session['tmp_test'].ID2).replace(':','_')
+    served_Location = '/%s%s_%s.png' % (MEDIA_DIR, s, str(request.session['tmp_test'].grayrefresh))
     inputdic = {'grayscale':served_Location}
 
     # Check dimensions
@@ -1094,13 +936,13 @@ def denygrayscale_confirm(request):
     AUTHENTICATE()
 
     # Remove served Grayscale image
-    os.remove(request.session['active_test'].grayscale_path)
+    os.remove(request.session['tmp_test'].grayscale_path)
 
     # Wipe the path
-    request.session['active_test'].grayscale_path = 'none'
-    request.session['active_test'].save()
+    request.session['tmp_test'].delete()
+    del(request.session['tmp_test'])
 
-    return redirect('/test_active/')
+    return redirect('/model_menu/')
 
 
 #-----------------------------------------------------------------------------
@@ -1109,16 +951,16 @@ def acceptgrayscale_confirm(request):
 
     AUTHENTICATE()
     # iterate counter
-    request.session['active_test'].grayrefresh = int(request.session['active_test'].grayrefresh) + 1
-    request.session['active_test'].save()
+    request.session['tmp_test'].grayrefresh = int(request.session['tmp_test'].grayrefresh) + 1
+    request.session['tmp_test'].save()
 
-    s = USER_GRAYSCALE + str(request.session['active_test'].ID2).replace(':','_')
-    s += '_%s.png' % str(request.session['active_test'].grayrefresh)
+    s = USER_GRAYSCALE + str(request.session['tmp_test'].ID2).replace(':','_')
+    s += '_%s.png' % str(request.session['tmp_test'].grayrefresh)
 
     # create string for saving thumbnail 128x128
-    thumb = MEDIA_DIR + "thumb_" + str(request.session['active_test'].ID2).replace(':','_') + ".png"
+    thumb = MEDIA_DIR + "thumb_" + str(request.session['tmp_test'].ID2).replace(':','_') + ".png"
 
-    shutil.move(request.session['active_test'].grayscale_path, s)
+    shutil.move(request.session['tmp_test'].grayscale_path, s)
 
     from PIL import Image
     im = Image.open(s)
@@ -1130,8 +972,8 @@ def acceptgrayscale_confirm(request):
     # save as thumb_User_Model_Case.png
 
     # set the path
-    request.session['active_test'].grayscale_path = s
-    request.session['active_test'].save()
+    request.session['tmp_test'].grayscale_path = s
+    request.session['tmp_test'].save()
 
     return redirect('/Rate_Test/')
 
@@ -1144,12 +986,12 @@ def acceptgrayscale_confirm(request):
 def Rate(request):
 
     AUTHENTICATE()
-    response = request.session['active_test'].rate()
+    response = request.session['tmp_test'].rate()
 
     # Resync Model
     request.session['active_model'] = Model.objects.get(ID2 = request.session['active_model'].ID2)
 
-    os.remove(request.session['active_test'].grayscale_path)
+    os.remove(request.session['tmp_test'].grayscale_path)
 
 
     # record rating
@@ -1176,7 +1018,7 @@ def submissionreview(request):
     request.session['active_model'].Completed_cases = int(request.session['active_model'].Completed_cases) + 1
     request.session['active_model'].save()
 
-    active_test = request.session['active_test']
+    active_test = request.session['tmp_test']
     active_case = active_test.test_case
 
 
@@ -1214,7 +1056,7 @@ def submissionreview(request):
 
 
     URL2 = show_find_pt(active_case.URLfind)
-    rating = str(request.session['active_test'].test_rating)
+    rating = str(request.session['tmp_test'].test_rating)
     showfind = active_case.showfind
 
 
@@ -1241,42 +1083,29 @@ def submissionreview(request):
 
 
 
-    request.session['active_test'].save()
+    request.session['tmp_test'].save()
+    del(request.session['tmp_test'])
 
     return render_to_response('Submissionreview.html', inputdic)
 
 
 #------------------------------------------------------------------------------------------------
-def setcompletedtest(request):
+def nonactive_test(request):
     AUTHENTICATE()
     intest_raw = str(request.GET['Nonactive_Testin'])
     intest = intest_raw.strip()
-    completed_lst = []
+    completed_lst = [i.test_name for i in request.session['active_model'].model_tests.all()]
     #debugx
     print >>sys.stderr, 'DEBUG:\n'
     print >>sys.stderr, intest
-    for i in list(request.session['active_model'].model_tests.all()):
-        if i.Active == False:
-            completed_lst.append(str(i.test_name))
-
-    if intest not in completed_lst :
+    print >> sys.stderr, completed_lst
+    
+    if intest not in completed_lst:
         request.session['failure'] = True
         return redirect('/model_menu/')
-
-    else:
-        request.session['active_test'] = request.session['active_model'].model_tests.get(test_name = intest)
-        return redirect('/Nonactive_test/')
-
-#--------------------------------------------------------------------------------------------------
-def nonactivetest(request):
-
-    AUTHENTICATE()
-
-
-
-    active_test = request.session['active_test']
+    
+    active_test = request.session['active_model'].model_tests.get(test_name = intest)
     active_case = active_test.test_case
-
 
     age = active_case.Age
     name = active_case.case_name
@@ -1284,16 +1113,17 @@ def nonactivetest(request):
     country = active_case.country
     state = active_case.state
     LKP = '('+active_case.lastlat + ',' +active_case.lastlon + ')'
-    totalcells = active_case.totalcellnumber
+    totcells = active_case.totalcellnumber
     sidecells = active_case.sidecellnumber
+    horcells, vercells = sidecells, sidecells
     uplat = active_case.upright_lat
     rightlon = active_case.upright_lon
     downlat = active_case.downright_lat
     leftlon = active_case.upleft_lon
 
-    account_name = request.session['active_account'].institution_name
-    model_name = request.session['active_model'].model_nameID
-    URL = active_case.URL
+    Name_act = request.session['active_account'].institution_name
+    Name_m = request.session['active_model'].model_nameID
+    MAP = active_case.URL
 
     subject_category = active_case.subject_category
     subject_subcategory = active_case.subject_subcategory
@@ -1305,38 +1135,16 @@ def nonactivetest(request):
     ecoregion_division = active_case.ecoregion_division
     terrain     = active_case.terrain
     total_hours = active_case.total_hours
+    regionwidth, cellwidth = 25, 5
 
-    findpoint = '(' + active_case.findlat  + ',' +active_case.findlon + ')'
-    findgrid =  '(' + active_case.findx  + ',' +active_case.findy + ')'
+    find_pt = '(' + active_case.findlat  + ',' +active_case.findlon + ')'
+    find_grid =  '(' + active_case.findx  + ',' +active_case.findy + ')'
 
-
-
-    URL2 = show_find_pt(active_case.URLfind)
-    rating = str(request.session['active_test'].test_rating)
+    MAP2 = show_find_pt(active_case.URLfind)
+    rating = str(active_test.test_rating)
     showfind = active_case.showfind
 
-
-
-    # Create Input dictionary
-
-    inputdic = {'Name_act':account_name, 'Name_m':model_name, 'name' :name, 'age':age,'country':country,'state':state, 'sex':sex,'LKP':LKP,'horcells':sidecells,'vercells':sidecells,'totcells' : totalcells, 'cellwidth' : 5, 'regionwidth' : 25,'uplat':uplat,'rightlon':rightlon,'downlat':downlat,'leftlon':leftlon,'MAP':URL}
-    inputdic['subject_category'] = subject_category
-    inputdic['subject_subcategory'] = subject_subcategory
-    inputdic['scenario'] = scenario
-    inputdic['subject_activity'] = subject_activity
-    inputdic['number_lost'] = number_lost
-    inputdic['group_type'] = group_type
-    inputdic['ecoregion_domain'] = ecoregion_domain
-    inputdic['ecoregion_division'] = ecoregion_division
-    inputdic['terrain'] = terrain
-    inputdic['total_hours'] = total_hours
-    inputdic['MAP2'] = URL2
-    inputdic['find_pt'] = findpoint
-    inputdic['find_grid'] = findgrid
-    inputdic['rating'] = rating
-    inputdic['showfind'] = showfind
-
-    return render_to_response('nonactive_test.html', inputdic)
+    return render_to_response('nonactive_test.html', locals())
 
 #----------------------------------------------------------------------------------------------------------------------------------------------------
 def get_sorted_models(allmodels):
@@ -1388,8 +1196,7 @@ def Leader_model(request):
         username = account.username
         name = model.model_nameID
         rating = float(model.model_avgrating)
-        tests = model.model_tests.all()
-        finished_tests = [x for x in tests if not x.Active]
+        finished_tests = model.model_tests.all()
         N = len(finished_tests)
         scores = [float(x.test_rating) for x in finished_tests]
 
@@ -1505,10 +1312,7 @@ def switchboard_totest(request):
             return render_to_response('Leaderboard_Testfail.html',inputdic)
 
     # If entry is valid
-    alltests = Test.objects.all()
-    matched_tests = [x for x in alltests
-                     if x.test_name == casename
-                     and not x.Active]
+    matchedtests = Test.objects.all()
     sorted_tests = sorted(matched_tests,
                           key=attrgetter('test_rating'),
                           reverse=True)
@@ -1588,9 +1392,8 @@ def testcaseshow(request):
         name =    'Model Name: ' + str(i.model_nameID)
         lst = []
         lst.append(name)
-        for j in list(i.model_tests.all()):
-            if j.Active == False:
-                lst.append(str( j.test_name))
+        for j in list(i.model_tests.all()):\
+            lst.append(str( j.test_name))
 
         Completed_list.append(lst)
 
@@ -1641,16 +1444,10 @@ def completedtest_info(request):
     completed_lst = []
 
     for i in list(request.session['active_model'].model_tests.all()):
-        if i.Active == False:
-            thumb = MEDIA_DIR + "thumb_" + str(i.ID2).replace(':','_') + ".png"
-            thumbexists = False
-            if os.path.isfile(thumb):
-                thumbexists = True
-            completed_lst.append({'test_name':i.test_name, 'test_rating':i.test_rating, 'thumb':thumb, 'thumbexists':thumbexists})
+        thumb = MEDIA_DIR + "thumb_" + str(i.ID2).replace(':','_') + ".png"
+        completed_lst.append({'test_name':i.test_name, 'test_rating':i.test_rating, 'thumb':thumb, 'thumbexists':os.path.isfile(thumb)})
 
-    inputdic ={'completed_lst': completed_lst}
-
-    return render_to_response('completedtest_info.html',inputdic)
+    return render_to_response('completedtest_info.html', {'completed_lst': completed_lst})
 
 #-----------------------------------------------------------------------------
 def case_ref(request):
@@ -2937,8 +2734,7 @@ def switchboard_toscenario(request):
             scenarioclick = 0
             tests = j.model_tests.all()
             finished_tests = [x for x in tests
-                if not x.Active
-                and x.test_case.scenario == name]
+                if x.test_case.scenario == name]
             N = len(finished_tests)
             if N <= 0:
                 # No finished cases
@@ -4843,8 +4639,7 @@ def DownloadParam(request):
     #----------------------------------------------------------------
 
 
-    active_test = request.session['active_test']
-    active_case = active_test.test_case
+    active_case = request.session['active_case']
 
 
 
@@ -4987,7 +4782,7 @@ def DownloadLayers(request):
         return render_to_response('noaccess.html',{})
 
     #----------------------------------------------------------------
-    active_test = request.session['active_test']
+    active_test = request.session['tmp_test']
     active_case = active_test.test_case
     string = str(active_case.LayerField)
     zippin = zipfile.ZipFile(string,'r')
@@ -5139,8 +4934,7 @@ def TestNameSwitch(request):
 
 def NextSequentialTestSwitch(request):
     AUTHENTICATE()
-
-    havecase = False
+    
     tested_cases = [test.test_case for test in request.session['active_model'].model_tests.all()]
     for case in Case.objects.all():
         if case not in tested_cases:
@@ -5149,7 +4943,12 @@ def NextSequentialTestSwitch(request):
     return render_to_response('nomorecases.html')
 
 def test(request):
+    AUTHENTICATE()
+    
     active_case = request.session['active_case']
+    if type(active_case) is str:
+        return redirect('/main/')
+    
     age = active_case.Age
     name = active_case.case_name
     sex = active_case.Sex
@@ -5177,6 +4976,16 @@ def test(request):
     ecoregion_division = active_case.ecoregion_division
     terrain     = active_case.terrain
     total_hours = active_case.total_hours
-    MAP = active_case.URL
     
-    return render_to_response('file_up.html', locals())
+    MAP = active_case.URL
+    horcells = active_case.sidecellnumber
+    vercells = active_case.sidecellnumber
+    totcells = active_case.totalcellnumber
+    cellwidth = 5
+    regionwidth = 25
+    
+    Name_act = request.session['active_account'].institution_name
+    Name_m = request.session['active_model'].model_nameID
+    inputdict = locals()
+    inputdict.update(csrf(request))
+    return render_to_response('file_up.html', inputdict)

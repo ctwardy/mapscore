@@ -224,7 +224,8 @@ class Test(models.Model):
     test_url2 = models.CharField(max_length = 300)
     grayscale_path = models.CharField(max_length = 300)
     grayrefresh =  models.CharField(max_length = 10)
-
+    def __unicode__(self):
+        return str(self.test_name)
     def setup(self):
         self.grayrefresh = 0
         self.test_rating = 'unrated'
@@ -298,7 +299,7 @@ class Test(models.Model):
 
         # Store result and update model
         self.test_rating = round(R,6)
-        self.Active = False
+        #self.Active = False
         self.save()
         self.model_set.all()[0].update_rating()
         return 0                        # could return r,R
