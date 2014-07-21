@@ -81,6 +81,9 @@ def AUTHENTICATE_EITHER():
 #-------------------------------------------------------------------
 def main_page(request):
 
+    if request.session['active_account'] != 'none':
+        return redirect('/account/')
+    
     # record a hit on the main page
     if len(Mainhits.objects.all()) == 0:
         newhits = Mainhits()
@@ -123,6 +126,9 @@ def main_page(request):
 
     return render_to_response('Main.html', inputdic)
 
+def log_out(request):
+    request.session['active_account'] = 'none'
+    return redirect('/main/')
 
 #-------------------------------------------------------------
 def account_reg(request):
@@ -941,7 +947,7 @@ def denygrayscale_confirm(request):
 
     # Wipe the path
     request.session['tmp_test'].delete()
-    del(request.session['tmp_test'])
+    request.session['tmp_test'] = 'none'
 
     return redirect('/model_menu/')
 
@@ -1005,12 +1011,26 @@ def Rate(request):
     return redirect('/submissionreview/')
 
 def show_find_pt(URL2):
-    # Google Maps will bring the first marker to the front
-    # Therefore, the find point needs to be put first in the URL
     marker_red, marker_yellow, end = (URL2.find('markers=color:red'), 
         URL2.find('markers=color:yellow'), URL2.find('maptype'))
     return URL2[:marker_red] + URL2[marker_yellow:end] + URL2[marker_red:marker_yellow] + URL2[end:]
 
+def case_to_dict(case):
+    input_dict = dict()
+    for attr in dir(case):
+        try:
+            input_dict[attr] = case.__getattribute__(attr)
+        except AttributeError:
+            print >> sys.stderr, 'Attribute %s not found.' % attr
+    input_dict['URLfind'] = show_find_pt(case.URLfind)
+    input_dict['LKP'] = '(%s, %s)' % (case.lastlat, case.lastlon)
+    input_dict['find_pt'] = '(%s, %s)' % (case.findlat, case.findlon)
+    input_dict['find_grid'] = '(%s, %s)' % (case.findx, case.findy)
+    input_dict['horcells'] = input_dict['vercells'] = case.sidecellnumber
+    input_dict['totalcellnumber'] = int(float(case.totalcellnumber))
+    input_dict['cellwidth'] = 5.0
+    input_dict['regionwidth'] = input_dict['cellwidth'] * float(case.sidecellnumber) / 1000
+    return input_dict
 
 #-----------------------------------------------------------------------------
 def submissionreview(request):
@@ -1021,73 +1041,14 @@ def submissionreview(request):
 
     active_test = request.session['tmp_test']
     active_case = active_test.test_case
-
-
-    age = active_case.Age
-    name = active_case.case_name
-    sex = active_case.Sex
-    country = active_case.country
-    state = active_case.state
-    LKP = '('+active_case.lastlat + ',' +active_case.lastlon + ')'
-    totalcells = active_case.totalcellnumber
-    sidecells = active_case.sidecellnumber
-    uplat = active_case.upright_lat
-    rightlon = active_case.upright_lon
-    downlat = active_case.downright_lat
-    leftlon = active_case.upleft_lon
-
-    account_name = request.session['active_account'].institution_name
-    model_name = request.session['active_model'].model_nameID
-    URL = active_case.URL
-
-    subject_category = active_case.subject_category
-    subject_subcategory = active_case.subject_subcategory
-    scenario   =  active_case.scenario
-    subject_activity  = active_case.subject_activity
-    number_lost  = active_case.number_lost
-    group_type = active_case.group_type
-    ecoregion_domain  = active_case.ecoregion_domain
-    ecoregion_division = active_case.ecoregion_division
-    terrain     = active_case.terrain
-    total_hours = active_case.total_hours
-
-    findpoint = '(' + active_case.findlat  + ',' +active_case.findlon + ')'
-    findgrid =  '(' + active_case.findx  + ',' +active_case.findy + ')'
-
-
-
-    URL2 = show_find_pt(active_case.URLfind)
-    rating = str(request.session['tmp_test'].test_rating)
-    showfind = active_case.showfind
-
-
-
-    # Create Input dictionary
-
-    inputdic = {'Name_act':account_name, 'Name_m':model_name, 'name' :name, 'age':age,'country':country,'state':state, 'sex':sex,'LKP':LKP,'horcells':sidecells,'vercells':sidecells,'totcells' : totalcells, 'cellwidth' : 5, 'regionwidth' : 25,'uplat':uplat,'rightlon':rightlon,'downlat':downlat,'leftlon':leftlon,'MAP':URL}
-    inputdic['subject_category'] = subject_category
-    inputdic['subject_subcategory'] = subject_subcategory
-    inputdic['scenario'] = scenario
-    inputdic['subject_activity'] = subject_activity
-    inputdic['number_lost'] = number_lost
-    inputdic['group_type'] = group_type
-    inputdic['ecoregion_domain'] = ecoregion_domain
-    inputdic['ecoregion_division'] = ecoregion_division
-    inputdic['terrain'] = terrain
-    inputdic['total_hours'] = total_hours
-    inputdic['MAP2'] = URL2
-    inputdic['find_pt'] = findpoint
-    inputdic['find_grid'] = findgrid
-    inputdic['rating'] = rating
-    inputdic['showfind'] = showfind
-
-
-
+    input_dict = case_to_dict(active_case)
+    input_dict['account_name'] = request.session['active_account'].institution_name
+    input_dict['model_name'] = request.session['active_model'].model_nameID
+    input_dict['rating'] = str(request.session['tmp_test'].test_rating)
 
     request.session['tmp_test'].save()
-    del(request.session['tmp_test'])
 
-    return render_to_response('Submissionreview.html', inputdic)
+    return render_to_response('Submissionreview.html', input_dict)
 
 
 #------------------------------------------------------------------------------------------------
@@ -1098,9 +1059,8 @@ def nonactive_test(request):
     completed_lst = [test.test_name for test in 
         request.session['active_model'].model_tests.all() if not test.Active]
     #debugx
-    print >>sys.stderr, 'DEBUG:\n'
-    print >>sys.stderr, intest
-    print >> sys.stderr, completed_lst
+    print >> sys.stderr, 'DEBUG:\n'
+    print >> sys.stderr, intest
     
     if intest not in completed_lst:
         request.session['failure'] = True
@@ -1108,45 +1068,11 @@ def nonactive_test(request):
     
     active_test = request.session['active_model'].model_tests.get(test_name = intest)
     active_case = active_test.test_case
-
-    age = active_case.Age
-    name = active_case.case_name
-    sex = active_case.Sex
-    country = active_case.country
-    state = active_case.state
-    LKP = '('+active_case.lastlat + ',' +active_case.lastlon + ')'
-    totcells = active_case.totalcellnumber
-    sidecells = active_case.sidecellnumber
-    horcells, vercells = sidecells, sidecells
-    uplat = active_case.upright_lat
-    rightlon = active_case.upright_lon
-    downlat = active_case.downright_lat
-    leftlon = active_case.upleft_lon
-
-    Name_act = request.session['active_account'].institution_name
-    Name_m = request.session['active_model'].model_nameID
-    MAP = active_case.URL
-
-    subject_category = active_case.subject_category
-    subject_subcategory = active_case.subject_subcategory
-    scenario   =  active_case.scenario
-    subject_activity  = active_case.subject_activity
-    number_lost  = active_case.number_lost
-    group_type = active_case.group_type
-    ecoregion_domain  = active_case.ecoregion_domain
-    ecoregion_division = active_case.ecoregion_division
-    terrain     = active_case.terrain
-    total_hours = active_case.total_hours
-    regionwidth, cellwidth = 25, 5
-
-    find_pt = '(' + active_case.findlat  + ',' +active_case.findlon + ')'
-    find_grid =  '(' + active_case.findx  + ',' +active_case.findy + ')'
-
-    MAP2 = show_find_pt(active_case.URLfind)
-    rating = str(active_test.test_rating)
-    showfind = active_case.showfind
-
-    return render_to_response('nonactive_test.html', locals())
+    input_dict = case_to_dict(active_case)
+    input_dict['rating'] = str(active_test.test_rating)
+    
+    
+    return render_to_response('nonactive_test.html', input_dict)
 
 #----------------------------------------------------------------------------------------------------------------------------------------------------
 def get_sorted_models(allmodels):
@@ -1463,52 +1389,7 @@ def case_ref(request):
     Input = request.GET['CaseName2']
 
     active_case = Case.objects.get(case_name = Input)
-
-    age = active_case.Age
-    name = active_case.case_name
-    sex = active_case.Sex
-    country = active_case.country
-    state = active_case.state
-    LKP = '('+active_case.lastlat + ',' +active_case.lastlon + ')'
-    totalcells = active_case.totalcellnumber
-    sidecells = active_case.sidecellnumber
-    uplat = active_case.upright_lat
-    rightlon = active_case.upright_lon
-    downlat = active_case.downright_lat
-    leftlon = active_case.upleft_lon
-
-    URL = active_case.URL
-
-    subject_category = active_case.subject_category
-    subject_subcategory = active_case.subject_subcategory
-    scenario   =  active_case.scenario
-    subject_activity  = active_case.subject_activity
-    number_lost  = active_case.number_lost
-    group_type = active_case.group_type
-    ecoregion_domain  = active_case.ecoregion_domain
-    ecoregion_division = active_case.ecoregion_division
-    terrain     = active_case.terrain
-    total_hours = active_case.total_hours
-
-
-
-    # Create Input dictionary
-
-    inputdic = { 'name' :name, 'age':age,'country':country,'state':state, 'sex':sex,'LKP':LKP,'horcells':sidecells,'vercells':sidecells,'totcells' : totalcells, 'cellwidth' : 5, 'regionwidth' : 25,'uplat':uplat,'rightlon':rightlon,'downlat':downlat,'leftlon':leftlon,'MAP':URL}
-    inputdic['subject_category'] = subject_category
-    inputdic['subject_subcategory'] = subject_subcategory
-    inputdic['scenario'] = scenario
-    inputdic['subject_activity'] = subject_activity
-    inputdic['number_lost'] = number_lost
-    inputdic['group_type'] = group_type
-    inputdic['ecoregion_domain'] = ecoregion_domain
-    inputdic['ecoregion_division'] = ecoregion_division
-    inputdic['terrain'] = terrain
-    inputdic['total_hours'] = total_hours
-
-
-
-    return render_to_response('case_ref.html',inputdic)
+    return render_to_response('case_ref.html', case_to_dict(active_case))
 
 #------------------------------------------------------------------------------------
 def caseref_return(request):
@@ -4953,45 +4834,9 @@ def test(request):
     
     active_case = request.session['active_case']
     if type(active_case) is str:
+        print >> sys.stderr, 'An active case has not been selected yet.'
         return redirect('/main/')
     
-    age = active_case.Age
-    name = active_case.case_name
-    sex = active_case.Sex
-    country = active_case.country
-    state = active_case.state
-    LKP = '('+active_case.lastlat + ',' +active_case.lastlon + ')'
-    totalcells = active_case.totalcellnumber
-    sidecells = active_case.sidecellnumber
-    uplat = active_case.upright_lat
-    rightlon = active_case.upright_lon
-    downlat = active_case.downright_lat
-    leftlon = active_case.upleft_lon
-
-    account_name = request.session['active_account'].institution_name
-    model_name = request.session['active_model'].model_nameID
-    URL = active_case.URL
-
-    subject_category = active_case.subject_category
-    subject_subcategory = active_case.subject_subcategory
-    scenario   =  active_case.scenario
-    subject_activity  = active_case.subject_activity
-    number_lost  = active_case.number_lost
-    group_type = active_case.group_type
-    ecoregion_domain  = active_case.ecoregion_domain
-    ecoregion_division = active_case.ecoregion_division
-    terrain     = active_case.terrain
-    total_hours = active_case.total_hours
-    
-    MAP = active_case.URL
-    horcells = active_case.sidecellnumber
-    vercells = active_case.sidecellnumber
-    totcells = active_case.totalcellnumber
-    cellwidth = 5
-    regionwidth = 25
-    
-    Name_act = request.session['active_account'].institution_name
-    Name_m = request.session['active_model'].model_nameID
-    inputdict = locals()
-    inputdict.update(csrf(request))
-    return render_to_response('file_up.html', inputdict)
+    input_dict = case_to_dict(active_case)
+    input_dict.update(csrf(request))
+    return render_to_response('file_up.html', input_dict)

@@ -12,6 +12,7 @@ from Views import *
 urlpatterns = patterns('',
               ('^$', base_redirect),
               ('^main/$',main_page),
+              ('^log_out/$',log_out),
               ('^account_reg/$',account_reg),
               ('^create_account/$',create_account),
               ('^account/$',account_access),
