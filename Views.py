@@ -1021,7 +1021,7 @@ def case_to_dict(case):
         try:
             input_dict[attr] = case.__getattribute__(attr)
         except AttributeError:
-            print >> sys.stderr, 'Attribute %s not found.' % attr
+            print >> sys.stderr, 'Attribute "%s" not found.' % attr
     input_dict['URLfind'] = show_find_pt(case.URLfind)
     input_dict['LKP'] = '(%s, %s)' % (case.lastlat, case.lastlon)
     input_dict['find_pt'] = '(%s, %s)' % (case.findlat, case.findlon)
