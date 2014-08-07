@@ -4,9 +4,14 @@ clear all; close all;
 
 load categories.mat;
 categories = who; %gives list of variables
+lognorm_result = zeros(length(categories),1);
+logcauchy_result = zeros(length(categories),1);
+avg_avg_lognorm_like = zeros(10,length(categories));
+avg_avg_logcauchy_like = zeros(10,length(categories));
+avg_lognorm_like = zeros(10,1);
+avg_logcauchy_like = zeros(10,1);
 for k = 1:length(categories)
-    avg_avg_lognorm_like = zeros(10,1);
-    avg_avg_logcauch_like = zeros(10,1);
+    
 
     current_set = eval(categories{k});
     if length(current_set)>20
@@ -26,21 +31,24 @@ for k = 1:length(categories)
             train_non_ipp = find(train_set ~=0);
             train_ipp_ind = find(train_set == 0);
             ipp_prob = length(train_ipp_ind)/length(train_set);
+            scale = 1-ipp_prob;
             log_train_set= log(train_set(train_non_ipp));%can't take log(0)
             mu = mean(log_train_set);
             sig = std(log_train_set);
             %do the lognormal formula using the stuff to get the likelihood for each of
             %the test distances, have to scale the lognormal by 1-ipp prob for
             %conditional stuff
-            avg_lognorm_like = zeros(10,1);
-            log_norm = (1-ipp_prob)*(1./(test_set(test_non_ipp_ind)*mu*sqrt(2*pi))).*exp(-1*((log(test_set(test_non_ipp_ind))-mu).^2)/(2*sig^2));
+            
+            log_norm = 1./(test_set(test_non_ipp_ind)*sqrt(2*pi));
+            log_norm = log_norm.*(exp(((log(test_set(test_non_ipp_ind))-mu).^2)/(2*(sig^2))));
+            log_norm = scale*log_norm;
             lognorm_loglikelihood(test_ipp_ind) = log(ipp_prob);%assigning probabilities to points found at ipp, should give a lot.
             lognorm_loglikelihood(test_non_ipp_ind) = log(log_norm);
             avg_lognorm_like(i) = mean(lognorm_loglikelihood);
             
             %want to compare with log cauchy
             logcauchy_loglikelihood = zeros(size(Test_indeces));
-            avg_logcauchy_like = zeros(10,1);
+            
             x0 = median(log_train_set); %location parameter
             y = .5*iqr(log_train_set);  %scale parameter
             log_cauchy = (1-ipp_prob)*1./(pi*test_set(test_non_ipp_ind)*y.*(1 + ((log(test_set(test_non_ipp_ind)) -x0)/y).^2));
@@ -48,17 +56,50 @@ for k = 1:length(categories)
             logcauchy_loglikelihood(test_non_ipp_ind) = log(log_cauchy);
             avg_logcauchy_like(i) = mean(logcauchy_loglikelihood);            
         end
-        avg_avg_lognorm_like(j) = mean(avg_lognorm_like);
-        avg_avg_logcauchy_like(j) = mean(avg_logcauchy_like);
+        avg_avg_lognorm_like(j,k) = mean(avg_lognorm_like);
+        avg_avg_logcauchy_like(j,k) = mean(avg_logcauchy_like);
     end
     
-    lognorm_result = mean(avg_avg_lognorm_like);
+    lognorm_result(k) = mean(avg_avg_lognorm_like(:,k));
     str = strcat(categories{k} , '_crossvalid_lognormal');
     save(str,'lognorm_result');
-    logcauchy_result = mean(avg_avg_logcauchy_like);
+    logcauchy_result(k) = mean(avg_avg_logcauchy_like(:,k));
     str2 = strcat(categories{k} , '_crossvalid_logcauchy'); 
     save(str2,'logcauchy_result');
     end
 end
 
 
+%create boxplots of every applicable category
+unused_ind = [];
+for i =1:length(categories)
+    if (avg_avg_lognorm_like(1,i) ==0)
+        unused_ind = [unused_ind i];
+    end
+end
+lognorm_result(unused_ind) = [];
+logcauchy_result(unused_ind) = [];
+avg_avg_lognorm_like(:,unused_ind)= [];
+avg_avg_logcauchy_like(:,unused_ind) = [];
+categories(unused_ind) = [];%getting rid of unused indeces.
+%sort the categories in ascending order for the boxplots
+
+[sort_lognorm, norm_ind] = sort(lognorm_result);
+[sort_logcauchy, cauchy_ind] = sort(logcauchy_result);
+sort_norm = zeros(size(avg_avg_lognorm_like));
+sort_cauchy = zeros(size(avg_avg_logcauchy_like));
+for i = 1:length(categories)
+    cat_sort_norm(i) = categories(norm_ind(i));
+    cat_sort_cauchy(i) = categories(cauchy_ind(i));
+    sort_norm(:,i) = avg_avg_lognorm_like(:,norm_ind(i));
+    sort_cauchy(:,i) = avg_avg_logcauchy_like(:,cauchy_ind(i));
+end
+figure();
+hold on;
+boxplot(sort_cauchy,'labels',cat_sort_cauchy,'labelorientation','inline');
+title('Log Likelihood -log cauchy distribution');
+
+figure();
+hold on;
+boxplot(sort_norm,'labels', cat_sort_norm,'labelorientation','inline');
+title('Log Likelihood-lognormal distribution');,
