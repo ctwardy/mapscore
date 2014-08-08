@@ -19,8 +19,8 @@ def attract(current_r, current_theta, current_cell, sweep, rast, rast_res,dr):
         #this function will look at the attractiveness of the 10 directions based on current position and looking direction and an input raster
         #need to use current theta to figure out which cells of slope to access
         
-        attract_data= np.zeros(10)
-        rel_attract = np.zeros(10)
+        attract_data= np.zeros(12)
+        rel_attract = np.zeros(12)
         for i in range(12):
                 sweep_cell = np.zeros(2)
                 sweep_angle = current_theta + sweep[i]
@@ -60,10 +60,16 @@ def main():
         #use raster to numpy array to get numpy arrays of each thing
         #use formula from tobler to calculate walking speed across each cell
         #arc.env.workspace = "C:\Users\Eric Cawi\Documents\SAR\Motion Model Test"
-        imp = misc.imread('C:/Users/Eric Cawi/Documents/SAR/motion_model_test/imp2.tif')
+        
         sl = misc.imread("C:\Users\Eric Cawi\Documents\SAR\motion_model_test\slope.tif")
         print str(np.shape(sl))
-
+        #have to resize image to make the arrays multiply correctly
+        img = Image.open('C:/Users/Eric Cawi/Documents/SAR/motion_model_test/imp2.png')
+        shp = np.shape(sl)
+        shp = tuple(reversed(shp))#need to get in width x height instead of height x width for the resize
+        img = img.resize(shp,Image.BILINEAR)
+        img.save('C:/Users/Eric Cawi/Documents/SAR/motion_model_test/imp2.png')
+        imp = misc.imread('C:/Users/Eric Cawi/Documents/SAR/motion_model_test/imp2.png')
         
         impedance_weight = .5
         slope_weight = .5
@@ -119,9 +125,9 @@ def main():
                         #land cover take average 1/impedance in each direction and get relative attractiveness
                         sl_w = np.multiply(slope_sweep,slope_weight)
                         imp_w = np.multiply(impedance_sweep, impedance_weight)
-                        slimp = np.add(sl_w, imp_w)
+                        probabilities= np.add(sl_w, imp_w)
 
-                        #create a random variable with each of the 12 choices assigned the appropriate probability
+                        #create a random variable with each of the 12 choices assigned the appropopriate probability
                         dist = rv_discrete(values = (range(len(sweep)), probabilities))
                         ind = dist.rvs(size = 1)
                         dtheta = sweep[ind]
