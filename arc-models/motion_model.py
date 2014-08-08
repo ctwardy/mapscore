@@ -76,24 +76,23 @@ def main():
         slope_weight = .5
         #before getting inverse of slope use array to make walking speed array
         # for simplicity right now using tobler's hiking function and multiplying with the impedance weight
-        walking_speeds = 6*np.exp(-3.5*np.abs(np.add(np.tan(sl),.05)))*1000/60 # speed in kmph*1000 m/km *1hr/60min
+        walking_speeds = 6*np.exp(-3.5*np.abs(np.add(np.tan(sl),.05)))*1000.0/60.0 # speed in kmph*1000 m/km *1hr/60min
         sl = np.divide(1,sl)
         imp_shape = imp.shape
         sl_shape = sl.shape
         imp.astype('float')
         
-        print imp
+  
         #walking speed weighted with land cover here from doherty paper, which uses a classification as 25 = 25% slower than normal, 100 = 100% slower than normal walking speed
-        vel_weight = np.divide(np.subtract(100,imp),100)
+        vel_weight = np.divide(np.subtract(100.0,imp),100.0)
         walking_speeds = np.multiply(vel_weight, walking_speeds) #since 1 arcsecond is roughy 30 meters the dimensions will hopefully work out
+        
         #lower impedance is higher here, will work for probabilities, have to convert to float to avoid divide by zero errors
-        imp = np.divide(1,imp)
+        imp = np.divide(1.0,imp)
         		
-        #create easy numpy array for walking speed accross cell for walking speed calculations later
-        print imp, sl
-        #time interval: 15 minutes or .25 hours
-        
-        
+        print imp
+        print sl
+        print vel_weight
         sl_res = 25000/sl_shape[0] #NED should be a square so this should work for both ways, should be integer division
         imp_res = 25000/imp_shape[0]#30 meter impedance resolution from the land cover dataset
         end_time = 240 #arbitrary 4 hours
@@ -102,10 +101,10 @@ def main():
         r = np.zeros(1000)#simulates 1000 hikers starting at ipp
         theta = np.random.uniform(0,2*np.pi,1000) #another 1000x1 array of angles, uniformly distributing heading for simulation
 
-        sweep = [-45 , -35 , -25 , -15 , -5 , 5 , 15 , 25 , 35, 45 , 0 , 180] #0 represents staying put 180 is a change in heading
+        sweep = [-45.0 , -35.0 , -25.0 , -15.0 , -5.0 , 5.0 , 15.0 , 25.0 , 35.0, 45.0 , 0.0 , 180.0] #0 represents staying put 180 is a change in heading
         for i in range(len(sweep)):
-                sweep[i] = sweep[i]*np.pi/180 #convert sweep angles to radians
-        dr = 120 #120 meters is four cells ahead in the land cover raster which gives 9 specific cells for the sweeping angles
+                sweep[i] = sweep[i]*np.pi/180.0 #convert sweep angles to radians
+        dr = 120.0 #120 meters is four cells ahead in the land cover raster which gives 9 specific cells for the sweeping angles
 
         #for each lookahead, have ten angles between -45 and plus 45 degrees of the current heading
         #get average impedance around 100 meters ahead, average flatness, weight each one by half
@@ -115,8 +114,8 @@ def main():
         current_cell_sl = [sl_shape[0]/2 - 1, sl_shape[1]/2 - 1]
         
         for i in range(1000):
-                print i
-                t = 0
+                
+                t = 0.0
                 current_r = r[i]
                 current_theta = theta[i]
                 while t < end_time:
@@ -132,35 +131,36 @@ def main():
                         sl_w = np.multiply(slope_sweep,slope_weight)
                         imp_w = np.multiply(impedance_sweep, impedance_weight)
                         probabilities= np.add(sl_w, imp_w)
-                        print probabilities
+
                         #create a random variable with each of the 12 choices assigned the appropopriate probability
                         dist = rv_discrete(values = (range(len(sweep)), probabilities))
                         ind = dist.rvs(size = 1)
                         dtheta = sweep[ind]
-                        print dtheta
-                        if (dtheta ==0):
-                                v = 0 #staying put, no change
-                                dt = 10 #stay arbitrarily put for 10 minutes before making next decision
+                        
+                        if (dtheta ==0.0):
+                                v = 0.0 #staying put, no change
+                                dt = 10.0 #stay arbitrarily put for 10 minutes before making next decision
                                 r_new = current_r
                                 theta_new = current_theta + dtheta
-                        elif (dtheta ==180):#reversal case
+                        elif (dtheta ==np.pi):#reversal case
                                 v = avg_speed(current_cell_sl, dtheta,dr,walking_speeds, sl_res)
-                                dt = 120/v
+                                dt = 120.0/v
                                 r_new = current_r-120
                                 theta_new = -1*current_theta
                         else:
                                 #update the current hiker's new radius                          
-                                if r[i]==0:
-                                        r_new = 120
+                                if r[i]==0.0:
+                                        r_new = 120.0
                                         theta_new = current_theta + dtheta 
                                 else:
-                                        r_new = np.sqrt(current_r**2 + 120**2 -2*current_r*120*np.cos(180-dtheta))#law of cosines to find new r
+                                        r_new = np.sqrt(current_r**2 + 120.0**2 -2.0*current_r*120.0*np.cos(np.pi-dtheta))#law of cosines to find new r
                                 #law of sines to find new theta relative to origin, walking speeds treats each original cell as origin to calculate walking velocity
-                                asin = np.arcsin(120/r_new * np.sin(180-dtheta))
+                                asin = np.arcsin(120/r_new * np.sin(np.pi-dtheta))
                                 theta_new = current_theta+asin
                                 v = avg_speed(current_cell_sl,dtheta,dr,walking_speeds,sl_res)#some way to figure out either average speed or distance traveled along the line chosen
-                                dt = 120/v
+                                dt = 120.0/v
                         #update for current time step
+                      
                         current_r= r_new
                         current_theta= theta_new
                         t=t+dt
@@ -173,10 +173,11 @@ def main():
                         sly = np.floor(y/sl_res)
                         current_cell_imp = np.add(current_cell_imp , [impx,impy])
                         current_cell_sl = np.add(current_cell_sl, [slx,sly])
+                        
                 #update r and theta
                 r[i] = current_r
                 theta[i] = current_theta
-                print r[i], theta[i]
+
         #now that we have final positions for 1000 hikers at endtime the goal is to display/plot
         probs = np.zeros((500,500))#represents 50 meter cells with ipp at center, will get resized
         prob_outside = 0
