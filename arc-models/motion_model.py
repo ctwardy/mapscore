@@ -62,6 +62,7 @@ def main():
         #arc.env.workspace = "C:\Users\Eric Cawi\Documents\SAR\Motion Model Test"
         
         sl = misc.imread("C:\Users\Eric Cawi\Documents\SAR\motion_model_test\slope.tif")
+        sl = np.add(sl,.1)#get rid of divide by 0 errors
         print str(np.shape(sl))
         #have to resize image to make the arrays multiply correctly
         img = Image.open('C:/Users/Eric Cawi/Documents/SAR/motion_model_test/imp2.png')
@@ -70,26 +71,31 @@ def main():
         img = img.resize(shp,Image.BILINEAR)
         img.save('C:/Users/Eric Cawi/Documents/SAR/motion_model_test/imp2.png')
         imp = misc.imread('C:/Users/Eric Cawi/Documents/SAR/motion_model_test/imp2.png')
-        
+        print imp
         impedance_weight = .5
         slope_weight = .5
         #before getting inverse of slope use array to make walking speed array
         # for simplicity right now using tobler's hiking function and multiplying with the impedance weight
         walking_speeds = 6*np.exp(-3.5*np.abs(np.add(np.tan(sl),.05)))*1000/60 # speed in kmph*1000 m/km *1hr/60min
         sl = np.divide(1,sl)
-
+        imp_shape = imp.shape
+        sl_shape = sl.shape
+        imp.astype('float')
+        
+        print imp
         #walking speed weighted with land cover here from doherty paper, which uses a classification as 25 = 25% slower than normal, 100 = 100% slower than normal walking speed
         vel_weight = np.divide(np.subtract(100,imp),100)
         walking_speeds = np.multiply(vel_weight, walking_speeds) #since 1 arcsecond is roughy 30 meters the dimensions will hopefully work out
-        imp = 1/imp #lower impedance is higher here, will work for probabilities
+        #lower impedance is higher here, will work for probabilities, have to convert to float to avoid divide by zero errors
+        imp = np.divide(1,imp)
+        		
         #create easy numpy array for walking speed accross cell for walking speed calculations later
-
+        print imp, sl
         #time interval: 15 minutes or .25 hours
-        imp_res = 30 #30 meter impedance resolution from the land cover dataset
-        imp_shape = imp.shape
-        sl_shape = sl.shape
+        
+        
         sl_res = 25000/sl_shape[0] #NED should be a square so this should work for both ways, should be integer division
-
+        imp_res = 25000/imp_shape[0]#30 meter impedance resolution from the land cover dataset
         end_time = 240 #arbitrary 4 hours
         #establish initial conditions in polar coordinates, using polar coordinates because i think it's easier to deal with the angles
         #r is the radius from the last known point, theta is the angle from "west"/the positive x axis through the lkp
@@ -126,7 +132,7 @@ def main():
                         sl_w = np.multiply(slope_sweep,slope_weight)
                         imp_w = np.multiply(impedance_sweep, impedance_weight)
                         probabilities= np.add(sl_w, imp_w)
-
+                        print probabilities
                         #create a random variable with each of the 12 choices assigned the appropopriate probability
                         dist = rv_discrete(values = (range(len(sweep)), probabilities))
                         ind = dist.rvs(size = 1)
@@ -159,8 +165,8 @@ def main():
                         current_theta= theta_new
                         t=t+dt
                         #update current_cell for slope and impedance
-                        x = r[i]*np.cos(theta[i])
-                        y = r[i]*np.sin(theta[i])
+                        x = current_r*np.cos(theta[i])
+                        y = current_theta*np.sin(theta[i])
                         impx = np.floor(x/imp_res)
                         impy = np.floor(y/imp_res)
                         slx = np.floor(x/sl_res)
