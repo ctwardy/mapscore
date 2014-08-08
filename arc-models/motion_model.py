@@ -23,7 +23,7 @@ from scipy import misc
 
 #base_dir = 'C:/Users/Eric Cawi/Documents/SAR/motion_model_test/'
 base_dir = './'
-NUM_SIMS = 100
+NUM_SIMS = 500
 IMAGE_SIZE = (501,501) # pixels
 
 def tag_image(filename, p_out):#for saving and adding images
@@ -226,23 +226,31 @@ def main():
         #Note: streamlined to eliminated some loops etc. -crt
         Xs = r * np.cos(theta)/50.
         Ys = r * np.sin(theta)/50.
-        coords = zip(Ys,Xs)
 
         #Count the outsiders using vector logic: "OR" these arrays together
         outsiders = (Xs < 0) | (Xs > 500) | (Ys < 0) | (Ys > 500)
-        num_outside = sum(outsiders)
+        num_outside = np.sum(outsiders)
+        insiders = (0<=Xs) & (Xs<=500) & (0<=Ys) & (Ys<=500)
+        num_inside = np.sum(insiders)
         prob_outside = 1. * num_outside / NUM_SIMS
+        prob_inside = 1. * num_inside / NUM_SIMS
 
         # Create nominal grid of N 50m cells. Will get resized later.
         # Avoid zeros by putting 10/NUM_SIMS observations in each cell.
         # TODO: let prior be the distance model, with weight of ~1/100 motion model.
-        counts = 10. * np.ones((500,500)) / NUM_SIMS
+        bias = 10.
+        counts = bias * np.ones((500,500)) / NUM_SIMS
+        coords = zip(Ys, Xs)
         for y,x in coords:
-                counts[250+y][250+x] += 1
-        probs = 1.*counts/NUM_SIMS #adding 1, dividing by total number of counts to get probability, these numbers should have both positive and negative values
+                if 0<=x<=500 and 0<=y<=500:
+                        counts[250+y][250+x] += 1
+        probs = counts/(np.sum(counts)+bias)
+        print 'SumCounts  :', np.sum(counts)
+        print '\nCounts   :',counts
         print 'Probs\n', probs
-        print '\nP_inside :', sum(probs)
-        print '\nP_outside:', prob_outside
+        print '\nP_inside  :', prob_inside
+        print 'P_outside :', prob_outside
+        print 'Sum(probs):', np.sum(probs)
         case_name = 'test'
         #example plotting for testing:
         plt.title("Motion Model Test")
