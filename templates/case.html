@@ -1,14 +1,9 @@
 <p align="center" style = "font-size:18px;">  
     <b>Provided below were the known lost person scenario parameters for the completed case:</b>
 </p>
-<div style = 'padding-left:25px;' >
-    <image src = '{{URL}}' style = 'border:solid; border-width:5px;float:left'>
-    <div style ='position:absolute;padding-top:550px;padding-left:0px'>
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-        <a href = 'http://code.google.com/apis/maps/terms.html'> Google Maps API - Terms <a>
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-        <a href ='http://www.google.com/privacy.html'> Google Privacy Page <a>
-        <p> By using this service you are agreeing to be bound by Google's Terms of Use <p>
+<div style = 'padding-left:25px;'>
+    <div style ='position:absolute;padding-left:0px'>
+        {% include 'map.html' with dynamic_map_id='dynamic_map_last' showfind=False %}
     </div>
     <div style = 'padding-left:525px;' >
         <p style = "background-color:#FFFF99 ; border: double; width : 450px; padding-left:25px">

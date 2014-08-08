@@ -33,13 +33,7 @@
 </center>
 <br>
 <center>
-    <image src = '{{URLfind}}' style = 'border:solid; border-width:5px;'> <br><br>
-        
-        <a href = 'http://code.google.com/apis/maps/terms.html'> Google Maps API - Terms <a>
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-        <a href ='http://www.google.com/privacy.html'> Google Privacy Page <a>
-        <p> By using this service you are agreeing to be bound by Google's Terms of Use <p>
-
+    {% include 'map.html' with dynamic_map_id='dynamic_map_find' showfind=True %}
 </center>
 <br><br>
 
