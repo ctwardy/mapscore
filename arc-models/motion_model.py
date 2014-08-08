@@ -7,6 +7,7 @@ import matplotlib.image as img
 from PIL import Image
 from PIL import PngImagePlugin
 from scipy.stats import rv_discrete
+from scipy import misc
 
 def tag_image(filename, p_out):#for saving and adding images
         im = Image.open(filename)
@@ -20,7 +21,7 @@ def attract(current_r, current_theta, current_cell, sweep, rast, rast_res,dr):
         
         attract_data= np.zeros(10)
         rel_attract = np.zeros(10)
-        for i in range(10):
+        for i in range(12):
                 sweep_cell = np.zeros(2)
                 sweep_angle = current_theta + sweep[i]
                 #convert negative angles to a 360 degree version and greater than 360 to right range, this should keep the angles between 0 and 360
@@ -34,7 +35,7 @@ def attract(current_r, current_theta, current_cell, sweep, rast, rast_res,dr):
                 dy = dr*np.sin(sweep_angle)#x and y components of sweep angle
                 sweep_cell[0] = np.floor(dy/rast_res)
                 sweep_cell[1] =  np.floor(dx/rast_res)#get the number of cells to move up/down to look
-                attract_data[i] = rast[current_cell[0]+sweep_cell[0]][current_cell[1]+sweep_cell[1]]#gets actual inverses of slopes
+                attract_data[i] = rast[current_cell[0]+sweep_cell[0]][current_cell[1]+sweep_cell[1]]
         attract_sum = np.sum(attract_data)
         #to get relative attractiveness of slope take 1nverse of slope so that less change is bigger, than take each one over the sum over the whole thing
         rel_attract = attract_data/attract_sum
@@ -57,18 +58,20 @@ def main():
         #have land cover and slope, reclassify land cover for impedance
         #have elevation map, use arcpy to calculate slope for each cell might not need this
         #use raster to numpy array to get numpy arrays of each thing
-        #use formula from ... to calculate walking speed across each cell
+        #use formula from tobler to calculate walking speed across each cell
         #arc.env.workspace = "C:\Users\Eric Cawi\Documents\SAR\Motion Model Test"
-        #elev_slope = Slope("NED","DEGREE",1)
-        #impedance = Reclassify("land_cover","Value", RemapValue([[]]
+        imp = misc.imread('C:/Users/Eric Cawi/Documents/SAR/motion_model_test/imp2.tif')
+        sl = misc.imread("C:\Users\Eric Cawi\Documents\SAR\motion_model_test\slope.tif")
+        print str(np.shape(sl))
+
+        
         impedance_weight = .5
         slope_weight = .5
-        sl = np.pi*np.ones((833,833))/180 #1 degree in radians, so there is no divide by 0 later
         #before getting inverse of slope use array to make walking speed array
         # for simplicity right now using tobler's hiking function and multiplying with the impedance weight
         walking_speeds = 6*np.exp(-3.5*np.abs(np.add(np.tan(sl),.05)))*1000/60 # speed in kmph*1000 m/km *1hr/60min
         sl = np.divide(1,sl)
-        imp = np.ones((833,833))
+
         #walking speed weighted with land cover here from doherty paper, which uses a classification as 25 = 25% slower than normal, 100 = 100% slower than normal walking speed
         vel_weight = np.divide(np.subtract(100,imp),100)
         walking_speeds = np.multiply(vel_weight, walking_speeds) #since 1 arcsecond is roughy 30 meters the dimensions will hopefully work out
@@ -86,8 +89,7 @@ def main():
         #r is the radius from the last known point, theta is the angle from "west"/the positive x axis through the lkp
         r = np.zeros(1000)#simulates 1000 hikers starting at ipp
         theta = np.random.uniform(0,2*np.pi,1000) #another 1000x1 array of angles, uniformly distributing heading for simulation
-        stay = .05
-        rev = .05#arbitrary values right now, need to discuss
+
         sweep = [-45 , -35 , -25 , -15 , -5 , 5 , 15 , 25 , 35, 45 , 0 , 180] #0 represents staying put 180 is a change in heading
         for i in range(len(sweep)):
                 sweep[i] = sweep[i]*np.pi/180 #convert sweep angles to radians
@@ -106,7 +108,7 @@ def main():
                 current_r = r[i]
                 current_theta = theta[i]
                 while t < end_time:
-                        print t
+                        
                         
                         #look in current direction, need to figure out how to do the sweep of slope
                         slope_sweep = attract(current_r, current_theta,current_cell_sl,sweep,sl, sl_res,dr)
@@ -118,13 +120,12 @@ def main():
                         sl_w = np.multiply(slope_sweep,slope_weight)
                         imp_w = np.multiply(impedance_sweep, impedance_weight)
                         slimp = np.add(sl_w, imp_w)
-                        slimp = np.multiply(slimp,(1-(stay+rev)))
-                        probabilities = np.concatenate((slimp,[stay,rev]))
+
                         #create a random variable with each of the 12 choices assigned the appropriate probability
                         dist = rv_discrete(values = (range(len(sweep)), probabilities))
                         ind = dist.rvs(size = 1)
                         dtheta = sweep[ind]
-                        
+                        print dtheta
                         if (dtheta ==0):
                                 v = 0 #staying put, no change
                                 dt = 10 #stay arbitrarily put for 10 minutes before making next decision
@@ -163,13 +164,15 @@ def main():
                 #update r and theta
                 r[i] = current_r
                 theta[i] = current_theta
+                print r[i], theta[i]
         #now that we have final positions for 1000 hikers at endtime the goal is to display/plot
         probs = np.zeros((500,500))#represents 50 meter cells with ipp at center, will get resized
         prob_outside = 0
         for i in range(1000):
                 #convert radius and angle to x and y on the grid
-                x = r[i]*np.cos(theta[i])/50
-                y = r[i]*np.sin(theta[i])/50
+                x = np.floor(r[i]*np.cos(theta[i])/50)
+                y = np.floor(r[i]*np.sin(theta[i])/50)
+
                 if x>499 or y>499 or x<0 or y<0:#the hiker ran far away out of hte bounding box
                         prob_outside+=1/1000
                 else:
