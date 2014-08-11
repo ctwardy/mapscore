@@ -217,6 +217,7 @@ def main():
                         sly = np.floor(y/sl_res)
                         current_cell_imp = np.add(current_cell_imp , [impx,impy])
                         current_cell_sl = np.add(current_cell_sl, [slx,sly])
+                        print t
                         
                 #update r and theta
                 r[i] = current_r
@@ -228,9 +229,9 @@ def main():
         Ys = r * np.sin(theta)/50.
 
         #Count the outsiders using vector logic: "OR" these arrays together
-        outsiders = (Xs < 0) | (Xs > 500) | (Ys < 0) | (Ys > 500)
+        outsiders = (Xs < -250) | (Xs > 250) | (Ys < -250) | (Ys > 250)
         num_outside = np.sum(outsiders)
-        insiders = (0<=Xs) & (Xs<=500) & (0<=Ys) & (Ys<=500)
+        insiders = (-250<=Xs) & (Xs<=250) & (-250<=Ys) & (Ys<=250)
         num_inside = np.sum(insiders)
         prob_outside = 1. * num_outside / NUM_SIMS
         prob_inside = 1. * num_inside / NUM_SIMS
@@ -242,7 +243,7 @@ def main():
         counts = bias * np.ones((500,500)) / NUM_SIMS
         coords = zip(Ys, Xs)
         for y,x in coords:
-                if 0<=x<=500 and 0<=y<=500:
+                if -250<=x<=250 and -250<=y<=250:
                         counts[250+y][250+x] += 1
         probs = counts/(np.sum(counts)+bias)
         print 'SumCounts  :', np.sum(counts)
@@ -256,7 +257,7 @@ def main():
         plt.title("Motion Model Test")
         plt.imshow(probs,cmap = 'gist_gray')
         plt.colorbar()
-        name = '%s/motion_model_test/%s.png' % (base_dir, case_name)
+        name = '%s/%s.png' % (base_dir, case_name)
         plt.imsave(name, probs, cmap = 'gist_gray')
         tag_image(name, prob_outside)
         #now want to resize the image to be 5001 x5001 as required by mapscore
