@@ -111,6 +111,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
 )
 
+# Root URL configuration file: routes for HTTP requests
 ROOT_URLCONF = 'mapscore.urls'
 
 TEMPLATE_DIRS = (
