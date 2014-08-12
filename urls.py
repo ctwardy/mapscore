@@ -4,7 +4,7 @@ from django.conf import settings
 from django.conf.urls import patterns, include, url
 from django.conf.urls.static import static
 admin.autodiscover()
-from Views import *
+from views import *
 
 # Uncomment the next two lines to enable the admin:
 # from django.contrib import admin
