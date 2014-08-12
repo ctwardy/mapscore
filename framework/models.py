@@ -7,9 +7,9 @@ models are defined:
 2.  Case
 3.  Mainhits
 4.  Model
-5.  Model_Account_Link
+5.  ModelAccountLink
 6.  Test
-7.  Test_Model_Link
+7.  TestModelLink
 8.  TerminatedAccounts
 
 """
@@ -113,6 +113,9 @@ class Case(models.Model):
 
     horstep = models.CharField(max_length=30)
     verstep = models.CharField(max_length=30)
+
+    class Meta:
+        db_table = 'case'
 
     def GreatSphere(self, lat_in):
         """Calculate the longitude cellsize at this latitude.
@@ -223,6 +226,9 @@ class Test(models.Model):
     grayscale_path = models.CharField(max_length=300)
     grayrefresh =  models.CharField(max_length=10)
 
+    class Meta:
+        db_table = 'test'
+
     def setup(self):
         self.grayrefresh = 0
         self.test_rating = 'unrated'
@@ -307,10 +313,13 @@ class Model(models.Model):
     Completed_cases = models.CharField(max_length=30)
     model_nameID = models.CharField(max_length=30)
     #gridvalidated = models.BooleanField()
-    model_tests = models.ManyToManyField(Test, through='Test_Model_Link')
+    model_tests = models.ManyToManyField(Test, through='TestModelLink')
     model_avgrating = models.CharField(max_length=10)
     ID2 = models.CharField(max_length=100)
     Description = models.TextField()
+
+    class Meta:
+        db_table = 'model'
 
     def setup(self):
         """Models start out unrated."""
@@ -347,7 +356,7 @@ class Account(models.Model):
     lastname_user = models.CharField(max_length=30)
     username = models.CharField(max_length=30)
     password  = models.CharField(max_length=30)
-    account_models = models.ManyToManyField(Model, through = 'Model_Account_Link')
+    account_models = models.ManyToManyField(Model, through='ModelAccountLink')
     Email = models.EmailField()
     Website = models.URLField()
     ID2 = models.CharField(max_length=100)
@@ -356,15 +365,24 @@ class Account(models.Model):
     deleted_models = models.CharField(max_length=10)
     profpicrefresh =  models.CharField(max_length=10)
 
+    class Meta:
+        db_table = 'account'
 
-class Model_Account_Link(models.Model):
+
+class ModelAccountLink(models.Model):
     account = models.ForeignKey(Account)
     model = models.ForeignKey(Model)
 
+    class Meta:
+        db_table = 'model_account_link'
 
-class Test_Model_Link(models.Model):
+
+class TestModelLink(models.Model):
     test = models.ForeignKey(Test)
     model = models.ForeignKey(Model)
+
+    class Meta:
+        db_table = 'test_model_link'
 
 
 class Mainhits(models.Model):
@@ -372,6 +390,9 @@ class Mainhits(models.Model):
 
     def setup(self):
         self.hits = 0
+
+    class Meta:
+        db_table = 'mainhits'
 
 
 class TerminatedAccounts(models.Model):
@@ -381,3 +402,6 @@ class TerminatedAccounts(models.Model):
     institution_name = models.CharField(max_length=30)
     modelsi = models.CharField(max_length=30)
     deleted_models = models.CharField(max_length=10)
+
+    class Meta:
+        db_table = 'terminated_accounts'
