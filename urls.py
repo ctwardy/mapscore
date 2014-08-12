@@ -10,6 +10,8 @@ from views import *
 # from django.contrib import admin
 # admin.autodiscover()
 
+handler403 = 'mapscore.views.noaccess'
+
 urlpatterns = patterns(
     '',
     ('^$', base_redirect),

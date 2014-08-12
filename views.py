@@ -27,6 +27,7 @@ from django.core.mail import send_mail
 from django.core.files.move import file_move_safe
 from django.core.servers.basehttp import FileWrapper
 from django.core.context_processors import csrf
+from django.core.exceptions import PermissionDenied
 from django.template import RequestContext
 
 # Other 3rd-party Imports
@@ -48,14 +49,17 @@ def base_redirect(response):
     return redirect('/main/')
 
 
+def noaccess(request):
+    return render_to_response('noaccess.html', {})
+
+
 def _authenticate(request, token_type):
     try:
         if not request.session[token_type]:
-            return False
+            raise PermissionDenied()
     except:
-        return False
+        raise PermissionDenied()
 
-    return True
 
 def authenticate_user(request):
     return _authenticate(request, 'usertoken')
@@ -70,11 +74,9 @@ def authenticate(request):
     try:
         if (not request.session['admintoken']
             and not request.session['usertoken']):
-            return False
+            raise PermissionDenied()
     except:
-        return False
-
-    return True
+        raise PermissionDenied()
 
 
 def main_page(request):
@@ -343,9 +345,8 @@ def account_access(request):
                 return render_to_response('accountdeletedlogin.html')
 
             # Set user Token
-            request.session['usertoken'] = True
-
             model_list = []
+            request.session['usertoken'] = True
             request.session['active_account'] = Account.objects.get(ID2 = User_in)
 
             # record session login
@@ -355,9 +356,11 @@ def account_access(request):
             for i in request.session['active_account'].account_models.all():
                 model_list.append(i.model_nameID)
 
-            profpic = request.session['active_account'].photourl
-
-            inputdict = {'Name': request.session['active_account'].institution_name, 'modelname_list': model_list , 'profpic': profpic}
+            inputdict = {
+                'Name': request.session['active_account'].institution_name,
+                'modelname_list': model_list,
+                'profpic': request.session['active_account'].photourl
+            }
 
             account = request.session['active_account']
             inputdict['xsize'] = account.photosizex
@@ -367,8 +370,7 @@ def account_access(request):
         else:  # user does not exist
             return render_to_response('IncorrectLogin.html', {})
     else:
-        if not authenticate_user(request):
-            return render_to_response('noaccess.html', {})
+        authenticate_user(request)
 
         model_list = []
         for i in request.session['active_account'].account_models.all():
@@ -385,8 +387,7 @@ def account_access(request):
 
 
 def batch_test_upload(request):
-    if not authenticate(request):
-        return render_to_response('noaccess.html', {})
+    authenticate(request)
 
     context_instance=RequestContext(request)
     case_list = []
@@ -436,14 +437,7 @@ def batch_test_upload(request):
 
 
 def batch_test_upload_final(request):
-    if not authenticate_user(request):
-        return render_to_response('noaccess.html', {})
-
-    try:
-         if not request.session['admintoken'] and request.session['usertoken'] == False:
-             return render_to_response('noaccess.html', {})
-    except:
-         return render_to_response('noaccess.html', {})
+    authenticate(request)
 
     if request.method != 'POST':
         return render_to_response('AccountScreen.html', {})
@@ -577,8 +571,7 @@ def process_batch_tests(request):
 
 
 def model_regform(request):
-    if not authenticate_user(request):
-        return render_to_response('noaccess.html', {})
+    authenticate_user(request)
     return render_to_response('NewModel.html', {})
 
 
@@ -604,8 +597,7 @@ def emaillink(request):
 
 
 def model_created(request):
-    if not authenticate_user(request):
-        return render_to_response('noaccess.html', {})
+    authenticate_user(request)
 
     # if page refresh
     if request.session['createcheck'] == True:
@@ -661,8 +653,7 @@ def model_created(request):
 
 
 def model_access(request):
-    if not authenticate_user(request):
-        return render_to_response('noaccess.html', {})
+    authenticate_user(request)
 
     request.session['active_case_temp'] = 'none'
     request.session['active_test'] = 'none'
@@ -760,15 +751,13 @@ def admin_account(request):
             return render_to_response('IncorrectLogin.html', {})
 
     elif request.session['Superlogin']:
-        if not authenticate_admin(request):
-            return render_to_response('noaccess.html', {})
+        authenticate_admin(request)
         request.session['active_account'] = 'superuser'
         return render_to_response('AdminScreen.html', {})
 
 
 def testcase_admin(request):
-    if not authenticate_admin(request):
-        return render_to_response('noaccess.html', {})
+    authenticate_admin(request)
 
     for case in Case.objects.filter(UploadedLayers = False):
         if os.path.exists(str(case.LayerField)):
@@ -793,16 +782,14 @@ def testcase_admin(request):
 
 
 def Casereg(request):
-    if not authenticate_admin(request):
-        return render_to_response('noaccess.html', {})
+    authenticate_admin(request)
     inputdict = {}
     inputdict.update(csrf(request))
     return render_to_response('Casereg.html', inputdict)
 
 
 def newtest(request):
-    if not authenticate_user(request):
-        return render_to_response('noaccess.html', {})
+    authenticate_user(request)
 
     # Use names requested by TestWelcome.html so we can use locals() later.
     case = request.session['active_case_temp']
@@ -843,8 +830,7 @@ def newtest(request):
 
 
 def create_test(request):
-    if not authenticate_user(request):
-        return render_to_response('noaccess.html', {})
+    authenticate_user(request)
 
     # If refresh
     if request.session['createcheck'] == True:
@@ -902,8 +888,7 @@ def active_test(request):
     TODO: there is no need to define all these local variables.
 
     """
-    if not authenticate_user(request):
-        return render_to_response('noaccess.html', {})
+    authenticate_user(request)
 
     active_test = request.session['active_test']
     print str(active_test.nav) + '-----nav'
@@ -963,8 +948,7 @@ def active_test(request):
 
 
 def load_image(request):
-    if not authenticate_user(request):
-        return render_to_response('noaccess.html', {})
+    authenticate_user(request)
 
     # increment counter
     active_test = request.session['active_test']
@@ -987,8 +971,7 @@ def load_image(request):
 
 
 def confirm_grayscale(request):
-    if not authenticate_user(request):
-        return render_to_response('noaccess.html', {})
+    authenticate_user(request)
 
     # Verify Image
     image_in = Image.open(request.session['active_test'].grayscale_path)
@@ -1023,8 +1006,7 @@ def confirm_grayscale(request):
 
 
 def denygrayscale_confirm(request):
-    if not authenticate_user(request):
-        return render_to_response('noaccess.html', {})
+    authenticate_user(request)
 
     # Remove served Grayscale image
     os.remove(request.session['active_test'].grayscale_path)
@@ -1036,8 +1018,7 @@ def denygrayscale_confirm(request):
 
 
 def acceptgrayscale_confirm(request):
-    if not authenticate_user(request):
-        return render_to_response('noaccess.html', {})
+    authenticate_user(request)
 
     # iterate counter
     request.session['active_test'].grayrefresh = int(request.session['active_test'].grayrefresh) + 1
@@ -1066,8 +1047,7 @@ def acceptgrayscale_confirm(request):
 
 
 def Rate(request):
-    if not authenticate_user(request):
-        return render_to_response('noaccess.html', {})
+    authenticate_user(request)
 
     response = request.session['active_test'].rate()
 
@@ -1091,8 +1071,7 @@ def show_find_pt(URL2):
 
 
 def submissionreview(request):
-    if not authenticate_user(request):
-        return render_to_response('noaccess.html', {})
+    authenticate_user(request)
 
     request.session['active_model'].Completed_cases = int(request.session['active_model'].Completed_cases) + 1
     request.session['active_model'].save()
@@ -1158,8 +1137,7 @@ def submissionreview(request):
 
 
 def setcompletedtest(request):
-    if not authenticate_user(request):
-        return render_to_response('noaccess.html', {})
+    authenticate_user(request)
 
     intest_raw = str(request.GET['Nonactive_Testin'])
     intest = intest_raw.strip()
@@ -1182,8 +1160,7 @@ def setcompletedtest(request):
 
 
 def nonactivetest(request):
-    if not authenticate_user(request):
-        return render_to_response('noaccess.html', {})
+    authenticate_user(request)
 
     active_test = request.session['active_test']
     active_case = active_test.test_case
@@ -1280,8 +1257,7 @@ def confidence_interval(scores):
 
 def Leader_model(request):
     """Create the leaderboard."""
-    if not authenticate(request):
-        return render_to_response('noaccess.html', {})
+    authenticate(request)
 
     # Build Leaderboard
     inputlist = []
@@ -1342,8 +1318,7 @@ def switchboard(request):
         6. model -> scenario
         7. scenario -> test
     """
-    if not authenticate(request):
-        return render_to_response('noaccess.html', {})
+    authenticate(request)
 
     # anything to model
     if request.GET['Sort_by'] == '0':
@@ -1375,16 +1350,14 @@ def switchboard(request):
 
 
 def model_to_test_switch(request):
-    if not authenticate(request):
-        return render_to_response('noaccess.html', {})
+    authenticate(request)
     request.session['nav']    = '2'
     inputdict = request.session['inputdict']
     return render_to_response('Leaderboard_testname.html', inputdict)
 
 
 def switchboard_totest(request):
-    if not authenticate(request):
-        return render_to_response('noaccess.html', {})
+    authenticate(request)
 
     casename_raw = str(request.GET['casename'])
     casename = casename_raw.replace(' ', '')
@@ -1446,8 +1419,7 @@ def switchboard_totest(request):
 
 
 def model_to_Scenario_switch(request):
-    if not authenticate(request):
-        return render_to_response('noaccess.html', {})
+    authenticate(request)
 
     scenario_list = []
     for i in Case.objects.all():
@@ -1462,8 +1434,7 @@ def model_to_Scenario_switch(request):
 
 
 def testcaseshow(request):
-    if not authenticate(request):
-        return render_to_response('noaccess.html', {})
+    authenticate(request)
 
     if request.session['active_account'] =='superuser':
         AllCases = []
@@ -1496,8 +1467,7 @@ def testcaseshow(request):
 
 
 def return_leader(request):
-    if not authenticate(request):
-        return render_to_response('noaccess.html', {})
+    authenticate(request)
 
     inputdict = request.session['inputdict']
 
@@ -1518,8 +1488,7 @@ def return_leader(request):
 
 
 def completedtest_info(request):
-    if not authenticate(request):
-        return render_to_response('noaccess.html', {})
+    authenticate(request)
 
     completed_list = []
     for i in list(request.session['active_model'].model_tests.all()):
@@ -1535,8 +1504,7 @@ def completedtest_info(request):
 
 
 def case_ref(request):
-    if not authenticate(request):
-        return render_to_response('noaccess.html', {})
+    authenticate(request)
 
     Input = request.GET['CaseName2']
     active_case = Case.objects.get(case_name = Input)
@@ -1584,8 +1552,7 @@ def case_ref(request):
 
 
 def caseref_return(request):
-    if not authenticate(request):
-        return render_to_response('noaccess.html', {})
+    authenticate(request)
 
     inputdict = request.session['inputdict']
 
@@ -1606,8 +1573,7 @@ def caseref_return(request):
 
 
 def Account_Profile(request):
-    if not authenticate(request):
-        return render_to_response('noaccess.html', {})
+    authenticate(request)
 
     Account_in = request.GET['Account']
     Active_account = Account.objects.get(username = Account_in)
@@ -1640,8 +1606,7 @@ def Account_Profile(request):
 
 
 def returnfrom_profile(request):
-    if not authenticate(request):
-        return render_to_response('noaccess.html', {})
+    authenticate(request)
 
     inputdict = request.session['inputdict']
 
@@ -1662,8 +1627,7 @@ def returnfrom_profile(request):
 
 
 def case_hyperin(request):
-    if not authenticate(request):
-        return render_to_response('noaccess.html', {})
+    authenticate(request)
     inputdict = request.session['inputdict']
     caseselection = str(request.GET['casein'])
 
@@ -1685,7 +1649,7 @@ def upload_casefile(request):
     # should use a CSV file, most easily generated in Excel
     # Comma separated and quotes for text delimiter
     # be tolerant about use of carriage returns (win vs mac vs linux)
-    AUTHENTICATE('admintoken')
+    authenticate_admin(request)
 
     file = request.FILES['casecsv']
     # use python csv reader, tell it to expect excel style
@@ -1745,7 +1709,7 @@ def upload_casefile(request):
 
 
 def export_case_library(request):
-    AUTHENTICATE(request, token='admintoken')
+    authenticate_admin(request)
 
     export_cols = [
         'Name', 'Key#', 'Subject Category', 'Subject Sub-Category', 'Scenario',
@@ -1777,15 +1741,13 @@ def export_case_library(request):
 
 
 def Manage_Account(request):
-    if not authenticate_user(request):
-        return render_to_response('noaccess.html', {})
+    authenticate_user(request)
     request.session['active_model'] = 'none'
     return render_to_response('Account_manage.html')
 
 
 def edit_user(request):
-    if not authenticate_user(request):
-        return render_to_response('noaccess.html', {})
+    authenticate_user(request)
 
     Account = request.session['active_account']
     Firstname_in = str(Account.firstname_user)
@@ -1797,8 +1759,7 @@ def edit_user(request):
 
 
 def edit_user_run(request):
-    if not authenticate_user(request):
-        return render_to_response('noaccess.html', {})
+    authenticate_user(request)
 
     # read in information
     Account = request.session['active_account']
@@ -1849,8 +1810,7 @@ def edit_user_run(request):
 
 
 def edit_inst(request):
-    if not authenticate_user(request):
-        return render_to_response('noaccess.html', {})
+    authenticate_user(request)
 
     Account = request.session['active_account']
     Institution_in = str(Account.institution_name)
@@ -1861,8 +1821,7 @@ def edit_inst(request):
 
 
 def edit_inst_run(request):
-    if not authenticate_user(request):
-        return render_to_response('noaccess.html', {})
+    authenticate_user(request)
 
     # read in information
     Account = request.session['active_account']
@@ -1912,12 +1871,12 @@ def edit_inst_run(request):
 
 
 def edit_pw(request):
-    AUTHENTICATE(request, 'usertoken')
+    authenticate_user(request)
     return render_to_response('account_editpw.html')
 
 
 def edit_pw_run(request):
-    AUTHENTICATE(request, 'usertoken')
+    authenticate_user(request)
 
     # read in information
     Account = request.session['active_account']
@@ -2091,8 +2050,7 @@ def confirmprofpic_confirm(request):
 
 
 def edit_picture(request):
-    if not authenticate_user(request):
-        return render_to_response('noaccess.html', {})
+    authenticate_user(request)
 
     account = request.session['active_account']
     inputdict = {
@@ -2104,8 +2062,7 @@ def edit_picture(request):
 
 
 def remove_profpic(request):
-    if not authenticate_user(request):
-        return render_to_response('noaccess.html', {})
+    authenticate_user(request)
 
     account = request.session['active_account']
     os.remove(account.photolocation)  # remove old picture
@@ -2140,16 +2097,14 @@ def remove_profpic(request):
 
 
 def alterprofpic(request):
-    if not authenticate_user(request):
-        return render_to_response('noaccess.html', {})
+    authenticate_user(request)
     inputdict = {}
     inputdict.update(csrf(request))
     return render_to_response('change_accountpic.html', inputdict)
 
 
 def change_accountpic(request):
-    if not authenticate_user(request):
-        return render_to_response('noaccess.html', {})
+    authenticate_user(request)
 
     account = request.session['active_account']
     os.remove(account.photolocation)
@@ -2214,8 +2169,7 @@ def change_accountpic(request):
 
 
 def traffic(request):
-    if not authenticate_admin(request):
-        return render_to_response('noaccess.html', {})
+    authenticate_admin(request)
 
     mainhits = int(Mainhits.objects.all()[0].hits)
 
@@ -2250,14 +2204,12 @@ def traffic(request):
 
 
 def delete_account(request):
-    if not authenticate_user(request):
-        return render_to_response('noaccess.html', {})
+    authenticate_user(request)
     return render_to_response('Deleteaccount.html')
 
 
 def deleteaccount_confirm(request):
-    if not authenticate_user(request):
-        return render_to_response('noaccess.html', {})
+    authenticate_user(request)
 
     password = str(request.GET['Password'])
     account = request.session['active_account']
@@ -2302,8 +2254,7 @@ def deleteaccount_confirm(request):
 
 
 def terminate_accounts(request):
-    if not authenticate_admin(request):
-        return render_to_response('noaccess.html', {})
+    authenticate_admin(request)
 
     inputdict = {}
     if str(request.session['userdel']) != '':
@@ -2315,8 +2266,7 @@ def terminate_accounts(request):
 
 
 def view_username_admin(request):
-    if not authenticate_admin(request):
-        return render_to_response('noaccess.html', {})
+    authenticate_admin(request)
 
     inputlist = []
     for i in Account.objects.all():
@@ -2330,8 +2280,7 @@ def view_username_admin(request):
 
 
 def delaccountlink(request):
-    if not authenticate_admin(request):
-        return render_to_response('noaccess.html', {})
+    authenticate_admin(request)
 
     user = str(request.GET['username'])
     request.session['userdel'] = user
@@ -2339,8 +2288,7 @@ def delaccountlink(request):
 
 
 def adminterminate_account(request):
-    if not authenticate_admin(request):
-        return render_to_response('noaccess.html', {})
+    authenticate_admin(request)
 
     username = request.GET['account']
     password_in = request.GET['Password']
@@ -2402,8 +2350,7 @@ def adminterminate_account(request):
 
 
 def delete_model(request):
-    if not authenticate_user(request):
-        return render_to_response('noaccess.html', {})
+    authenticate_user(request)
 
     model_list = []
     account = request.session['active_account']
@@ -2416,8 +2363,7 @@ def delete_model(request):
 
 
 def deletemodel_confirm(request):
-    if not authenticate_user(request):
-        return render_to_response('noaccess.html', {})
+    authenticate_user(request)
 
     selection = request.GET['model_in']
     if selection == '0':
@@ -2462,21 +2408,18 @@ def deletemodel_confirm(request):
 
 
 def help(request):
-    if not authenticate_user(request):
-        return render_to_response('noaccess.html', {})
+    authenticate_user(request)
     return render_to_response('help.html')
 
 
 def help_how_alter_account(request):
-    if not authenticate_user(request):
-        return render_to_response('noaccess.html', {})
+    authenticate_user(request)
     return render_to_response('help_how_edit_account.html')
 
 
 def switchboard_toscenario(request):
     """Scenario-specific leaderboard"""
-    if not authenticate(request):
-        return render_to_response('noaccess.html', {})
+    authenticate(request)
     name = str(request.GET['Scenario_sort'])
 
     # Gather data
@@ -2555,8 +2498,7 @@ def switchboard_toscenario(request):
 
 
 def test_to_Scenario_switch(request):
-    if not authenticate(request):
-        return render_to_response('noaccess.html', {})
+    authenticate(request)
 
     scenario_list = []
     for i in Case.objects.all():
@@ -2571,8 +2513,7 @@ def test_to_Scenario_switch(request):
 
 
 def test_to_test_switch(request):
-    if not authenticate(request):
-        return render_to_response('noaccess.html', {})
+    authenticate(request)
 
     inputdict = request.session['inputdict']
     request.session['nav']    = '3'
@@ -2581,8 +2522,7 @@ def test_to_test_switch(request):
 
 
 def scenario_to_test_switch(request):
-    if not authenticate(request):
-        return render_to_response('noaccess.html', {})
+    authenticate(request)
 
     inputdict = request.session['inputdict']
     request.session['nav']    = '7'
@@ -2590,8 +2530,7 @@ def scenario_to_test_switch(request):
 
 
 def scenario_to_scenario_switch(request):
-    if not authenticate(request):
-        return render_to_response('noaccess.html', {})
+    authenticate(request)
 
     inputdict = request.session['inputdict']
     request.session['nav']    = '4'
@@ -2607,8 +2546,7 @@ def scenario_to_scenario_switch(request):
 
 
 def hyper_leaderboard(request):
-    if not authenticate(request):
-        return render_to_response('noaccess.html', {})
+    authenticate(request)
     request.session['inputdict'] = ''
     return redirect('/Leader_model/')
 
@@ -2650,8 +2588,7 @@ def collecting_data(request):
 
 
 def model_inst_sort(request):
-    if not authenticate(request):
-        return render_to_response('noaccess.html', {})
+    authenticate(request)
 
     # extract data
     instname = str(request.GET['instname'])
@@ -2743,8 +2680,7 @@ def model_inst_sort(request):
 
 
 def model_name_sort(request):
-    if not authenticate(request):
-        return render_to_response('noaccess.html', {})
+    authenticate(request)
 
     # extract data
     instname = str(request.GET['instname'])
@@ -2830,8 +2766,7 @@ def model_name_sort(request):
 
 
 def model_rtg_sort(request):
-    if not authenticate(request):
-        return render_to_response('noaccess.html', {})
+    authenticate(request)
 
     # extract data
     instname = str(request.GET['instname'])
@@ -2920,8 +2855,7 @@ def model_rtg_sort(request):
 
 
 def model_tstscomp_sort(request):
-    if not authenticate(request):
-        return render_to_response('noaccess.html', {})
+    authenticate(request)
 
     # extract data
     instname = str(request.GET['instname'])
@@ -3010,8 +2944,7 @@ def model_tstscomp_sort(request):
 
 
 def test_inst_sort(request):
-    if not authenticate(request):
-        return render_to_response('noaccess.html', {})
+    authenticate(request)
 
     # extract data
     instname = str(request.GET['instname'])
@@ -3100,8 +3033,7 @@ def test_inst_sort(request):
 
 
 def test_modelname_sort(request):
-    if not authenticate(request):
-        return render_to_response('noaccess.html', {})
+    authenticate(request)
 
     # extract data
     instname = str(request.GET['instname'])
@@ -3190,8 +3122,7 @@ def test_modelname_sort(request):
 
 
 def test_name_sort(request):
-    if not authenticate(request):
-        return render_to_response('noaccess.html', {})
+    authenticate(request)
 
     # extract data
     instname = str(request.GET['instname'])
@@ -3280,8 +3211,7 @@ def test_name_sort(request):
 
 
 def test_rating_sort(request):
-    if not authenticate(request):
-        return render_to_response('noaccess.html', {})
+    authenticate(request)
 
     # extract data
     instname = str(request.GET['instname'])
@@ -3370,8 +3300,7 @@ def test_rating_sort(request):
 
 
 def cat_inst_sort(request):
-    if not authenticate(request):
-        return render_to_response('noaccess.html', {})
+    authenticate(request)
 
     # extract data
     instname = str(request.GET['instname'])
@@ -3466,8 +3395,7 @@ def cat_inst_sort(request):
 
 
 def cat_modelname_sort(request):
-    if not authenticate(request):
-        return render_to_response('noaccess.html', {})
+    authenticate(request)
 
     # extract data
     instname = str(request.GET['instname'])
@@ -3562,8 +3490,7 @@ def cat_modelname_sort(request):
 
 
 def catrating_sort(request):
-    if not authenticate(request):
-        return render_to_response('noaccess.html', {})
+    authenticate(request)
 
     # extract data
     instname = str(request.GET['instname'])
@@ -3658,8 +3585,7 @@ def catrating_sort(request):
 
 
 def catcompleted_sort(request):
-    if not authenticate(request):
-        return render_to_response('noaccess.html', {})
+    authenticate(request)
 
     # extract data
     instname = str(request.GET['instname'])
@@ -3751,8 +3677,7 @@ def catcompleted_sort(request):
 
 
 def model_edit_info(request):
-    if not authenticate_user(request):
-        return render_to_response('noaccess.html', {})
+    authenticate_user(request)
 
     inputdict = {
         'description': str(request.session['active_model'].Description),
@@ -3762,8 +3687,7 @@ def model_edit_info(request):
 
 
 def model_change_info(request):
-    if not authenticate_user(request):
-        return render_to_response('noaccess.html', {})
+    authenticate_user(request)
 
     pw = str(request.GET['Password'])
     des = str(request.GET['description'])
@@ -3798,8 +3722,7 @@ def model_change_info(request):
 
 
 def model_Profile(request):
-    if not authenticate(request):
-        return render_to_response('noaccess.html', {})
+    authenticate(request)
 
     Account_in = str(request.GET['Account'])
     Model = str(request.GET['Model'])
@@ -3821,20 +3744,17 @@ def model_Profile(request):
 
 
 def metric_description(request):
-    if not authenticate_user(request):
-        return render_to_response('noaccess.html', {})
+    authenticate_user(request)
     return render_to_response('metric_description.html')
 
 
 def metric_description_nonactive(request):
-    if not authenticate_user(request):
-        return render_to_response('noaccess.html', {})
+    authenticate_user(request)
     return render_to_response('metric_description_nonactive.html')
 
 
 def metric_description_submissionreview(request):
-    if not authenticate_user(request):
-        return render_to_response('noaccess.html', {})
+    authenticate_user(request)
     return render_to_response('metric_description_submissionreview.html')
 
 
@@ -3843,8 +3763,7 @@ def reg_conditions(request):
 
 
 def download_param(request):
-    if not authenticate_user(request):
-        return render_to_response('noaccess.html', {})
+    authenticate_user(request)
 
     active_test = request.session['active_test']
     active_case = active_test.test_case
@@ -3886,8 +3805,7 @@ def download_param(request):
 
 
 def upload_layers(request):
-    if not authenticate_admin(request):
-        return render_to_response('noaccess.html', {})
+    authenticate_admin(request)
 
     request.session['ActiveAdminCase'] = int(request.GET['id'])
     admincase = Case.objects.get(id = request.session['ActiveAdminCase'])
@@ -3901,8 +3819,7 @@ def upload_layers(request):
 
 
 def upload_Layerfile(request):
-    if not authenticate_admin(request):
-        return render_to_response('noaccess.html', {})
+    authenticate_admin(request)
 
     # Take in file - save to server
     admincase = Case.objects.get(id = request.session['ActiveAdminCase'])
@@ -3930,8 +3847,7 @@ def upload_Layerfile(request):
 
 
 def DownloadLayers(request):
-    if not authenticate_user(request):
-        return render_to_response('noaccess.html', {})
+    authenticate_user(request)
 
     active_test = request.session['active_test']
     active_case = active_test.test_case
@@ -3966,8 +3882,7 @@ def DownloadLayers(request):
 
 
 def delete_Layers(request):
-    if not authenticate_admin(request):
-        return render_to_response('noaccess.html', {})
+    authenticate_admin(request)
 
     # Take in file - save to server
     admincase = Case.objects.get(id = request.session['ActiveAdminCase'])
@@ -3982,8 +3897,7 @@ def delete_Layers(request):
 
 
 def DownloadLayersadmin(request):
-    if not authenticate_admin(request):
-        return render_to_response('noaccess.html', {})
+    authenticate_admin(request)
 
     active_case = Case.objects.get(id=request.session['ActiveAdminCase'])
 
@@ -4020,16 +3934,14 @@ def DownloadLayersadmin(request):
 
 
 def casetypeselect(request):
-    if not authenticate_user(request):
-        return render_to_response('noaccess.html', {})
+    authenticate_user(request)
     name_lst = sorted(set([str(x.case_name) for x in Case.objects.all()]))
     type_lst = sorted(set([str(x.subject_category) for x in Case.objects.all()]))
     return render_to_response('Testselect.html', {'names': name_lst, 'types': type_lst})
 
 
 def TesttypeSwitch(request):
-    if not authenticate_user(request):
-        return render_to_response('noaccess.html', {})
+    authenticate_user(request)
 
     selection = request.GET['typein2']
     if selection == 0:
@@ -4055,8 +3967,7 @@ def TesttypeSwitch(request):
 
 
 def TestNameSwitch(request):
-    if not authenticate_user(request):
-        return render_to_response('noaccess.html', {})
+    authenticate_user(request)
 
     selection = request.GET['casename']
     if selection == 0:
@@ -4074,8 +3985,7 @@ def TestNameSwitch(request):
 
 
 def next_sequential_test_switch(request):
-    if not authenticate_user(request):
-        return render_to_response('noaccess.html', {})
+    authenticate_user(request)
 
     havecase = False
     for case in Case.objects.all():
