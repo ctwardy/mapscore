@@ -5,106 +5,107 @@
 
   <div style = 'padding-left:5%; padding-right:5%' >
     
-	<div style = '' >
-	  <br>
+    <div style = '' >
+      <br>
       <div style = 'padding-top: 1%; padding-bottom: 1%;'>
-		<div style = 'padding-left:0%'>
+        <div style = 'padding-left:0%'>
           <fieldset style='background-color:#FFFF99; DISPLAY:inline;'>
-			<legend style="font-weight:bold;">Login with existing account</legend>
-    		<form style = 'DISPLAY:inline;' action = "/account/" method = "get" name = "Login ">
-    		  Username: <Input maxlength = '30' type = "text" name = "Username">
-    		  Password: <Input maxlength = '30' type = "password" name = "Password">
-			  <button type="submit" name="Login">Login</button>
-			</form>
-			<!--
-    		<form style = 'DISPLAY:inline;' action="/password_reset">
-			  <input type="submit" value="Forgot Password?">
-			</form>
-			-->
-			<a href="/password_reset/">Forgot Password?</a> &nbsp;|&nbsp;
-			<a href="/reg_conditions/">New User?</a> &nbsp;|&nbsp;
-			<a href="/admin_login/">Admin Login</a>
+            <legend style="font-weight:bold;">Login with existing account</legend>
+            <form style = 'DISPLAY:inline;' action = "/account/" method = "post" name = "Login ">
+                {% csrf_token %}
+              Username: <Input maxlength = '30' type = "text" name = "Username">
+              Password: <Input maxlength = '30' type = "password" name = "Password">
+              <button type="submit" name="Login">Login</button>
+            </form>
+            <!--
+            <form style = 'DISPLAY:inline;' action="/password_reset">
+              <input type="submit" value="Forgot Password?">
+            </form>
+            -->
+            <a href="/password_reset/">Forgot Password?</a> &nbsp;|&nbsp;
+            <a href="/reg_conditions/">New User?</a> &nbsp;|&nbsp;
+            <a href="/admin_login/">Admin Login</a>
           </fieldset>
-		  <!--
+          <!--
           <fieldset style='background-color:#FFFF99;DISPLAY:inline;'>
             <legend style="font-weight:bold;">Don't have an account? </legend>
             <form style='DISPLAY:inline;' action = "/reg_conditions/" method = "get" name = "Return to Main Menu">
               <button name = "Register New Account" type = "submit" value = "HTML" style ='border:ridge;background-color:orange;border-color:black;color:black ;width:200px;height:25px'>
-            	Register New Account
+                Register New Account
               </button>
             </form>            
           </fieldset>
-		  -->
+          -->
         </div>        
-	  </div>
-	</div>	
-	
-	<br>
+      </div>
+    </div>  
+    
+    <br>
 
-	<p><b> Welcome to the MapScore website. MapScore scores
-		probability maps for Wilderness Search &amp; Rescue (WiSAR) so
-		the WiSAR community can compare methods for generating such
-		maps. MapScore requests users to generate maps for actual
-		historical searches (from ISRID), and keeps leaderboard
-		statistics for each model or method. Based at George Mason
-		University, MapScore has received funding from an NSF REU
-		award to Brigham Young University. It is part of the
-		SAR<i>Bayes</i> project.
-	</b></p>
+    <p><b> Welcome to the MapScore website. MapScore scores
+        probability maps for Wilderness Search &amp; Rescue (WiSAR) so
+        the WiSAR community can compare methods for generating such
+        maps. MapScore requests users to generate maps for actual
+        historical searches (from ISRID), and keeps leaderboard
+        statistics for each model or method. Based at George Mason
+        University, MapScore has received funding from an NSF REU
+        award to Brigham Young University. It is part of the
+        SAR<i>Bayes</i> project.
+    </b></p>
 
-	
-	<br>
+    
+    <br>
 </div>
-	 <center> <p style ='font-size:18px'> <b>Top 10 Rated Models (with
-	 5 or more tests completed) </b> </p></center>
+     <center> <p style ='font-size:18px'> <b>Top 10 Rated Models (with
+     5 or more tests completed) </b> </p></center>
 
 
-	<div style ='padding-left:25px'>
-	<table border = "0" style = " font-size:15px; width:900px"  bgcolor = '#FFFF99'>
-	<tr style ='color:white;background-color:navy'>
-	<th> <p style ='font-size:15px'> Institution Name </p> </th>
-	<th> <p style ='font-size:15px'> Model Name </p> </th>
-	<th> <p style ='font-size:15px'> Average Rating </p> </th>
-	<th> <p style ='font-size:15px'> Tests Completed </p> </th>
+    <div style ='padding-left:25px'>
+    <table border = "0" style = " font-size:15px; width:900px"  bgcolor = '#FFFF99'>
+    <tr style ='color:white;background-color:navy'>
+    <th> <p style ='font-size:15px'> Institution Name </p> </th>
+    <th> <p style ='font-size:15px'> Model Name </p> </th>
+    <th> <p style ='font-size:15px'> Average Rating </p> </th>
+    <th> <p style ='font-size:15px'> Tests Completed </p> </th>
 
-	</tr>
-
-
-	{% for i in Scorelist %}
-	<tr style = " font-size:12px" >
-		{% for j in i %}
-			<td>
-			  <p style =' font-size:15px'>
-				<center><b>{{j}}</b></center>
-			  </p>
-			</td>
-		{% endfor %}
-	</tr>
-	{% endfor %}
+    </tr>
 
 
-	</table>
-	</div>
+    {% for i in Scorelist %}
+    <tr style = " font-size:12px" >
+        {% for j in i %}
+            <td>
+              <p style =' font-size:15px'>
+                <center><b>{{j}}</b></center>
+              </p>
+            </td>
+        {% endfor %}
+    </tr>
+    {% endfor %}
 
-	<br>
-	<hr color = 'Navy'>
-	<br>
+
+    </table>
+    </div>
+
+    <br>
+    <hr color = 'Navy'>
+    <br>
 
 <!--
-	<center>
+    <center>
     <div style = 'padding-left: 0%; padding-right:15%; padding-top:
-		 1%; padding-bottom: 1%; border:none; width:850px;'>
-    	<form style='DISPLAY:inline;' action = "/admin_login/" method = "get" name = "adminlogin">
-    		<button name = "adminlogin" type = "submit" value = "HTML" style ='border:ridge;background-color:navy;color:white;border-color:black;width:200px;height:25px'>
-    		<div color = 'red'>
-    		Administrator Login
-    		</div>
-    		</button>
+         1%; padding-bottom: 1%; border:none; width:850px;'>
+        <form style='DISPLAY:inline;' action = "/admin_login/" method = "get" name = "adminlogin">
+            <button name = "adminlogin" type = "submit" value = "HTML" style ='border:ridge;background-color:navy;color:white;border-color:black;width:200px;height:25px'>
+            <div color = 'red'>
+            Administrator Login
+            </div>
+            </button>
 
-    	</form>
+        </form>
     </div>  
     </center>
-	-->
+    -->
 <br>
 </div>
 
