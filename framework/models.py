@@ -1,24 +1,18 @@
 #!/usr/env/python
 # models.py
 
-from django.db import models
+import os
 import math
 import random
-from PIL import Image
-#import Image
-from django import forms
+
 import numpy as np
-import os
+from PIL import Image
+from django import forms
+from django.db import models
 
-# Create your models here.
-
-#----------------------------------------------------------------------------------
-# Define Case Class
 
 class Case(models.Model):
 
-    # Define Database Table Fields
-    #input parameters
     country = models.CharField(max_length = 50)
     state =  models.CharField(max_length = 50)
     county = models.CharField(max_length = 50)
@@ -29,22 +23,28 @@ class Case(models.Model):
     lastlon = models.CharField(max_length = 50)
     findlat = models.CharField(max_length = 50)
     findlon = models.CharField(max_length = 50)
+
     case_name = models.CharField(max_length = 50)
     Age = models.CharField(max_length = 100)
     Sex = models.CharField(max_length = 100)
     key = models.CharField(max_length = 50)
+
     subject_category = models.CharField(max_length = 50)
     subject_subcategory = models.CharField(max_length = 50)
-    scenario  = models.CharField(max_length = 50)
     subject_activity = models.CharField(max_length = 50)
+
+    scenario  = models.CharField(max_length = 50)
     number_lost = models.CharField(max_length = 50)
     group_type = models.CharField(max_length = 50)
+
     ecoregion_domain = models.CharField(max_length = 50)
     ecoregion_division = models.CharField(max_length = 50)
     terrain = models.CharField(max_length = 50)
+
     total_hours = models.CharField(max_length = 50)
     notify_hours = models.CharField(max_length = 50)
     search_hours = models.CharField(max_length = 50)
+
     comments = models.CharField(max_length = 5000)
     LayerField = models.CharField(max_length = 50)
     UploadedLayers = models.BooleanField()
@@ -72,10 +72,10 @@ class Case(models.Model):
     verstep = models.CharField(max_length = 30)
 
     def GreatSphere(self,LatIn):
-        '''Calculate the longitude cellsize at this latitude.
+        """Calculate the longitude cellsize at this latitude.
         Uses a Great Sphere approximation.
 
-        '''
+        """
 
         Lat = math.radians(float(LatIn))
 
@@ -173,8 +173,8 @@ class Case(models.Model):
 
 #----------------------------------------------------------------------------------
     def generate_image_url(self):
-        '''Generates image URL using Google Maps
-        '''
+        """Generates image URL using Google Maps
+        """
         sidepixels = 500
         #Generate url
         url = 'http://maps.google.com/maps/api/staticmap?center='
@@ -238,7 +238,7 @@ class Test(models.Model):
     # Rating scripts
     #.........................................................................................
     def getmap(self):
-        '''Load the image and force it to be grayscale.
+        """Load the image and force it to be grayscale.
            Return a values as a (5001,5001) numpy array.
            This should be faster than the old 'for' loop checking pixels for RGB.
 
@@ -247,14 +247,14 @@ class Test(models.Model):
              * Can we open direct to numpy array and avoid second conversion?
              * What if Image throws and exception?
 
-        '''
+        """
         Path = self.grayscale_path
         Im = Image.open(Path).convert(mode="L")
         values = np.array(Im.getdata())
         return values.reshape((5001,5001))
 
     def rate(self):
-        '''Scores the image using Rossmo's metric: r = (n+.5m)/N; R = (.5-r)/.5
+        """Scores the image using Rossmo's metric: r = (n+.5m)/N; R = (.5-r)/.5
 
         We assume each pixel has the probability for that cell, or at least a
         value monotonically related to the probability.
@@ -276,7 +276,7 @@ class Test(models.Model):
          * Replaced inefficient loop with numpy ops. Thanks msonwalk for template!
          * Handled case where findloc is outside the image. (ROW)
 
-        '''
+        """
         x,y = int(self.test_case.findx), int(self.test_case.findy)
         values = self.getmap()            # a numpy array
         N = np.size(values)                # num pixels
@@ -309,7 +309,7 @@ class Test(models.Model):
 
 
 class Model(models.Model):
-    '''A Model has a name, description, and scores on its test cases.'''
+    """A Model has a name, description, and scores on its test cases."""
 
     # Define Database Table Fields
     Completed_cases = models.CharField(max_length = 30)
@@ -322,7 +322,7 @@ class Model(models.Model):
 
 
     def setup(self):
-        '''Models start out unrated.'''
+        """Models start out unrated."""
         self.model_avgrating = 'unrated'
         self.Completed_cases = 0
         #self.gridvalidated = False
@@ -330,28 +330,25 @@ class Model(models.Model):
         self.save()
 
     def update_rating(self):
-        '''Recalculate the model's ratings, ignoring any Active tests.
+        """Recalculate the model's ratings, ignoring any Active tests.
         If there are no completed tests, sets model_avgrating to 'unrated'.
-        '''
+
+        """
         counter = 0
         add = float(0)
         tests = [x for x in self.model_tests.all() if x.Active == False]
+
         if len(tests) == 0:
             self.model_avgrating = 'unrated'
         else:
             ratings = [float(t.test_rating) for t in tests]
             self.model_avgrating = round(np.average(ratings),5)
+
         self.save()
-
-
-
-#----------------------------------------------------------------------------------
-# Define Account Class
 
 
 class Account(models.Model):
 
-    # Define Database Table Fields
     sessionticker = models.CharField(max_length = 30)
     completedtests = models.CharField(max_length = 30)
     photolocation = models.CharField(max_length = 30)
@@ -370,21 +367,15 @@ class Account(models.Model):
     deleted_models = models.CharField(max_length = 10)
     profpicrefresh =  models.CharField(max_length = 10)
 
-#----------------------------------------------------------------------------------
-
 
 class Model_Account_Link(models.Model):
-
     account = models.ForeignKey(Account)
     model = models.ForeignKey(Model)
 
-#------------------------------------------------------------------------------------
 
 class Test_Model_Link(models.Model):
-
     test = models.ForeignKey(Test)
     model = models.ForeignKey(Model)
-#---------------------------------------------------------------------------------
 
 
 class Mainhits(models.Model):
@@ -392,8 +383,9 @@ class Mainhits(models.Model):
 
     def setup(self):
         self.hits = 0
-#----------------------------------------------------------------------------------
-class terminated_accounts(models.Model):
+
+
+class TerminatedAccounts(models.Model):
     username = models.CharField(max_length = 30)
     sessionticker = models.CharField(max_length = 30)
     completedtests = models.CharField(max_length = 30)

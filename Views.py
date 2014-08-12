@@ -2,83 +2,70 @@
 #
 # MapScore Main Views File
 
-# Import statements
-from django.http import HttpResponse
-from django.shortcuts import render_to_response
-from django.contrib.auth.models import User
-from django.contrib import auth
-from django.shortcuts import redirect
-from django.core.mail import send_mail
-from django.core import exceptions
-from django.core.files.move import file_move_safe
-from operator import itemgetter, attrgetter
-from django.template import RequestContext
-import random
-import shutil
-import math
-import csv
-import os
-import string
-import numpy as np
-import sys
-
-# Import Models
-
-from mapscore.framework.models import Account
-from mapscore.framework.models import Test
-from mapscore.framework.models import Case
-from mapscore.framework.models import Model
-from mapscore.framework.models import Model_Account_Link
-from mapscore.framework.models import Test_Model_Link
-from mapscore.framework.models import Mainhits
-from mapscore.framework.models import terminated_accounts
-import cStringIO
-import time
+# Stdlib Imports
 import re
 import os
-from PIL import Image
+import sys
+import csv
+import math
+import time
+import random
+import shutil
+import string
 import zipfile
+import cStringIO
+from operator import itemgetter, attrgetter
+
+# Django Imports
+from django.http import HttpResponse
+from django.shortcuts import render_to_response, redirect
+from django.contrib.auth.models import User
+from django.contrib import auth
+from django.core import exceptions
+from django.core.mail import send_mail
+from django.core.files.move import file_move_safe
 from django.core.servers.basehttp import FileWrapper
 from django.core.context_processors import csrf
-#import Documnet forms
+from django.template import RequestContext
+
+# Other 3rd-party Imports
+import numpy as np
+from PIL import Image
+
+# Import models and document forms
+from mapscore.framework.models import (Account, Test, Case, Model,
+    Model_Account_Link, Test_Model_Link, Mainhits, TerminatedAccounts)
 from mapscore.forms import ZipUploadForm
 
+
 ##################### Media File Locations ################################
-#MEDIA_DIR = 'C:/Users/Nathan Jones/Django Website/MapRateWeb/media/'
-#USER_GRAYSCALE = 'C:/Users/Nathan Jones/Django Website/MapRateWeb/user_grayscale/'
-MEDIA_DIR = 'media/'         # for the server
+MEDIA_DIR = 'media/'  # for the server
 USER_GRAYSCALE = 'user_grayscale/'
 
-# console print e.g.:
-#print >>sys.stderr, 'Goodbye, cruel world!'
 
-
-#--------------------------------------------------------------
 def base_redirect(response):
     return redirect('/main/')
 
 
-#--------------------------------------------------------------------------------
 def AUTHENTICATE(token='usertoken'):
-    '''token is either 'usertoken' or 'admintoken'
-    '''
-    # todo: fix because I don't think this works without passing the request object
+    """Token is either 'usertoken' or 'admintoken'"""
+    # TODO: fix because I don't think this works without passing the request object
     try:
-        if request.session[token] == False:
+        if not request.session[token]:
             return render_to_response('noaccess.html',{})
     except:
         return render_to_response('noaccess.html',{})
 
-#-------------------------------------------------------------
+
 def AUTHENTICATE_EITHER():
-    '''Authenticates with either 'usertoken' or 'admintoken'.'''
+    """Authenticates with either 'usertoken' or 'admintoken'."""
     try:
-        if request.session['admintoken'] == False and request.session['usertoken'] == False:
+        if not request.session['admintoken'] and request.session['usertoken'] == False:
             return render_to_response('noaccess.html',{})
     except:
         return render_to_response('noaccess.html',{})
 
-#-------------------------------------------------------------------
+
 def main_page(request):
 
     # record a hit on the main page
@@ -89,7 +76,6 @@ def main_page(request):
     mainpagehit = Mainhits.objects.all()[0]
     mainpagehit.hits = int(mainpagehit.hits) + 1
     mainpagehit.save()
-    #----------------------------------------------------
 
     request.session['completedtest'] = ''
     request.session['completedtest_lookup'] = False
@@ -108,6 +94,7 @@ def main_page(request):
 
     sorted_models = get_sorted_models(Model.objects.all())
     inputlist = []
+
     # copy values for leaderboard table
     for model in sorted_models:
         num_finished = sum((not test.Active for test in model.model_tests.all()))
@@ -119,21 +106,17 @@ def main_page(request):
                  num_finished])
 
     # Limit to Top-10
-    inputdic = {'Scorelist': inputlist[:9]}
+    inputdict = {'Scorelist': inputlist[:9]}
+    return render_to_response('Main.html', inputdict)
 
-    return render_to_response('Main.html', inputdic)
 
-
-#-------------------------------------------------------------
 def account_reg(request):
-
     return render_to_response('NewAccount.html',{})
 
-#-------------------------------------------------------------
+
 def create_account(request):
 
     # Extract form Data
-
     Firstname = str(request.GET['FirstName'])
     Lastname = str(request.GET['LastName'])
     Email_in = str(request.GET['Email'])
@@ -163,91 +146,87 @@ def create_account(request):
 
     # Verify input
     count = 0
-    inputdic = {'Firstname':Firstname,'Lastname':Lastname,'Email_in':Email_in,'Institution':Institution, 'Username':Username,'Password1':Password1,'Password2':Password2,'Websitein':Websitein}
-    if re.match(Firstname_r,Firstname) == None:
-        count = count + 1
+    inputdict = {
+        'Firstname': Firstname,
+        'Lastname': Lastname,
+        'Email_in': Email_in,
+        'Institution': Institution,
+        'Username': Username,
+        'Password1': Password1,
+        'Password2': Password2,
+        'Websitein': Websitein
+    }
+
+    if re.match(Firstname_r,Firstname) is None:
+        count += 1
         firstfail = True
-        inputdic['firstfail'] = firstfail
+        inputdict['firstfail'] = firstfail
 
 
-    if re.match(Lastname_r,Lastname) == None:
-        count = count + 1
+    if re.match(Lastname_r,Lastname) is None:
+        count += 1
         lastfail = True
-        inputdic['lastfail'] = lastfail
+        inputdict['lastfail'] = lastfail
 
-    if re.match(Email_in_r,Email_in) == None:
-        count = count + 1
+    if re.match(Email_in_r,Email_in) is None:
+        count += 1
         emailfail = True
-        inputdic['emailfail'] = emailfail
+        inputdict['emailfail'] = emailfail
 
-    if re.match(Institution_r,Institution) == None:
-        count = count + 1
+    if re.match(Institution_r,Institution) is None:
+        count += 1
         Institutionfail = True
-        inputdic['Institutionfail'] = Institutionfail
+        inputdict['Institutionfail'] = Institutionfail
 
 
-    if re.match(Username_r,Username) == None:
-        count = count + 1
+    if re.match(Username_r,Username) is None:
+        count += 1
         usernamefail = True
-        inputdic['usernamefail'] = usernamefail
+        inputdict['usernamefail'] = usernamefail
 
     if captchain != actualcaptcha:
-        count = count + 1
+        count += 1
         captchafail = True
-        inputdic['captchafail'] = captchafail
+        inputdict['captchafail'] = captchafail
 
-    if betakey != actualbetakey:
-        pass
-        # count = count + 1
-        # betafail = True
-        # inputdic['betafail'] = betafail
-
-
-
-
-    # For Beta Testing
-
-
-    #don't allow multiple groups to have more than one username
-    else:
+    if betakey == actualbetakey:
+        # For Beta Testing
+        # don't allow multiple groups to have more than one username
         counter = 0
         for c in Account.objects.all():
             if Username == str(c.username):
-                counter = counter + 1
+                counter += 1
 
-        for d in terminated_accounts.objects.all():
+        for d in TerminatedAccounts.objects.all():
             if Username == str(d.username):
-                counter = counter + 1
+                counter += 1
 
-        if counter >0:
-            count = count + 1
-            inputdic['usernamerepeat'] = True
+        if counter > 0:
+            count += 1
+            inputdict['usernamerepeat'] = True
 
+    if re.match(Password1_r,Password1) is None:
+        count += 1
+        inputdict['Pass1fail'] = True
 
-    if re.match(Password1_r,Password1) == None:
-        count = count + 1
-        Pass1fail = True
-        inputdic['Pass1fail'] = Pass1fail
+    if re.match(Password2_r,Password2) is None:
+        count += 1
+        inputdict['Pass2fail'] = True
 
-    if re.match(Password2_r,Password2) == None:
-        count = count + 1
-        Pass2fail = True
-        inputdic['Pass2fail'] = Pass2fail
-
-    if re.match(Websitein_r,Websitein) == None:
-        count = count + 1
+    if re.match(Websitein_r,Websitein) is None:
+        count += 1
         webfail =True
-        inputdic['Websitein_r'] = Websitein_r
+        inputdict['Websitein_r'] = Websitein_r
 
     if Password1 != Password2:
-        count = count + 1
+        count += 1
         passsyncfail = True
-        inputdic['passsyncfail'] = passsyncfail
+        inputdict['passsyncfail'] = passsyncfail
 
-    if count >0:
+    if count > 0:
 
-        inputdic['fail'] = True
-        return    render_to_response('NewAccount.html',inputdic)
+        inputdict['fail'] = True
+        return render_to_response('NewAccount.html',inputdict)
 
 
 
@@ -322,73 +301,59 @@ def create_account(request):
 
     request.session['active_account'] =  account
     return redirect('/uploadprofpic/')
-#-------------------------------------------------------------
+
 
 def account_access(request):
-
     request.session['createcheck'] = False
     request.session['completedtest'] = ''
     request.session['completedtest_lookup'] = False
     request.session['failure'] = False
     request.session['nav'] ='none'
-    request.session['inputdic'] = 'none'
+    request.session['inputdict'] = 'none'
     request.session['active_case_temp'] = 'none'
     request.session['active_test'] = 'none'
     request.session['active_model'] = 'none'
 
     if request.session['active_account'] == 'none':
-
         User_in = str(request.GET['Username'])
         Pass_in = str(request.GET['Password'])
 
         # Verify user
         user = auth.authenticate(username = User_in , password = Pass_in)
-
-        # User exists
-        if user is not None:
+        if user is not None:  # user exists
 
             # If account deleted:
             deletedcount = 0
-            for i in terminated_accounts.objects.all():
+            for i in TerminatedAccounts.objects.all():
                 if User_in == str(i.username):
                     deletedcount = deletedcount + 1
 
             if deletedcount > 0:
-
                 return render_to_response('accountdeletedlogin.html')
 
             # Set user Token
             request.session['usertoken'] = True
 
-
             model_list = []
             request.session['active_account'] = Account.objects.get(ID2 = User_in)
 
             # record session login
-            #---------------------------------------------------------------------------------
             request.session['active_account'].sessionticker = int(request.session['active_account'].sessionticker) + 1
             request.session['active_account'].save()
-            #---------------------------------------------------------------------------------
-
 
             for i in request.session['active_account'].account_models.all():
                 model_list.append(i.model_nameID)
 
             profpic = request.session['active_account'].photourl
 
-            inputdic = {'Name':request.session['active_account'].institution_name,'modelname_list':model_list ,'profpic':profpic}
+            inputdict = {'Name': request.session['active_account'].institution_name,'modelname_list': model_list ,'profpic': profpic}
 
             account = request.session['active_account']
+            inputdict['xsize'] = account.photosizex
+            inputdict['ysize'] = account.photosizey
+            return render_to_response('AccountScreen.html',inputdict)
 
-            inputdic['xsize'] = account.photosizex
-            inputdic['ysize'] = account.photosizey
-
-
-            return render_to_response('AccountScreen.html',inputdic)
-
-        # User does not exist
-        else:
-
+        else:  # user does not exist
             return render_to_response('IncorrectLogin.html',{})
     else:
         AUTHENTICATE()
@@ -399,20 +364,18 @@ def account_access(request):
 
         profpic = request.session['active_account'].photourl
 
-        inputdic = {'Name':request.session['active_account'].institution_name,'modelname_list':model_list,'profpic':profpic }
+        inputdict = {'Name': request.session['active_account'].institution_name,'modelname_list': model_list,'profpic': profpic }
 
         account = request.session['active_account']
+        inputdict['xsize'] = account.photosizex
+        inputdict['ysize'] = account.photosizey
+        return render_to_response('AccountScreen.html',inputdict)
 
-        inputdic['xsize'] = account.photosizex
-        inputdic['ysize'] = account.photosizey
 
-
-        return render_to_response('AccountScreen.html',inputdic)
-#-----------------------------------------------------------------
 def batch_test_upload(request):
     AUTHENTICATE() # does not work ??
     try:
-         if request.session['admintoken'] == False and request.session['usertoken'] == False:
+         if not request.session['admintoken'] and request.session['usertoken'] == False:
              return render_to_response('noaccess.html',{})
     except:
          return render_to_response('noaccess.html',{})
@@ -420,6 +383,7 @@ def batch_test_upload(request):
     context_instance=RequestContext(request)
     case_list = []
     update_list = []
+
     if request.method == 'POST':
         form = ZipUploadForm(request.POST, request.FILES)
         if form.is_valid():
@@ -456,18 +420,18 @@ def batch_test_upload(request):
             )
 
     else:
-
         form = ZipUploadForm() # A empty, unbound form
 
     return render_to_response('batch_test_upload.html',{'form': form},
         context_instance=RequestContext(request)
     )
-#-----------------------------------------------------------------
+
+
 def batch_test_upload_final(request):
     AUTHENTICATE() # this functions doesn't work, needs fixen'
 
     try:
-         if request.session['admintoken'] == False and request.session['usertoken'] == False:
+         if not request.session['admintoken'] and request.session['usertoken'] == False:
              return render_to_response('noaccess.html',{})
     except:
          return render_to_response('noaccess.html',{})
@@ -487,7 +451,6 @@ def batch_test_upload_final(request):
         return render_to_response('batch_test_upload_final.html',{'result': result,
             'result_data': result_data})
 
-
     if 'abort' in request.POST:
         # User aborted, so delete all the ready temp grayscales
         for index, (path, fname, file_size, model, case, status) in enumerate(request.session.get("batch_list")):
@@ -504,7 +467,8 @@ def batch_test_upload_final(request):
 
     return render_to_response('batch_test_upload_final.html',{'result': result,
         'result_data': result_data})
-#-----------------------------------------------------------------
+
+
 def process_batch_tests(request):
 
     # we need to know what the active account is, store simplify
@@ -515,8 +479,9 @@ def process_batch_tests(request):
     for index, (path, fname, file_size, model, case, status) in enumerate(tests_list):
         if status != "ready":
             continue
-        #let's get active model object
-        a_model = Model.objects.get(ID2 = act_account + ":" + str(model)) #str prolly isn't needed
+
+        # get active model object
+        a_model = Model.objects.get(ID2 = act_account + ":" + str(model))
 
         # get active case, already verified it exists so skip error check for now
         a_case = Case.objects.get(case_name=str(case))
@@ -532,25 +497,24 @@ def process_batch_tests(request):
             findtest = Test.objects.get(ID2 = ID2)
         except Test.DoesNotExist:
             findtest = None
-        # Test does exist:
-        if findtest != None:
+
+        if findtest is not None:  # test exists
             print >>sys.stderr, 'DEBUG: deleting previous test\n'
             print >>sys.stderr, str(findtest.id) + ":" + str(findtest.ID2)
+
             #delete the test_model_link first
             OldLink = Test_Model_Link.objects.get(test = findtest.id)
             OldLink.delete()
-            #then delete existing test
-            findtest.delete()
+            findtest.delete()  # delete existing test
 
-        #create new test:
-        newtest = Test( test_case = a_case,
-            test_name = a_case.case_name,
-            ID2 = ID2 )
+        #create new test
+        newtest = Test(test_case=a_case,
+            test_name=a_case.case_name,
+            ID2=ID2)
 
         newtest.save()
 
-        Link = Test_Model_Link( test = newtest,
-                    model = a_model)
+        Link = Test_Model_Link(test=newtest, model=a_model)
         Link.save()
         newtest.setup()
         newtest.save()
@@ -578,7 +542,7 @@ def process_batch_tests(request):
 
         # Remove served Grayscale image
         file_move_safe(newtest.grayscale_path, s, 65536, True)
-#        shutil.move(newtest.grayscale_path, s)
+
         # set the path
         newtest.grayscale_path = s
         newtest.save()
@@ -591,88 +555,81 @@ def process_batch_tests(request):
 
         # thumbnail is saved in MEDIA_DIR dir with name:
         # save as thumb_User_Model_Case.png
-
         response = newtest.rate()
         os.unlink(newtest.grayscale_path)
 
         # record rating
-        #---------------------------------------------------------------
         request.session['active_account'].completedtests = int(request.session['active_account'].completedtests) + 1
         request.session['active_account'].save()
-        #---------------------------------------------------------------
         result_data.append((model,case,newtest.ID2,newtest.test_rating,"ok"))
 
     request.session['batch_list'] = "completed"
     return (0,result_data)
-#-----------------------------------------------------------------
+
+
 def model_regform(request):
-
     AUTHENTICATE()
-
     return render_to_response('NewModel.html',{})
 
-#-------------------------------------------------------------------
+
 def PasswordReset(request):
-
     return render_to_response('PasswordReset.html',{})
-#    -----------------------------------------------------------
+
+
 def CollectingData(request):
-
     return render_to_response('CollectingData.html',{})
-#    --------------------------------------------------------------
-def email_confirmation(request):
 
+
+def email_confirmation(request):
     return render_to_response('email confirmation.html',{})
-#   ----------------------------------------------------------------------
+
+
 def emaillink(request):
     length = 7
     chars = string.ascii_letters + string.digits
     random.seed = (os.urandom(1024))
     print ''.join(random.choice(chars) for i in range(length))
-    random.random()
+    random.random()  # TODO: what's this supposed to be doing?
     return render_to_response('emaillink.html',{})
-#    ----------------------------------------------------------------------
-def model_created(request):
 
+
+def model_created(request):
     AUTHENTICATE()
 
     # if page refresh
     if request.session['createcheck'] == True:
         input_dic = {'model_name': str(request.GET['Name'])}
         return render_to_response('ModelRegComplete.html',input_dic)
-#    print "debug"
-    # Verify Model Name
 
+    # Verify Model Name
     Model_name = str(request.GET['Name'])
     description = str(request.GET['description'])
     ModelName_r = '^[a-zA-z0-9_]+$'
     baddescription = r'^\s*$'
 
     count = 0
-    if re.match(ModelName_r,Model_name) == None:
-        count = count + 1
-        inputdic01 ={'namein': Model_name,'Fail':True,'description':description}
+    if re.match(ModelName_r,Model_name) is None:
+        count += 1
+        inputdict01 = {'namein': Model_name,'Fail': True,'description': description}
 
-    if re.match(baddescription,description) != None:
-        count = count + 1
-        inputdic01 ={'namein': Model_name,'Fail1':True,'description':description}
+    if re.match(baddescription,description) is not None:
+        count += 1
+        inputdict01 = {'namein': Model_name,'Fail1': True,'description': description}
 
     if count == 0:
-
         for k in request.session['active_account'].account_models.all():
             counter = 0
             if Model_name == str(k.model_nameID):
-                counter = counter + 1
+                counter += 1
 
             if counter > 0:
-                count = count + 1
-                inputdic01 = {'namein': Model_name,'modelname': True, 'description':description}
+                count += 1
+                inputdict01 = {'namein': Model_name,'modelname': True, 'description': description}
 
     if count > 0:
-        return render_to_response('NewModel.html',inputdic01)
+        return render_to_response('NewModel.html',inputdict01)
 
     #Create new model
-
     new_model = Model(model_nameID = Model_name,
         ID2 = str(request.session['active_account'].ID2) + ':'+ str(Model_name),
         Description = description)
@@ -681,24 +638,18 @@ def model_created(request):
     new_model.save()
 
     #Link Model to account
-
-    Link = Model_Account_Link(    model = new_model,
-                    account = request.session['active_account'])
-
+    Link = Model_Account_Link(model=new_model,
+        account=request.session['active_account'])
     Link.save()
 
     request.session['createcheck'] = True
-
     request.session['model_name'] = Model_name
     request.session['model_in']=  Model_name
     request.session['active_model'] = new_model
-
     return redirect("/model_menu/")
 
-#-------------------------------------------------------------------
 
 def model_access(request):
-
     AUTHENTICATE()
 
     request.session['active_case_temp'] = 'none'
@@ -722,23 +673,21 @@ def model_access(request):
 
         rating = request.session['active_model'].model_avgrating
         print rating
-        input_dic = {'rating':rating,'Name_act':account_name, 'Name_m':model_name, 'activetest_list':activetests,'nonactivetest_list':nonactivetests}
+        input_dic = {'rating': rating,'Name_act': account_name, 'Name_m': model_name, 'activetest_list': activetests,'nonactivetest_list': nonactivetests}
 
         # If incorrect completed test entered
         if request.session['failure'] == True:
-            input_dic = {'failure':True,'rating':rating,'Name_act':account_name, 'Name_m':model_name, 'activetest_list':activetests,'nonactivetest_list':nonactivetests}
+            input_dic = {'failure': True,'rating': rating,'Name_act': account_name, 'Name_m': model_name, 'activetest_list': activetests,'nonactivetest_list': nonactivetests}
             request.session['failure'] = False
 
-        #if returning from completed selection
-
+        # if returning from completed selection
         if request.session['completedtest_lookup'] == True:
             input_dic['completedtest'] = request.session['completedtest']
-
             request.session['completedtest_lookup'] = False
 
         return render_to_response('ModelScreen.html',input_dic)
 
-    # If comming frm account
+    # If coming from account
     else:
         selection = request.GET['model_in']
         if selection == '0':
@@ -755,73 +704,56 @@ def model_access(request):
                 if i.Active == True:
                     activetests.append(i.test_name)
 
-
             nonactivetests = []
             for i in AllTests:
                 if i.Active == False:
                     nonactivetests.append(i.test_name)
 
             rating = request.session['active_model'].model_avgrating
-            input_dic = {'rating':rating,'Name_act':account_name, 'Name_m':model_name, 'activetest_list':activetests,'nonactivetest_list':nonactivetests}
-
+            input_dic = {'rating': rating,'Name_act': account_name, 'Name_m': model_name, 'activetest_list': activetests,'nonactivetest_list': nonactivetests}
 
             # If incorrect completed test entered
             if request.session['failure'] == True:
-
                 input_dic['failure'] = True
                 request.session['failure'] = False
 
-
-
-
             return render_to_response('ModelScreen.html',input_dic)
 
-#----------------------------------------------------------------
-def admin_login(request):
 
+def admin_login(request):
     request.session['Superlogin'] = False
     return render_to_response('AdminLogin.html')
-#---------------------------------------------------------------
+
 
 def admin_account(request):
     request.session['userdel'] = ''
-    request.session['inputdic'] = 'none'
+    request.session['inputdict'] = 'none'
 
     if request.session['Superlogin'] == False:
-
         User_in = request.GET['Username']
         Pass_in = request.GET['Password']
 
         # Verify user
-        user = auth.authenticate(username = User_in , password = Pass_in)
-
-        # User exists
-        if user is not None:
+        user = auth.authenticate(username=User_in, password=Pass_in)
+        if user is not None:  # user exists
             if user.is_superuser == True:
-
                 request.session['admintoken'] = True
                 request.session['admin_name'] = User_in
                 request.session['active_account'] ='superuser'
                 request.session['Superlogin'] = True
                 return render_to_response('AdminScreen.html',{})
-
             else:
                 return render_to_response('IncorrectLogin.html',{})
-
-
-        # User does not exist
-        else:
+        else:  # user does not exist
             return render_to_response('IncorrectLogin.html',{})
 
-    elif request.session['Superlogin'] == True:
-
+    elif request.session['Superlogin']:
         AUTHENTICATE(token='admintoken')
-        request.session['active_account'] ='superuser'
+        request.session['active_account'] = 'superuser'
         return render_to_response('AdminScreen.html',{})
 
-#---------------------------------------------------------------------
-def testcase_admin(request):
 
+def testcase_admin(request):
     AUTHENTICATE(token='admintoken')
 
     for case in Case.objects.filter(UploadedLayers = False):
@@ -829,8 +761,7 @@ def testcase_admin(request):
             case.update(UploadedLayers = True)
 
     request.session['ActiveAdminCase'] = 'none'
-
-    request.session['inputdic'] = 'none'
+    request.session['inputdict'] = 'none'
     caselist = []
 
     for i in Case.objects.all():
@@ -844,21 +775,17 @@ def testcase_admin(request):
         inputlist.append(str(i.UploadedLayers))
         caselist.append(inputlist)
 
-    return render_to_response('TestCaseMenu.html',{'case_list':caselist})
+    return render_to_response('TestCaseMenu.html',{'case_list': caselist})
 
-#-----------------------------------------------------------------------
+
 def Casereg(request):
-
     AUTHENTICATE(token='admintoken')
-    inputdic = {}
-    inputdic.update(csrf(request))
-    return render_to_response('Casereg.html',inputdic)
+    inputdict = {}
+    inputdict.update(csrf(request))
+    return render_to_response('Casereg.html',inputdict)
 
-
-#------------------------------------------------------------------------
 
 def newtest(request):
-
     AUTHENTICATE()
 
     # Use names requested by TestWelcome.html so we can use locals() later.
@@ -895,10 +822,10 @@ def newtest(request):
 
     # That's a lot of variables. We'll use the 'locals()' trick
     # instead of creating an input dictionary.
-
+    # TODO: or just stop being lazy and find a better way
     return render_to_response('TestWelcome.html', locals())
 
-#------------------------------------------------------------------------------------------
+
 def create_test(request):
     AUTHENTICATE()
 
@@ -906,9 +833,8 @@ def create_test(request):
     if request.session['createcheck'] == True:
         return redirect('/test_instructions/')
 
-    #Old code had notification page.Clunky.
-    #return render_to_response('TestCreated.html')
-
+    # Old code had notification page.Clunky.
+    # return render_to_response('TestCreated.html')
     tempcase = request.session['active_case_temp']
 
     # Need to avoid creating duplicate tests for given model/case
@@ -919,51 +845,48 @@ def create_test(request):
     except Test.DoesNotExist:
         findtest = None
 
-    if findtest != None:
+    if findtest is not None:
         #print >>sys.stderr, 'DEBUG:\n'
         #print >>sys.stderr, str(findtest.id) + ":" + str(findtest.ID2)
+
         #delete the test_model_link first
         OldLink = Test_Model_Link.objects.get(test = findtest.id)
         OldLink.delete()
-        #then delete existing test
-        findtest.delete()
+        findtest.delete()  # then delete existing test
 
-    newtest = Test( test_case = tempcase,
-        test_name = tempcase.case_name,
-        ID2 = ID2 )
+    newtest = Test(test_case=tempcase,
+        test_name=tempcase.case_name,
+        ID2=ID2)
 
     newtest.save()
 
-    Link = Test_Model_Link( test = newtest,
-                model = request.session['active_model'])
-
+    Link = Test_Model_Link(test=newtest,
+        model=request.session['active_model'])
     Link.save()
+
     newtest.setup()
     newtest.save()
+
     request.session['active_test'] = newtest
     request.session['createcheck'] = True
-
     return redirect('/test_active/')
 
 
-#-------------------------------------------------------------------
+
 def tst_instructions(request):
-    '''Show the instructions for creating images.'''
+    """Show the instructions for creating images."""
     return render_to_response('tst_instructions.html')
 
-#-------------------------------------------------------------------------------------------
 
 def active_test(request):
-    '''Retrieve data for the active test and render file_up.html.
-
+    """Retrieve data for the active test and render file_up.html.
     This used to administer the gridtest if you hadn't already passed.
 
     TODO: there is no need to define all these local variables.
 
-    '''
+    """
     AUTHENTICATE()
 
-    #request.session['active_test'] = Test.objects.get(ID2 = request.session['active_test'].ID2)
     active_test = request.session['active_test']
     print str(active_test.nav) + '-----nav'
     active_test.nav == 2      # Assume we passed the grid test
@@ -1000,31 +923,28 @@ def active_test(request):
 
     # Create Input dictionary
 
-    inputdic = {'Name_act':account_name, 'Name_m':model_name, 'name' :name, 'age':age,
-                'country':country,'state':state, 'sex':sex,'LKP':LKP,'horcells':sidecells,
-                'vercells':sidecells,'totcells' : totalcells, 'cellwidth' : 5,
-                'regionwidth' : 25,'uplat':uplat,'rightlon':rightlon,'downlat':downlat,
-                'leftlon':leftlon,'MAP':URL}
-    inputdic['subject_category'] = subject_category
-    inputdic['subject_subcategory'] = subject_subcategory
-    inputdic['scenario'] = scenario
-    inputdic['subject_activity'] = subject_activity
-    inputdic['number_lost'] = number_lost
-    inputdic['group_type'] = group_type
-    inputdic['ecoregion_domain'] = ecoregion_domain
-    inputdic['ecoregion_division'] = ecoregion_division
-    inputdic['terrain'] = terrain
-    inputdic['total_hours'] = total_hours
-    inputdic['layer'] = active_case.UploadedLayers
+    inputdict = {'Name_act': account_name, 'Name_m': model_name, 'name' : name, 'age': age,
+                'country': country,'state': state, 'sex': sex,'LKP': LKP,'horcells': sidecells,
+                'vercells': sidecells,'totcells' : totalcells, 'cellwidth' : 5,
+                'regionwidth' : 25,'uplat': uplat,'rightlon': rightlon,'downlat': downlat,
+                'leftlon': leftlon,'MAP': URL}
+    inputdict['subject_category'] = subject_category
+    inputdict['subject_subcategory'] = subject_subcategory
+    inputdict['scenario'] = scenario
+    inputdict['subject_activity'] = subject_activity
+    inputdict['number_lost'] = number_lost
+    inputdict['group_type'] = group_type
+    inputdict['ecoregion_domain'] = ecoregion_domain
+    inputdict['ecoregion_division'] = ecoregion_division
+    inputdict['terrain'] = terrain
+    inputdict['total_hours'] = total_hours
+    inputdict['layer'] = active_case.UploadedLayers
 
-    inputdic.update(csrf(request))
-    return render_to_response('file_up.html',inputdic)
+    inputdict.update(csrf(request))
+    return render_to_response('file_up.html',inputdict)
 
-#-------------------------------------------------------------------------
-# Load Image
 
 def load_image(request):
-
     AUTHENTICATE()
 
     # increment counter
@@ -1040,16 +960,13 @@ def load_image(request):
     active_test.grayscale_path = string
     active_test.save()
 
-
-    destination = open(string,'wb+')
-
-    for chunk in request.FILES['grayscale'].chunks():
-        destination.write(chunk)
-    destination.close()
+    with open(string,'wb+') as destination:
+        for chunk in request.FILES['grayscale'].chunks():
+            destination.write(chunk)
 
     return redirect('/confirm_grayscale/')
 
-#--------------------------------------------------------------------------
+
 def confirm_grayscale(request):
     AUTHENTICATE()
 
@@ -1057,11 +974,11 @@ def confirm_grayscale(request):
     image_in = Image.open(request.session['active_test'].grayscale_path)
     s = str(request.session['active_test'].ID2).replace(':','_')
     served_Location = '/%s%s_%s.png' % (MEDIA_DIR, s, str(request.session['active_test'].grayrefresh))
-    inputdic = {'grayscale':served_Location}
+    inputdict = {'grayscale': served_Location}
 
     # Check dimensions
     if image_in.size[0] != 5001 or image_in.size[1] != 5001:
-        return render_to_response('uploadfail_demensions.html',inputdic)
+        return render_to_response('uploadfail_demensions.html',inputdict)
 
     data = image_in.getdata()
     bands = image_in.getbands()
@@ -1071,26 +988,21 @@ def confirm_grayscale(request):
         # If it's true RGB, fail.
         for i in range(len(data)):
             if not( data[i][0] == data[i][1] == data[i][2] ):
-                return render_to_response('imageupload_fail.html',inputdic)
+                return render_to_response('imageupload_fail.html',inputdict)
         print 'Image OK: grayscale stored as RGB.'
 
-    # REview
+    # Review
     elif bands[0] in 'LP':
         print 'actual grayscale'
 
     # Image not grayscale
     else:
-        return render_to_response('imageupload_fail.html',inputdic)
+        return render_to_response('imageupload_fail.html',inputdict)
+
+    return render_to_response('imageupload_confirm.html',inputdict)
 
 
-    return render_to_response('imageupload_confirm.html',inputdic)
-
-
-
-#-----------------------------------------------------------------------------
-# deny grayscale confirmation
 def denygrayscale_confirm(request):
-
     AUTHENTICATE()
 
     # Remove served Grayscale image
@@ -1099,15 +1011,12 @@ def denygrayscale_confirm(request):
     # Wipe the path
     request.session['active_test'].grayscale_path = 'none'
     request.session['active_test'].save()
-
     return redirect('/test_active/')
 
 
-#-----------------------------------------------------------------------------
-# accept grayscale confirmation
 def acceptgrayscale_confirm(request):
-
     AUTHENTICATE()
+
     # iterate counter
     request.session['active_test'].grayrefresh = int(request.session['active_test'].grayrefresh) + 1
     request.session['active_test'].save()
@@ -1120,7 +1029,6 @@ def acceptgrayscale_confirm(request):
 
     shutil.move(request.session['active_test'].grayscale_path, s)
 
-    from PIL import Image
     im = Image.open(s)
     im = im.convert('RGB')
     im.thumbnail((128,128), Image.ANTIALIAS)
@@ -1132,34 +1040,24 @@ def acceptgrayscale_confirm(request):
     # set the path
     request.session['active_test'].grayscale_path = s
     request.session['active_test'].save()
-
     return redirect('/Rate_Test/')
 
 
-#-----------------------------------------------------------------------------
-
-
-
-
 def Rate(request):
-
     AUTHENTICATE()
     response = request.session['active_test'].rate()
 
     # Resync Model
     request.session['active_model'] = Model.objects.get(ID2 = request.session['active_model'].ID2)
-
     os.remove(request.session['active_test'].grayscale_path)
 
 
     # record rating
-    #---------------------------------------------------------------
     request.session['active_account'].completedtests = int(request.session['active_account'].completedtests) + 1
     request.session['active_account'].save()
-    #---------------------------------------------------------------
-
 
     return redirect('/submissionreview/')
+
 
 def show_find_pt(URL2):
     # Google Maps will bring the first marker to the front
@@ -1169,17 +1067,15 @@ def show_find_pt(URL2):
     return URL2[:marker_red] + URL2[marker_yellow:end] + URL2[marker_red:marker_yellow] + URL2[end:]
 
 
-#-----------------------------------------------------------------------------
 def submissionreview(request):
-
     AUTHENTICATE()
+
     request.session['active_model'].Completed_cases = int(request.session['active_model'].Completed_cases) + 1
     request.session['active_model'].save()
 
     active_test = request.session['active_test']
     active_case = active_test.test_case
 
-
     age = active_case.Age
     name = active_case.case_name
     sex = active_case.Sex
@@ -1211,72 +1107,60 @@ def submissionreview(request):
     findpoint = '(' + active_case.findlat  + ',' +active_case.findlon + ')'
     findgrid =  '(' + active_case.findx  + ',' +active_case.findy + ')'
 
-
-
     URL2 = show_find_pt(active_case.URLfind)
     rating = str(request.session['active_test'].test_rating)
     showfind = active_case.showfind
 
-
-
     # Create Input dictionary
-
-    inputdic = {'Name_act':account_name, 'Name_m':model_name, 'name' :name, 'age':age,'country':country,'state':state, 'sex':sex,'LKP':LKP,'horcells':sidecells,'vercells':sidecells,'totcells' : totalcells, 'cellwidth' : 5, 'regionwidth' : 25,'uplat':uplat,'rightlon':rightlon,'downlat':downlat,'leftlon':leftlon,'MAP':URL}
-    inputdic['subject_category'] = subject_category
-    inputdic['subject_subcategory'] = subject_subcategory
-    inputdic['scenario'] = scenario
-    inputdic['subject_activity'] = subject_activity
-    inputdic['number_lost'] = number_lost
-    inputdic['group_type'] = group_type
-    inputdic['ecoregion_domain'] = ecoregion_domain
-    inputdic['ecoregion_division'] = ecoregion_division
-    inputdic['terrain'] = terrain
-    inputdic['total_hours'] = total_hours
-    inputdic['MAP2'] = URL2
-    inputdic['find_pt'] = findpoint
-    inputdic['find_grid'] = findgrid
-    inputdic['rating'] = rating
-    inputdic['showfind'] = showfind
-
-
-
+    inputdict = {'Name_act': account_name, 'Name_m': model_name, 'name' : name, 'age': age,'country': country,'state': state, 'sex': sex,'LKP': LKP,'horcells': sidecells,'vercells': sidecells,'totcells' : totalcells, 'cellwidth' : 5, 'regionwidth' : 25,'uplat': uplat,'rightlon': rightlon,'downlat': downlat,'leftlon': leftlon,'MAP': URL}
+    inputdict['subject_category'] = subject_category
+    inputdict['subject_subcategory'] = subject_subcategory
+    inputdict['scenario'] = scenario
+    inputdict['subject_activity'] = subject_activity
+    inputdict['number_lost'] = number_lost
+    inputdict['group_type'] = group_type
+    inputdict['ecoregion_domain'] = ecoregion_domain
+    inputdict['ecoregion_division'] = ecoregion_division
+    inputdict['terrain'] = terrain
+    inputdict['total_hours'] = total_hours
+    inputdict['MAP2'] = URL2
+    inputdict['find_pt'] = findpoint
+    inputdict['find_grid'] = findgrid
+    inputdict['rating'] = rating
+    inputdict['showfind'] = showfind
 
     request.session['active_test'].save()
+    return render_to_response('Submissionreview.html', inputdict)
 
-    return render_to_response('Submissionreview.html', inputdic)
 
-
-#------------------------------------------------------------------------------------------------
 def setcompletedtest(request):
     AUTHENTICATE()
+
     intest_raw = str(request.GET['Nonactive_Testin'])
     intest = intest_raw.strip()
-    completed_lst = []
+    completed_list = []
+
     #debugx
     print >>sys.stderr, 'DEBUG:\n'
     print >>sys.stderr, intest
+
     for i in list(request.session['active_model'].model_tests.all()):
         if i.Active == False:
-            completed_lst.append(str(i.test_name))
+            completed_list.append(str(i.test_name))
 
-    if intest not in completed_lst :
+    if intest not in completed_list :
         request.session['failure'] = True
         return redirect('/model_menu/')
-
     else:
         request.session['active_test'] = request.session['active_model'].model_tests.get(test_name = intest)
         return redirect('/Nonactive_test/')
 
-#--------------------------------------------------------------------------------------------------
+
 def nonactivetest(request):
-
     AUTHENTICATE()
-
-
 
     active_test = request.session['active_test']
     active_case = active_test.test_case
-
 
     age = active_case.Age
     name = active_case.case_name
@@ -1309,59 +1193,53 @@ def nonactivetest(request):
     findpoint = '(' + active_case.findlat  + ',' +active_case.findlon + ')'
     findgrid =  '(' + active_case.findx  + ',' +active_case.findy + ')'
 
-
-
     URL2 = show_find_pt(active_case.URLfind)
     rating = str(request.session['active_test'].test_rating)
     showfind = active_case.showfind
 
-
-
     # Create Input dictionary
+    inputdict = {'Name_act': account_name, 'Name_m': model_name, 'name' : name, 'age': age,'country': country,'state': state, 'sex': sex,'LKP': LKP,'horcells': sidecells,'vercells': sidecells,'totcells' : totalcells, 'cellwidth' : 5, 'regionwidth' : 25,'uplat': uplat,'rightlon': rightlon,'downlat': downlat,'leftlon': leftlon,'MAP': URL}
+    inputdict['subject_category'] = subject_category
+    inputdict['subject_subcategory'] = subject_subcategory
+    inputdict['scenario'] = scenario
+    inputdict['subject_activity'] = subject_activity
+    inputdict['number_lost'] = number_lost
+    inputdict['group_type'] = group_type
+    inputdict['ecoregion_domain'] = ecoregion_domain
+    inputdict['ecoregion_division'] = ecoregion_division
+    inputdict['terrain'] = terrain
+    inputdict['total_hours'] = total_hours
+    inputdict['MAP2'] = URL2
+    inputdict['find_pt'] = findpoint
+    inputdict['find_grid'] = findgrid
+    inputdict['rating'] = rating
+    inputdict['showfind'] = showfind
 
-    inputdic = {'Name_act':account_name, 'Name_m':model_name, 'name' :name, 'age':age,'country':country,'state':state, 'sex':sex,'LKP':LKP,'horcells':sidecells,'vercells':sidecells,'totcells' : totalcells, 'cellwidth' : 5, 'regionwidth' : 25,'uplat':uplat,'rightlon':rightlon,'downlat':downlat,'leftlon':leftlon,'MAP':URL}
-    inputdic['subject_category'] = subject_category
-    inputdic['subject_subcategory'] = subject_subcategory
-    inputdic['scenario'] = scenario
-    inputdic['subject_activity'] = subject_activity
-    inputdic['number_lost'] = number_lost
-    inputdic['group_type'] = group_type
-    inputdic['ecoregion_domain'] = ecoregion_domain
-    inputdic['ecoregion_division'] = ecoregion_division
-    inputdic['terrain'] = terrain
-    inputdic['total_hours'] = total_hours
-    inputdic['MAP2'] = URL2
-    inputdic['find_pt'] = findpoint
-    inputdic['find_grid'] = findgrid
-    inputdic['rating'] = rating
-    inputdic['showfind'] = showfind
+    return render_to_response('nonactive_test.html', inputdict)
 
-    return render_to_response('nonactive_test.html', inputdic)
-
-#----------------------------------------------------------------------------------------------------------------------------------------------------
 def get_sorted_models(allmodels):
-    '''Return list of rated models, highest-rated first.
+    """Return list of rated models, highest-rated first.
     Uses model_avgrating attribute and operator.attrgetter method.
 
-    '''
+    """
     rated_models = [x for x in allmodels
                     if x.model_avgrating != 'unrated']
     return sorted(rated_models,
                   key=attrgetter('model_avgrating'),
                   reverse=True)
 
-#------------------------------------------------------------------------------
+
 def confidence_interval(scores):
-    '''Return the 95% CI of the mean as (lowerbound, upperbound).
+    """Return the 95% CI of the mean as (lowerbound, upperbound).
 
     @param scores: iterable of float with relevant scores
 
     Because we are trying to infer bounds on the actual
     (population) performance of the model, from limited samples,
     we use +- 1.96 * SEM, the standard error of the mean.
-            SEM = stdev / sqrt(N)
+        SEM = stdev / sqrt(N)
 
-    '''
+    """
     N,avg,stdev = 0,0.0,0.0
     try:
         N, avg, stdev = len(scores), np.mean(scores), np.std(scores)
@@ -1373,12 +1251,13 @@ def confidence_interval(scores):
         print >> sys.stderr, 'No 95%% CI. N=%d, avg=%6.2f, std=%6.2f' % (N, avg, stdev)
         return (0,0)
 
-#----------------------------------------------------------------------------------------------------------------------------------------------------
+
 def Leader_model(request):
-    '''Create the leaderboard.'''
+    """Create the leaderboard."""
     AUTHENTICATE_EITHER()
 
     sorted_models = get_sorted_models(Model.objects.all())
+
     # Build Leaderboard
     inputlist = []
     for model in sorted_models:
@@ -1403,85 +1282,79 @@ def Leader_model(request):
                 case.extend([lowerbound, upperbound, True])
             else: # small sample = False
                 case.extend([lowerbound, upperbound, False])
+
         #print >> sys.stderr, case
         inputlist.append(case)
 
 
     # Prepare variables to send to HTML template
-    inputdic ={'Scorelist':inputlist}
+    inputdict = {'Scorelist': inputlist}
     if request.session['active_account'] =='superuser':
-        inputdic['superuser'] = True
+        inputdict['superuser'] = True
     request.session['nav']    = '1'
+
     # Sort flags
     instname = '0'
     modelname ='0'
     avgrating ='1'
     tstcomplete ='0'
-    inputdic['sortlst'] = [instname, modelname, avgrating, tstcomplete]
 
-    request.session['inputdic'] = inputdic
+    inputdict['sortlst'] = [instname, modelname, avgrating, tstcomplete]
+    request.session['inputdict'] = inputdict
+    return render_to_response('Leader_Model.html', inputdict)
 
-    return render_to_response('Leader_Model.html', inputdic)
 
-#----------------------------------------------------------------
 def switchboard(request):
+    """
+    Switchboard Nav values::
 
-#********************************************
-# Switchboard Nav values
-# 1-- Model
-# 2-- model -> test
-# 3-- test
-# 4-- scenario
-# 5-- test -> scenario
-# 6-- model -> scenario
-# 7-- scenario -> test
-#*********************************************
-
-
+        1. Model
+        2. model -> test
+        3. test
+        4. scenario
+        5. test -> scenario
+        6. model -> scenario
+        7. scenario -> test
+    """
     AUTHENTICATE_EITHER()
-    # anything to model
 
+    # anything to model
     if request.GET['Sort_by'] == '0':
         return redirect('/Leader_model/')
 
     #Model to test
-
-    elif request.GET['Sort_by'] == '1' and (request.session['nav']    == '1' or request.session['nav'] == '6'):
+    elif request.GET['Sort_by'] == '1' and (request.session['nav'] == '1' or request.session['nav'] == '6'):
         return redirect('/model_to_test_switch/')
 
     # model to scenario
-
-    elif request.GET['Sort_by'] == '2' and (request.session['nav']    == '1' or request.session['nav'] == '2'):
+    elif request.GET['Sort_by'] == '2' and (request.session['nav'] == '1' or request.session['nav'] == '2'):
         return redirect('/model_to_Scenario_switch/')
 
     #test to scenario
-
-    elif request.GET['Sort_by'] == '2' and request.session['nav']    == '3':
+    elif request.GET['Sort_by'] == '2' and request.session['nav'] == '3':
         return redirect('/test_to_Scenario_switch/')
 
     #test bottom to test
-    elif request.GET['Sort_by'] == '1' and request.session['nav']    == '5':
+    elif request.GET['Sort_by'] == '1' and request.session['nav'] == '5':
         return redirect('/test_to_test_switch/')
 
     # scenario to test
-    elif request.GET['Sort_by'] == '1' and request.session['nav']    == '4':
+    elif request.GET['Sort_by'] == '1' and request.session['nav'] == '4':
         return redirect('/scenario_to_test_switch/')
 
     # scenario to scenario
-    elif request.GET['Sort_by'] == '2' and request.session['nav']    == '7':
+    elif request.GET['Sort_by'] == '2' and request.session['nav'] == '7':
         return redirect('/scenario_to_scenario_switch/')
-#-----------------------------------------------------------------
-def model_to_test_switch(request):
 
+
+def model_to_test_switch(request):
     AUTHENTICATE_EITHER()
     request.session['nav']    = '2'
-    inputdic = request.session['inputdic']
+    inputdict = request.session['inputdict']
+    return render_to_response('Leaderboard_testname.html',inputdict)
 
-    return render_to_response('Leaderboard_testname.html',inputdic)
 
-#--------------------------------------------------------------------------
 def switchboard_totest(request):
-
     AUTHENTICATE_EITHER()
 
     casename_raw = str(request.GET['casename'])
@@ -1491,18 +1364,16 @@ def switchboard_totest(request):
     # check if the given casename is in the database
     active_cases = [x for x in cases if x.case_name == casename]
 
-    if len(active_cases) == 0:
-        # Entry is invalid
-        inputdic = request.session['inputdic']
+    if not active_cases:  # entry is invalid
+        inputdict = request.session['inputdict']
         if request.session['nav'] == '3':
-            return render_to_response('Leaderboard_Testfail.html',inputdic)
+            return render_to_response('Leaderboard_Testfail.html',inputdict)
         elif request.session['nav'] == '7':
-            return render_to_response('scenario_to_testfail.html',inputdic)
+            return render_to_response('scenario_to_testfail.html',inputdict)
         elif request.session['nav'] == '2':
-            return render_to_response('Leaderboard_testname_fail.html',inputdic)
-        else:
-            # For now just ensure we exit this function.  TODO
-            return render_to_response('Leaderboard_Testfail.html',inputdic)
+            return render_to_response('Leaderboard_testname_fail.html',inputdict)
+        else:  # TODO: for now just ensure we exit
+            return render_to_response('Leaderboard_Testfail.html',inputdict)
 
     # If entry is valid
     alltests = Test.objects.all()
@@ -1517,72 +1388,63 @@ def switchboard_totest(request):
     inputlist = []
     for test in sorted_tests:
         print >> sys.stderr, dir(test.model_set.all()[0])
-        inputlist.append(
+        inputlist.append([
             # TODO: No field institution_name.  Fields are:
             # account_set, clean_fields, gridvalidated, id, model_account_link_set,
             # model_avgrating, model_nameID, model_tests, test_model_link_set,
             # update_rating, validate_unique
-            [test.model_set.all()[0].institution_name,
-             test.model_set.all()[0].model_nameID,
-             test.test_name,
-             test.test_rating,
-             test.model_set.all()[0].account_set.all()[0].username])
+            test.model_set.all()[0].institution_name,
+            test.model_set.all()[0].model_nameID,
+            test.test_name,
+            test.test_rating,
+            test.model_set.all()[0].account_set.all()[0].username
+        ])
 
-    inputdic ={'Scorelist':inputlist}
-    inputdic['casename'] = casename_raw
+    inputdict = {'Scorelist': inputlist}
+    inputdict['casename'] = casename_raw
     if request.session['active_account'] =='superuser':
-        inputdic['superuser'] = True
+        inputdict['superuser'] = True
+
     instname = '0'
     modelname ='0'
     tstname ='0'
     tstrtg ='1'
-    inputdic['sortlst'] = [instname, modelname, tstname, tstrtg]
-    request.session['inputdic'] = inputdic
+
+    inputdict['sortlst'] = [instname, modelname, tstname, tstrtg]
+    request.session['inputdict'] = inputdict
     request.session['nav'] = '3'
-    return render_to_response('Leaderboard_test.html',inputdic)
+    return render_to_response('Leaderboard_test.html',inputdict)
 
 
-
-#----------------------------------------------------------------------------
 def model_to_Scenario_switch(request):
-
     AUTHENTICATE_EITHER()
 
-    inputdic =  request.session['inputdic']
-
-    scenario_lst = []
+    scenario_list = []
     for i in Case.objects.all():
-        if str(i.scenario) not in  scenario_lst:
-            scenario_lst.append(str(i.scenario))
+        if str(i.scenario) not in  scenario_list:
+            scenario_list.append(str(i.scenario))
 
-    inputdic['scenario_lst'] = scenario_lst
+    inputdict =  request.session['inputdict']
+    inputdict['scenario_list'] = scenario_list
     request.session['nav'] = '6'
-    request.session['inputdic']  = inputdic
+    request.session['inputdict']  = inputdict
+    return render_to_response('model_to_scenario.html',inputdict)
 
-    return render_to_response('model_to_scenario.html',inputdic)
 
-#----------------------------------------------------------------------------
 def testcaseshow(request):
-
     AUTHENTICATE_EITHER()
 
     if request.session['active_account'] =='superuser':
-
-        AllCases =[]
+        AllCases = []
         for i in list(Case.objects.all()):
             AllCases.append(str(i.case_name))
 
-        inputdic = { 'all_lst':AllCases}
-
-        return render_to_response('case_info_admin.html',inputdic)
-
-
-
+        inputdict = { 'all_lst': AllCases}
+        return render_to_response('case_info_admin.html',inputdict)
 
     Account = request.session['active_account']
 
     # construct a list of completed test cases
-
     Completed_list = []
     for i in list(Account.account_models.all()):
         name =    'Model Name: ' + str(i.model_nameID)
@@ -1594,71 +1456,55 @@ def testcaseshow(request):
 
         Completed_list.append(lst)
 
-
-    AllCases =[]
+    AllCases = []
     for i in list(Case.objects.all()):
         AllCases.append(str(i.case_name))
 
-    inputdic = {'completed_lst':Completed_list, 'all_lst':AllCases}
+    inputdict = {'completed_list': Completed_list, 'all_lst': AllCases}
+    return render_to_response('case_info.html',inputdict)
 
-    return render_to_response('case_info.html',inputdic)
 
-#------------------------------------------------------------------------------
 def return_leader(request):
-
     AUTHENTICATE_EITHER()
 
-    inputdic = request.session['inputdic']
+    inputdict = request.session['inputdict']
 
     if request.session['nav'] == '3':
-        return render_to_response('Leaderboard_test.html',inputdic)
-
+        return render_to_response('Leaderboard_test.html',inputdict)
     elif request.session['nav'] == '2':
-
-        return render_to_response('Leaderboard_testname.html',inputdic)
-
+        return render_to_response('Leaderboard_testname.html',inputdict)
     elif request.session['nav'] == '1':
-
-        return render_to_response('Leader_Model.html',inputdic)
-
+        return render_to_response('Leader_Model.html',inputdict)
     elif request.session['nav'] == '4':
-
-        return render_to_response('Leaderboard_scenario.html',inputdic)
-
+        return render_to_response('Leaderboard_scenario.html',inputdict)
     elif request.session['nav'] == '5':
-        return render_to_response('test_to_scenario.html',inputdic)
-
+        return render_to_response('test_to_scenario.html',inputdict)
     elif request.session['nav'] == '6':
-        return render_to_response('model_to_Scenario.html',inputdic)
-
+        return render_to_response('model_to_Scenario.html',inputdict)
     elif request.session['nav'] == '7':
-        return render_to_response('scenario_to_test.html',inputdic)
-#------------------------------------------------------------------------------
-def completedtest_info(request):
+        return render_to_response('scenario_to_test.html',inputdict)
 
+
+def completedtest_info(request):
     AUTHENTICATE_EITHER()
 
-    completed_lst = []
-
+    completed_list = []
     for i in list(request.session['active_model'].model_tests.all()):
         if i.Active == False:
             thumb = MEDIA_DIR + "thumb_" + str(i.ID2).replace(':','_') + ".png"
             thumbexists = False
             if os.path.isfile(thumb):
                 thumbexists = True
-            completed_lst.append({'test_name':i.test_name, 'test_rating':i.test_rating, 'thumb':thumb, 'thumbexists':thumbexists})
+            completed_list.append({'test_name': i.test_name, 'test_rating': i.test_rating, 'thumb': thumb, 'thumbexists': thumbexists})
 
-    inputdic ={'completed_lst': completed_lst}
+    inputdict = {'completed_list': completed_list}
+    return render_to_response('completedtest_info.html',inputdict)
 
-    return render_to_response('completedtest_info.html',inputdic)
 
-#-----------------------------------------------------------------------------
 def case_ref(request):
-
     AUTHENTICATE_EITHER()
 
     Input = request.GET['CaseName2']
-
     active_case = Case.objects.get(case_name = Input)
 
     age = active_case.Age
@@ -1687,64 +1533,47 @@ def case_ref(request):
     terrain     = active_case.terrain
     total_hours = active_case.total_hours
 
-
-
     # Create Input dictionary
+    inputdict = { 'name' : name, 'age': age,'country': country,'state': state, 'sex': sex,'LKP': LKP,'horcells': sidecells,'vercells': sidecells,'totcells' : totalcells, 'cellwidth' : 5, 'regionwidth' : 25,'uplat': uplat,'rightlon': rightlon,'downlat': downlat,'leftlon': leftlon,'MAP': URL}
+    inputdict['subject_category'] = subject_category
+    inputdict['subject_subcategory'] = subject_subcategory
+    inputdict['scenario'] = scenario
+    inputdict['subject_activity'] = subject_activity
+    inputdict['number_lost'] = number_lost
+    inputdict['group_type'] = group_type
+    inputdict['ecoregion_domain'] = ecoregion_domain
+    inputdict['ecoregion_division'] = ecoregion_division
+    inputdict['terrain'] = terrain
+    inputdict['total_hours'] = total_hours
 
-    inputdic = { 'name' :name, 'age':age,'country':country,'state':state, 'sex':sex,'LKP':LKP,'horcells':sidecells,'vercells':sidecells,'totcells' : totalcells, 'cellwidth' : 5, 'regionwidth' : 25,'uplat':uplat,'rightlon':rightlon,'downlat':downlat,'leftlon':leftlon,'MAP':URL}
-    inputdic['subject_category'] = subject_category
-    inputdic['subject_subcategory'] = subject_subcategory
-    inputdic['scenario'] = scenario
-    inputdic['subject_activity'] = subject_activity
-    inputdic['number_lost'] = number_lost
-    inputdic['group_type'] = group_type
-    inputdic['ecoregion_domain'] = ecoregion_domain
-    inputdic['ecoregion_division'] = ecoregion_division
-    inputdic['terrain'] = terrain
-    inputdic['total_hours'] = total_hours
+    return render_to_response('case_ref.html',inputdict)
 
 
-
-    return render_to_response('case_ref.html',inputdic)
-
-#------------------------------------------------------------------------------------
 def caseref_return(request):
-
     AUTHENTICATE_EITHER()
 
-    inputdic = request.session['inputdic']
+    inputdict = request.session['inputdict']
 
     if request.session['nav'] == '3':
-        return render_to_response('Leaderboard_test.html',inputdic)
-
+        return render_to_response('Leaderboard_test.html',inputdict)
     elif request.session['nav'] == '2':
-
-        return render_to_response('Leaderboard_testname.html',inputdic)
-
+        return render_to_response('Leaderboard_testname.html',inputdict)
     elif request.session['nav'] == '1':
-
-        return render_to_response('Leader_Model.html',inputdic)
-
+        return render_to_response('Leader_Model.html',inputdict)
     elif request.session['nav'] == '4':
-
-        return render_to_response('Leaderboard_scenario.html',inputdic)
-
+        return render_to_response('Leaderboard_scenario.html',inputdict)
     elif request.session['nav'] == '5':
-        return render_to_response('test_to_scenario.html',inputdic)
-
+        return render_to_response('test_to_scenario.html',inputdict)
     elif request.session['nav'] == '6':
-        return render_to_response('model_to_Scenario.html',inputdic)
-
+        return render_to_response('model_to_Scenario.html',inputdict)
     elif request.session['nav'] == '7':
-        return render_to_response('scenario_to_test.html',inputdic)
-#----------------------------------------------------------------------------------
+        return render_to_response('scenario_to_test.html',inputdict)
+
 
 def Account_Profile(request):
-
     AUTHENTICATE_EITHER()
 
     Account_in = request.GET['Account']
-
     Active_account = Account.objects.get(username = Account_in)
 
     Name = str(Active_account.institution_name)
@@ -1753,16 +1582,15 @@ def Account_Profile(request):
     website = str(Active_account.Website)
     profpic = str(Active_account.photourl)
 
-    inputdic = {'Name':Name, 'Email':Email, 'RegisteredUser':RegisteredUser, 'website':website,'profpic':profpic}
+    inputdict = {'Name': Name, 'Email': Email, 'RegisteredUser': RegisteredUser, 'website': website,'profpic': profpic}
 
     if website !='none':
-        inputdic['websitexists'] = True
+        inputdict['websitexists'] = True
 
-    inputdic['xsize'] = int(Active_account.photosizex)
-    inputdic['ysize'] = int(Active_account.photosizey)
+    inputdict['xsize'] = int(Active_account.photosizex)
+    inputdict['ysize'] = int(Active_account.photosizey)
 
     # get model descriptions
-
     modellst = []
     for i in Active_account.account_models.all():
         templst = []
@@ -1771,62 +1599,47 @@ def Account_Profile(request):
         templst.append(Account_in)
         modellst.append(templst)
 
-    inputdic['modellst'] = modellst
-    return render_to_response('Account_Profile.html',inputdic)
-#---------------------------------------------------------------------------------
-def returnfrom_profile(request):
+    inputdict['modellst'] = modellst
+    return render_to_response('Account_Profile.html',inputdict)
 
+
+def returnfrom_profile(request):
     AUTHENTICATE_EITHER()
 
-    inputdic = request.session['inputdic']
+    inputdict = request.session['inputdict']
 
     if request.session['nav'] == '3':
-        return render_to_response('Leaderboard_test.html',inputdic)
-
+        return render_to_response('Leaderboard_test.html',inputdict)
     elif request.session['nav'] == '2':
-
-        return render_to_response('Leaderboard_testname.html',inputdic)
-
+        return render_to_response('Leaderboard_testname.html',inputdict)
     elif request.session['nav'] == '1':
-
-        return render_to_response('Leader_Model.html',inputdic)
-
+        return render_to_response('Leader_Model.html',inputdict)
     elif request.session['nav'] == '4':
-
-        return render_to_response('Leaderboard_scenario.html',inputdic)
-
+        return render_to_response('Leaderboard_scenario.html',inputdict)
     elif request.session['nav'] == '5':
-        return render_to_response('test_to_scenario.html',inputdic)
-
+        return render_to_response('test_to_scenario.html',inputdict)
     elif request.session['nav'] == '6':
-        return render_to_response('model_to_Scenario.html',inputdic)
-
+        return render_to_response('model_to_Scenario.html',inputdict)
     elif request.session['nav'] == '7':
-        return render_to_response('scenario_to_test.html',inputdic)
+        return render_to_response('scenario_to_test.html',inputdict)
 
-#----------------------------------------------------------------------------------
+
 def case_hyperin(request):
-
     AUTHENTICATE_EITHER()
-    inputdic = request.session['inputdic']
-
-
+    inputdict = request.session['inputdict']
     caseselection = str(request.GET['casein'])
 
-
-
     if request.session['nav'] == '2':
-        inputdic['caseselection'] = caseselection
-        return render_to_response('Leaderboard_testname.html',inputdic)
+        inputdict['caseselection'] = caseselection
+        return render_to_response('Leaderboard_testname.html',inputdict)
 
     if request.session['nav'] == '3':
-        inputdic['caseselection'] = caseselection
-        return render_to_response('Leaderboard_test.html',inputdic)
+        inputdict['caseselection'] = caseselection
+        return render_to_response('Leaderboard_test.html',inputdict)
 
     if request.session['nav'] == '7':
-        inputdic['caseselection'] = caseselection
-        return render_to_response('scenario_to_test.html',inputdic)
-#------------------------------------------------------------------------------------
+        inputdict['caseselection'] = caseselection
+        return render_to_response('scenario_to_test.html',inputdict)
 
 
 def upload_casefile(request):
@@ -1834,7 +1647,6 @@ def upload_casefile(request):
     # should use a CSV file, most easily generated in Excel
     # Comma separated and quotes for text delimiter
     # be tolerant about use of carriage returns (win vs mac vs linux)
-
     AUTHENTICATE('admintoken')
 
     file = request.FILES['casecsv']
@@ -1843,13 +1655,14 @@ def upload_casefile(request):
     data = [row for row in csv.reader(file.read().splitlines(),
                                       dialect=csv.excel_tab, delimiter=',',
                                       quotechar='"')]
+
+    # TODO: Use the DictReader here instead
     # If the first line looks like the header, ignore it
     if data[0][0] == 'Name':
         data.pop(0)
     case_report = []
 
     for row in data:
-        #print >>sys.stderr, row #debugx
         new_case = Case(
             case_name = row[0],
             key = row[1],
@@ -1876,310 +1689,239 @@ def upload_casefile(request):
             total_hours = row[22],
             notify_hours = row[23],
             search_hours = row[24],
-            comments = row[25],
-            )
+            comments = row[25]
+        )
+
         # look and see if this case already exists, ignore it if it does
         # we may need a mechanism for updating an existing case somehow in the
         # future...
         try:
             find_case = Case.objects.get(case_name = new_case.case_name)
-        except Case.DoesNotExist:
-            find_case = None
-        # Case does exist:
-        if find_case != None:
-            row.append("Ignored, name exists")
-        else:
             new_case.initialize()
             new_case.save()
             row.append("Success")
+        except Case.DoesNotExist:
+            row.append("Ignored, name exists")
 
     return render_to_response('bulkcasereg_complete.html', {'result': data})
 
-#-------------------------------------------------------------------------------
+
 def exportcaselibrary(request):
 
-    #------------------------------------------------------------------
     # Token Verification
     try:
-        if request.session['admintoken'] == False:
+        if not request.session['admintoken']:
             return render_to_response('noaccess.html',{})
     except:
         return render_to_response('noaccess.html',{})
 
-    #----------------------------------------------------------------
-
-
-    #string = 'C:\Users\Nathan Jones\Django Website\MapRateWeb\case_in\exported_case_Library.txt'
-    string = 'case_in/exported_case_Library.csv'
-    file = open(string,'wb')
+    export_file = open('case_in/exported_case_Library.csv', 'wb')
 
     tempexport = ['Name','Key#','Subject Category','Subject Sub-Category', 'Scenario', 'Subject Activity', 'Age','Sex','Number Lost','Group Type','EcoRegion Domain','EcoRegion Division', 'Terrain','LKP Coord. (N/S)','LKP Coord. (E/W)','Find Coord. (N/S)','Fid Coord. (E/W)','Total Hours','Notify Hours','Search Hours','Comments']
-    writer = csv.writer(file, delimiter = '|')
 
+    writer = csv.writer(export_file, delimiter = '|')
     writer.writerow(tempexport)
 
     for i in Case.objects.all():
-
         tempexport = [str(i.case_name),str(i.key),str(i.subject_category),str(i.subject_subcategory),str(i.scenario),str(i.subject_activity),str(i.Age),str(i.Sex),str(i.number_lost),str(i.group_type),str(i.ecoregion_domain),str(i.ecoregion_division),str(i.terrain),str(i.lastlat),str(i.lastlon),str(i.findlat),str(i.findlon),str(i.total_hours),str(i.notify_hours),str(i.search_hours),str(i.comments)]
         writer.writerow(tempexport)
 
-
-    file.close
-
+    export_file.close
     return render_to_response('casexport_complete.html',{'data': data})
 
-#--------------------------------------------------------------------------------------
-def Manage_Account(request):
 
+def Manage_Account(request):
     AUTHENTICATE()
     request.session['active_model'] = 'none'
-
     return render_to_response('Account_manage.html')
 
-#-----------------------------------------------------------------------------------------
-def edit_user(request):
 
+def edit_user(request):
     AUTHENTICATE()
 
     Account = request.session['active_account']
-
     Firstname_in = str(Account.firstname_user)
     Lastname_in = str(Account.lastname_user)
     Email_in = str(Account.Email)
 
-    inputdic ={'Firstname_in':Firstname_in,'Lastname_in':Lastname_in,'Email_in':Email_in}
+    inputdict = {'Firstname_in': Firstname_in,'Lastname_in': Lastname_in,'Email_in': Email_in}
+    return render_to_response('account_useredit.html',inputdict)
 
-    return render_to_response('account_useredit.html',inputdic)
 
-#-------------------------------------------------------------------------------------------
 def edit_user_run(request):
-
     AUTHENTICATE()
 
-    Account = request.session['active_account']
-
     # read in information
+    Account = request.session['active_account']
     Firstname = str(request.GET['FirstName'])
     Lastname = str(request.GET['LastName'])
     Email_in = str(request.GET['Email'])
     Password = str(request.GET['Password'])
-    #identify regular expressions
 
+    # identify regular expressions
     Firstname_r = r'^.+$'
     Lastname_r  = r'^.+$'
     Email_in_r  = r'^[a-zA-z0-9\.\-]+@[a-zA-z0-9\-]+\.[a-zA-z0-9\-]+$'
 
-
     # Verify input
     count = 0
     count2 = 0
-    inputdic = {'Firstname':Firstname,'Lastname':Lastname,'Email_in':Email_in}
-    if re.match(Firstname_r,Firstname) == None:
-        count = count + 1
-        firstfail = True
-        inputdic['firstfail'] = firstfail
+    inputdict = {'Firstname': Firstname,'Lastname': Lastname,'Email_in': Email_in}
+    if re.match(Firstname_r,Firstname) is None:
+        count += 1
+        inputdict['firstfail'] = True
 
+    if re.match(Lastname_r,Lastname) is None:
+        count += 1
+        inputdict['lastfail'] = True
 
-    if re.match(Lastname_r,Lastname) == None:
-        count = count + 1
-        lastfail = True
-        inputdic['lastfail'] = lastfail
-
-    if re.match(Email_in_r,Email_in) == None:
-        count = count + 1
-        emailfail = True
-        inputdic['emailfail'] = emailfail
+    if re.match(Email_in_r,Email_in) is None:
+        count += 1
+        inputdict['emailfail'] = True
 
     if Password != str(Account.password):
         count2 = 1
-        passfail = True
-        inputdic['passfail'] = True
+        inputdict['passfail'] = True
 
-    if count >0:
-
-        inputdic['fail'] = True
-        return    render_to_response('account_useredit.html',inputdic)
-
+    if count > 0:
+        inputdict['fail'] = True
+        return render_to_response('account_useredit.html',inputdict)
 
     if count2 == 1:
-
-        inputdic['fail2'] = True
-        return    render_to_response('account_useredit.html',inputdic)
-
+        inputdict['fail2'] = True
+        return render_to_response('account_useredit.html',inputdict)
 
     # Update Account
-
     Account.firstname_user = Firstname
     Account.lastname_user = Lastname
     Account.Email = Email_in
     Account.save()
+    return render_to_response('account_update_complete.html')
 
-    return    render_to_response('account_update_complete.html')
 
-
-#----------------------------------------------------------------------------------------
 def edit_inst(request):
-
     AUTHENTICATE()
 
     Account = request.session['active_account']
-
     Institution_in = str(Account.institution_name)
     Websitein_in = str(Account.Website)
 
+    inputdict = {'Institution_in': Institution_in,'Websitein_in': Websitein_in}
+    return render_to_response('account_editinstitution.html',inputdict)
 
-    inputdic ={'Institution_in':Institution_in,'Websitein_in':Websitein_in}
 
-    return render_to_response('account_editinstitution.html',inputdic)
-#----------------------------------------------------------------------------------------
 def edit_inst_run(request):
-
     AUTHENTICATE()
 
-    Account = request.session['active_account']
-
     # read in information
+    Account = request.session['active_account']
     Institution = str(request.GET['Institution'])
     Website = str(request.GET['Website'])
     Password = str(request.GET['Password'])
 
-    #identify regular expressions
-
+    # identify regular expressions
     Institution_r = r"^[a-zA-z\s:0-9']+$"
     Websitein_r =r'.*$'
 
     # Verify input
     count = 0
     count2 = 0
-    inputdic = {'Institution':Institution,'Websitein':Website}
+    inputdict = {'Institution': Institution,'Websitein': Website}
 
     # Match regular expressions --- Perform verification
+    if re.match(Institution_r,Institution) is None:
+        count += 1
+        inputdict['Institutionfail'] = True
 
-    if re.match(Institution_r,Institution) == None:
-        count = count + 1
-        Institutionfail = True
-        inputdic['Institutionfail'] = Institutionfail
-
-
-    if re.match(Websitein_r,Website) == None:
-        count = count + 1
-        webfail =True
-        inputdic['Websitein_r'] = Websitein_r
-
+    if re.match(Websitein_r,Website) is None:
+        count += 1
+        webfail = True
+        inputdict['Websitein_r'] = Websitein_r
 
     if Password != str(Account.password):
         count2 = 1
-        passfail = True
-        inputdic['passfail'] = True
+        inputdict['passfail'] = True
 
-    if count >0:
-
-        inputdic['fail'] = True
-        return    render_to_response('account_editinstitution.html',inputdic)
-
+    if count > 0:
+        inputdict['fail'] = True
+        return render_to_response('account_editinstitution.html',inputdict)
 
     if count2 == 1:
-
-        inputdic['fail2'] = True
-        return    render_to_response('account_editinstitution.html',inputdic)
-
+        inputdict['fail2'] = True
+        return render_to_response('account_editinstitution.html',inputdict)
 
     # Update Account
-
     if Website == '':
         Website = 'none'
 
     Account.institution_name = Institution
     Account.Website = Website
-
     Account.save()
+    return render_to_response('account_update_complete.html')
 
-    return    render_to_response('account_update_complete.html')
-
-
-#-------------------------------------------------------------------
 
 def edit_pw(request):
 
-    #------------------------------------------------------------------
     # Token Verification
     try:
-        if request.session['usertoken'] == False:
+        if not request.session['usertoken']:
             return render_to_response('noaccess.html',{})
     except:
         return render_to_response('noaccess.html',{})
-
-    #----------------------------------------------------------------
 
     return render_to_response('account_editpw.html')
 
-#-------------------------------------------------------------------
 
 def edit_pw_run(request):
 
-    #------------------------------------------------------------------
     # Token Verification
     try:
-        if request.session['usertoken'] == False:
+        if not request.session['usertoken']:
             return render_to_response('noaccess.html',{})
     except:
         return render_to_response('noaccess.html',{})
 
-    #----------------------------------------------------------------
-
-    Account = request.session['active_account']
-
     # read in information
+    Account = request.session['active_account']
     Password1 = str(request.GET['Password1'])
     Password2 = str(request.GET['Password2'])
     Password = str(request.GET['Password'])
 
-    #identify regular expressions
-
+    # identify regular expressions
     Password1_r ='^.+$'
     Password2_r ='^.+$'
 
     # Verify input
     count = 0
     count2 = 0
-    inputdic = {'Password1':Password1,'Password2':Password2}
+    inputdict = {'Password1': Password1,'Password2': Password2}
 
     # Match regular expressions --- Perform verification
+    if re.match(Password1_r,Password1) is None:
+        count += 1
+        inputdict['Pass1fail'] = True
 
-    if re.match(Password1_r,Password1) == None:
-        count = count + 1
-        Pass1fail = True
-        inputdic['Pass1fail'] = Pass1fail
-
-    if re.match(Password2_r,Password2) == None:
-        count = count + 1
-        Pass2fail = True
-        inputdic['Pass2fail'] = Pass2fail
+    if re.match(Password2_r,Password2) is None:
+        count += 1
+        inputdict['Pass2fail'] = True
 
     if Password != str(Account.password):
         count2 = 1
-        passfail = True
-        inputdic['passfail'] = True
+        inputdict['passfail'] = True
 
     if Password2 != Password1:
         count2 = 1
-        passmatchfail = True
-        inputdic['passmatchfail'] = passmatchfail
+        inputdict['passmatchfail'] = True
 
-    if count >0:
-
-        inputdic['fail'] = True
-        return    render_to_response('account_editpw.html',inputdic)
-
+    if count > 0:
+        inputdict['fail'] = True
+        return render_to_response('account_editpw.html',inputdict)
 
     if count2 == 1:
-
-        inputdic['fail2'] = True
-        return    render_to_response('account_editpw.html',inputdic)
-
+        inputdict['fail2'] = True
+        return render_to_response('account_editpw.html',inputdict)
 
     # Update Account
-
     Account.password = Password1
     Account.save()
 
@@ -2187,35 +1929,28 @@ def edit_pw_run(request):
     User_in.set_password(Password1)
     User_in.save()
 
-    return    render_to_response('account_update_complete.html')
+    return render_to_response('account_update_complete.html')
 
-#---------------------------------------------------------------------
+
 def uploadprofpic(request):
+    inputdict = {}
+    inputdict.update(csrf(request))
+    return render_to_response('uploadaccountpic.html',inputdict)
 
-    inputdic = {}
-    inputdic.update(csrf(request))
-    return    render_to_response('uploadaccountpic.html',inputdic)
 
-#-----------------------------------------------------------------------
 def accountregcomplete(request):
+    return render_to_response('RegistrationComplete.html',{})
 
-    return    render_to_response('RegistrationComplete.html',{})
 
-#-----------------------------------------------------------------------
 def confirm_prof_pic(request):
     account = request.session['active_account']
-
     os.remove(account.photolocation)
 
-    destination = open(account.photolocation,'wb+')
+    with open(account.photolocation,'wb+') as destination:
+        for chunk in request.FILES['profilephoto'].chunks():
+            destination.write(chunk)
 
-    for chunk in request.FILES['profilephoto'].chunks():
-        destination.write(chunk)
-    destination.close()
-
-    #------------------------------------------------------
     #resize image
-
     im = Image.open(account.photolocation)
     size = im.size
     xsize = size[0]
@@ -2230,7 +1965,6 @@ def confirm_prof_pic(request):
             ypixels = int(ysize * percentdiff)
             im = im.resize((xpixels,ypixels) )
 
-
     elif xsize < ysize:
         diffy = ysize - 350
         if diffy > 0:
@@ -2241,43 +1975,27 @@ def confirm_prof_pic(request):
             im = im.resize((xpixels,ypixels))
 
     elif xsize == ysize:
-
         im = im.resize((350,350))
 
-
     # Remove old picture
-
     os.remove(account.photolocation)
 
     # iterate profpic request
-
     account.profpicrefresh = int(account.profpicrefresh) + 1
     account.save()
 
     # Set up profile pic locations
-
     ID2 = account.ID2
     stringurl = '/media/profpic_'
     stringurl = stringurl + str(ID2)+'_'+ str(account.profpicrefresh) + '.png'
     account.photourl = stringurl
 
-
     stringlocation = 'media/profpic_' + str(ID2) + '_'+ str(account.profpicrefresh) + '.png'
     #'C:\Users\Nathan Jones\Django Website\MapRateWeb\media\profpic_' + str(ID2) + '.png'
     account.photolocation = stringlocation
-
     account.save()
+    im.save(str(account.photolocation))  # save new profile pic
 
-
-
-
-    # Save new profpic
-
-    im.save(str(account.photolocation))
-
-
-    #-----------------------------------------------------------------------------
-    inputdic = {'account_photo':account.photourl}
 
     # Save image size parameters
     im = Image.open(account.photolocation)
@@ -2289,41 +2007,33 @@ def confirm_prof_pic(request):
     account.photosizey = int(ysize)
     account.save()
 
-    inputdic['xsize'] = account.photosizex
-    inputdic['ysize'] = account.photosizey
+    inputdict = {
+        'account_photo': account.photourl,
+        'xsize': account.photosizex,
+        'ysize': account.photosizey
+    }
+    return render_to_response('profpic_confirm.html',inputdict)
 
-    return    render_to_response('profpic_confirm.html',inputdic)
 
-#-------------------------------------------------------------------------
 def denyprofpic_confirm(request):
     account = request.session['active_account']
-
-    # Remove old picture
-
-    os.remove(account.photolocation)
+    os.remove(account.photolocation)  # remove old picture
 
     # iterate profpic request
-
     account.profpicrefresh = int(account.profpicrefresh) + 1
     account.save()
 
     # Set up profile pic locations
-
     ID2 = account.ID2
     stringurl = '/media/profpic_'
     stringurl = stringurl + str(ID2)+'_'+ str(account.profpicrefresh) + '.png'
     account.photourl = stringurl
 
-
     stringlocation = 'media/profpic_' + str(ID2) + '_'+ str(account.profpicrefresh) + '.png'
     #'C:\Users\Nathan Jones\Django Website\MapRateWeb\media\profpic_' + str(ID2) + '.png'
     account.photolocation = stringlocation
-
     account.save()
 
-
-
-    #shutil.copyfile('C:\Users\Nathan Jones\Django Website\MapRateWeb\in_images\Defaultprofpic.png',account.photolocation)
     shutil.copyfile('in_images/Defaultprofpic.png',account.photolocation)
 
     # Save image size parameters
@@ -2335,81 +2045,59 @@ def denyprofpic_confirm(request):
     account.photosizex = int(xsize)
     account.photosizey = int(ysize)
     account.save()
-
     return redirect('/uploadprofpic/')
 
-#-------------------------------------------------------------------------
+
 def confirmprofpic_confirm(request):
-
-
     return redirect('/accountregcomplete/')
 
-#----------------------------------------------------------------------------
+
 def edit_picture(request):
 
-    #------------------------------------------------------------------
     # Token Verification
     try:
-        if request.session['usertoken'] == False:
+        if not request.session['usertoken']:
             return render_to_response('noaccess.html',{})
     except:
         return render_to_response('noaccess.html',{})
 
-    #----------------------------------------------------------------
-
     account = request.session['active_account']
-    inputdic = {'account_photo':account.photourl}
+    inputdict = {
+        'account_photo': account.photourl,
+        'xsize': account.photosizex,
+        'ysize': account.photosizey
+    }
+    return render_to_response('edit_profpic.html',inputdict)
 
-    inputdic['xsize'] = account.photosizex
-    inputdic['ysize'] = account.photosizey
 
-
-    return    render_to_response('edit_profpic.html',inputdic)
-
-#----------------------------------------------------------------------------
 def remove_profpic(request):
 
-    #------------------------------------------------------------------
     # Token Verification
     try:
-        if request.session['usertoken'] == False:
+        if not request.session['usertoken']:
             return render_to_response('noaccess.html',{})
     except:
         return render_to_response('noaccess.html',{})
 
-    #----------------------------------------------------------------
-
     account = request.session['active_account']
-
-    # Remove old picture
-
-    os.remove(account.photolocation)
-
+    os.remove(account.photolocation)  # remove old picture
 
     # iterate profpic request
-
     account.profpicrefresh = int(account.profpicrefresh) + 1
     account.save()
 
     # Set up profile pic locations
-
     ID2 = account.ID2
     stringurl = '/media/profpic_'
     stringurl = stringurl + str(ID2)+'_'+ str(account.profpicrefresh) + '.png'
     account.photourl = stringurl
 
-
     stringlocation = 'media/profpic_' + str(ID2) + '_'+ str(account.profpicrefresh) + '.png'
     #'C:\Users\Nathan Jones\Django Website\MapRateWeb\media\profpic_' + str(ID2) + '.png'
     account.photolocation = stringlocation
-
     account.save()
 
-
-
-    #shutil.copyfile('C:\Users\Nathan Jones\Django Website\MapRateWeb\in_images\Defaultprofpic.png',account.photolocation)
     shutil.copyfile('in_images/Defaultprofpic.png',account.photolocation)
-
 
     # Save image size parameters
     im = Image.open(account.photolocation)
@@ -2420,56 +2108,40 @@ def remove_profpic(request):
     account.photosizex = int(xsize)
     account.photosizey = int(ysize)
     account.save()
-
     return redirect('/edit_picture/')
 
 
-#---------------------------------------------------------------------
 def alterprofpic(request):
 
-    #------------------------------------------------------------------
     # Token Verification
     try:
-        if request.session['usertoken'] == False:
+        if not request.session['usertoken']:
             return render_to_response('noaccess.html',{})
     except:
         return render_to_response('noaccess.html',{})
 
-    #----------------------------------------------------------------
+    inputdict = {}
+    inputdict.update(csrf(request))
+    return render_to_response('change_accountpic.html',inputdict)
 
-    inputdic = {}
-    inputdic.update(csrf(request))
-
-    return    render_to_response('change_accountpic.html',inputdic)
-
-#-----------------------------------------------------------------------
 
 def change_accountpic(request):
 
-    #------------------------------------------------------------------
     # Token Verification
     try:
-        if request.session['usertoken'] == False:
+        if not request.session['usertoken']:
             return render_to_response('noaccess.html',{})
     except:
         return render_to_response('noaccess.html',{})
 
-    #----------------------------------------------------------------
-
-
     account = request.session['active_account']
-
     os.remove(account.photolocation)
 
-    destination = open(account.photolocation,'wb+')
+    with open(account.photolocation,'wb+') as destination:
+        for chunk in request.FILES['profilephoto'].chunks():
+            destination.write(chunk)
 
-    for chunk in request.FILES['profilephoto'].chunks():
-        destination.write(chunk)
-    destination.close()
-
-    #------------------------------------------------------
     #resize image
-
     im = Image.open(account.photolocation)
     size = im.size
     xsize = size[0]
@@ -2484,7 +2156,6 @@ def change_accountpic(request):
             ypixels = int(ysize * percentdiff)
             im = im.resize((xpixels,ypixels) )
 
-
     elif xsize < ysize:
         diffy = ysize - 350
         if diffy > 0:
@@ -2495,38 +2166,25 @@ def change_accountpic(request):
             im = im.resize((xpixels,ypixels))
 
     elif xsize == ysize:
-
         im = im.resize((350,350))
 
-
-    # Remove raw image
-
-    os.remove(account.photolocation)
+    os.remove(account.photolocation)  # remove raw image
 
     # iterate profpic request
-
     account.profpicrefresh = int(account.profpicrefresh) + 1
     account.save()
 
     # Set up profile pic locations
-
     ID2 = account.ID2
     stringurl = '/media/profpic_'
     stringurl = stringurl + str(ID2)+'_'+ str(account.profpicrefresh) + '.png'
     account.photourl = stringurl
-
-
     stringlocation = 'media/profpic_' + str(ID2) + '_'+ str(account.profpicrefresh) + '.png'
-    #'C:\Users\Nathan Jones\Django Website\MapRateWeb\media\profpic_' + str(ID2) + '.png'
     account.photolocation = stringlocation
-
     account.save()
 
-    # Save image
-
+    # Save image and size params
     im.save(str(account.photolocation))
-
-    # Save image size parameters
     im = Image.open(account.photolocation)
     size = im.size
     xsize = size[0]
@@ -2535,24 +2193,21 @@ def change_accountpic(request):
     account.photosizex = int(xsize)
     account.photosizey = int(ysize)
     account.save()
-
     return redirect('/edit_picture/')
-#-----------------------------------------------------------------------------
+
+
 def traffic(request):
 
-    #------------------------------------------------------------------
     # Token Verification
     try:
-        if request.session['admintoken'] == False:
+        if not request.session['admintoken']:
             return render_to_response('noaccess.html',{})
     except:
         return render_to_response('noaccess.html',{})
 
-    #----------------------------------------------------------------
-
     mainhits = int(Mainhits.objects.all()[0].hits)
 
-    inputlst = []
+    input_list = []
     for i in Account.objects.all():
         tmplst = []
         tmplst.append(str(i.username))
@@ -2561,10 +2216,10 @@ def traffic(request):
         tmplst.append(str(len(i.account_models.all())))
         tmplst.append(str(i.deleted_models))
         tmplst.append(str(i.completedtests))
-        inputlst.append(tmplst)
+        input_list.append(tmplst)
 
-    deletedlst = []
-    for i in terminated_accounts.objects.all():
+    deleted_list = []
+    for i in TerminatedAccounts.objects.all():
         tmplst = []
         tmplst.append(str(i.username))
         tmplst.append(str(i.institution_name))
@@ -2573,58 +2228,46 @@ def traffic(request):
         tmplst.append(str(i.deleted_models))
         tmplst.append(str(i.completedtests))
 
-        deletedlst.append(tmplst)
+        deleted_list.append(tmplst)
 
 
 
-    inputdic = {'mainhits':mainhits,'inputlst':inputlst,'deletedlst':deletedlst}
+    inputdict = {'mainhits': mainhits,'input_list': input_list,'deleted_list': deleted_list}
 
-    return    render_to_response('traffic.html',inputdic)
+    return render_to_response('traffic.html',inputdict)
 
 
-#------------------------------------------------------------------------------
 def delete_account(request):
 
-    #------------------------------------------------------------------
     # Token Verification
     try:
-        if request.session['usertoken'] == False:
+        if not request.session['usertoken']:
             return render_to_response('noaccess.html',{})
     except:
         return render_to_response('noaccess.html',{})
 
-    #----------------------------------------------------------------
+    return render_to_response('Deleteaccount.html')
 
-    return    render_to_response('Deleteaccount.html')
 
-#-------------------------------------------------------------------------------
 def deleteaccount_confirm(request):
 
-    #------------------------------------------------------------------
     # Token Verification
     try:
-        if request.session['usertoken'] == False:
+        if not request.session['usertoken']:
             return render_to_response('noaccess.html',{})
     except:
         return render_to_response('noaccess.html',{})
-
-    #----------------------------------------------------------------
 
     password = str(request.GET['Password'])
     account =  request.session['active_account']
 
-    # If invalid password
-    if password != str(account.password):
+    if password != str(account.password):  # password invalid
+        inputdict = {'passfail': True}
+        return render_to_response('Deleteaccount.html',inputdict)
+    else:  # account to be deleted
 
-        inputdic ={'passfail':True}
-        return    render_to_response('Deleteaccount.html',inputdic)
-
-
-    # If account is to be deleted
-    else:
         # create new deleted object
-
-        t = terminated_accounts()
+        t = TerminatedAccounts()
         t.username = str(account.username)
         t.sessionticker = str(account.sessionticker)
         t.completedtests = str(account.completedtests)
@@ -2634,11 +2277,7 @@ def deleteaccount_confirm(request):
         t.save()
 
         #Delete Tests / models
-
         for i in account.account_models.all():
-
-
-
             for j in i.model_tests.all():
                 j.delete()
 
@@ -2649,57 +2288,44 @@ def deleteaccount_confirm(request):
 
             i.delete()
 
-         # Delete Picture
+        # Delete Picture
         os.remove(account.photolocation)
 
-
-        #Delete model account links
-
+        # Delete model account links
         for i in Model_Account_Link.objects.all():
             if str(i.account.ID2) == str(account.ID2):
                 i.delete()
 
-        # delete account
-
         account.delete()
+        return render_to_response('Accountdeleted.html')
 
-        return    render_to_response('Accountdeleted.html')
 
-#--------------------------------------------------------------------------------
 def terminate_accounts(request):
 
-    #------------------------------------------------------------------
     # Token Verification
     try:
-        if request.session['admintoken'] == False:
+        if not request.session['admintoken']:
             return render_to_response('noaccess.html',{})
     except:
         return render_to_response('noaccess.html',{})
 
-    #----------------------------------------------------------------
-
-
-    inputdic = {}
-
+    inputdict = {}
     if str(request.session['userdel']) != '':
         username = str(request.session['userdel'])
-        inputdic['accountin'] = username
+        inputdict['accountin'] = username
         request.session['userdel'] = ''
 
-    return    render_to_response('adminaccountermination.html',inputdic)
+    return render_to_response('adminaccountermination.html',inputdict)
 
-#--------------------------------------------------------------------------------
+
 def view_username_admin(request):
 
-    #------------------------------------------------------------------
     # Token Verification
     try:
-        if request.session['admintoken'] == False:
+        if not request.session['admintoken']:
             return render_to_response('noaccess.html',{})
     except:
         return render_to_response('noaccess.html',{})
-
-    #----------------------------------------------------------------
 
     inputlist = []
     for i in Account.objects.all():
@@ -2708,50 +2334,41 @@ def view_username_admin(request):
         tmplst.append(i.institution_name)
         inputlist.append(tmplst)
 
-    inputdic = {'inputlist':inputlist}
+    inputdict = {'inputlist': inputlist}
+    return render_to_response('account_admin_terminfo.html',inputdict)
 
-    return    render_to_response('account_admin_terminfo.html',inputdic)
 
-#------------------------------------------------------------------------------
 def delaccountlink(request):
 
-    #------------------------------------------------------------------
     # Token Verification
     try:
-        if request.session['admintoken'] == False:
+        if not request.session['admintoken']:
             return render_to_response('noaccess.html',{})
     except:
         return render_to_response('noaccess.html',{})
-
-    #----------------------------------------------------------------
 
     user = str(request.GET['username'])
     request.session['userdel'] = user
-
     return redirect('/terminate_accounts/')
 
-#-------------------------------------------------------------------------------
+
 def adminterminate_account(request):
 
-    #------------------------------------------------------------------
     # Token Verification
     try:
-        if request.session['admintoken'] == False:
+        if not request.session['admintoken']:
             return render_to_response('noaccess.html',{})
     except:
         return render_to_response('noaccess.html',{})
-
-    #----------------------------------------------------------------
 
     username = request.GET['account']
     password_in = request.GET['Password']
 
     failcount = 0
-    inputdic = {'accountin':username}
-    if auth.authenticate(username = request.session['admin_name'] , password = password_in) == None:
+    inputdict = {'accountin': username}
+    if auth.authenticate(username=request.session['admin_name'], password=password_in) is None:
         failcount = failcount +1
-        inputdic['invalidpw'] = True
-
+        inputdict['invalidpw'] = True
 
     truecount = 0
     for i in Account.objects.all():
@@ -2760,20 +2377,18 @@ def adminterminate_account(request):
 
     if truecount == 0:
         failcount = failcount +1
-        inputdic['invalidaccount'] = True
+        inputdict['invalidaccount'] = True
 
     if  failcount > 0:
-        inputdic['Fail'] = True
-        return    render_to_response('adminaccountermination.html',inputdic)
+        inputdict['Fail'] = True
+        return render_to_response('adminaccountermination.html',inputdict)
 
 
     # If pass -- proceed with delete
-
     account = Account.objects.get(username = username)
 
     # create new deleted object
-
-    t = terminated_accounts()
+    t = TerminatedAccounts()
     t.username = str(account.username)
     t.sessionticker = str(account.sessionticker)
     t.completedtests = str(account.completedtests)
@@ -2782,11 +2397,8 @@ def adminterminate_account(request):
     t.deleted_models = str(account.deleted_models)
     t.save()
 
-
-     #Delete Tests / models
-
+    # Delete Tests / models
     for i in account.account_models.all():
-
         for j in i.model_tests.all():
             j.delete()
 
@@ -2797,36 +2409,25 @@ def adminterminate_account(request):
 
         i.delete()
 
-     # Delete Picture
-    os.remove(account.photolocation)
+    os.remove(account.photolocation)  # delete picture
 
-
-    #Delete model account links
-
+    # Delete model account links
     for i in Model_Account_Link.objects.all():
         if str(i.account.ID2) == str(account.ID2):
             i.delete()
 
-
-     # delete account
-
     account.delete()
+    return render_to_response('accountdeleted_admin.html')
 
 
-    return    render_to_response('accountdeleted_admin.html')
-
-#-------------------------------------------------------------------------------
 def delete_model(request):
 
-    #------------------------------------------------------------------
     # Token Verification
     try:
-        if request.session['usertoken'] == False:
+        if not request.session['usertoken']:
             return render_to_response('noaccess.html',{})
     except:
         return render_to_response('noaccess.html',{})
-
-    #----------------------------------------------------------------
 
     model_list = []
     account = request.session['active_account']
@@ -2834,24 +2435,18 @@ def delete_model(request):
     for i in request.session['active_account'].account_models.all():
         model_list.append(i.model_nameID)
 
-
-    inputdic = {'modelname_list':model_list}
-
-    return    render_to_response('delete_model.html',inputdic)
+    inputdict = {'modelname_list': model_list}
+    return render_to_response('delete_model.html',inputdict)
 
 
-#-------------------------------------------------------------------------------
 def deletemodel_confirm(request):
 
-    #------------------------------------------------------------------
     # Token Verification
     try:
-        if request.session['usertoken'] == False:
+        if not request.session['usertoken']:
             return render_to_response('noaccess.html',{})
     except:
         return render_to_response('noaccess.html',{})
-
-    #----------------------------------------------------------------
 
     selection = request.GET['model_in']
     if selection == '0':
@@ -2865,73 +2460,60 @@ def deletemodel_confirm(request):
         for i in request.session['active_account'].account_models.all():
             model_list.append(i.model_nameID)
 
-        inputdic = {'modelname_list':model_list, 'passfail':True}
-        return render_to_response('delete_model.html',inputdic)
-
-
+        inputdict = {'modelname_list': model_list, 'passfail': True}
+        return render_to_response('delete_model.html',inputdict)
 
     # Retrieve active model
     request.session['active_model'] = Model.objects.get(ID2 = str(request.session['active_account'].ID2) + ':' + str(selection))
     model = request.session['active_model']
 
-
-
     # Delete all tests
-
-    for j in model.model_tests.all():
-        j.delete()
-
+    for test in model.model_tests.all():
+        test.delete()
 
     # delete Test Model Links
-    for i in Test_Model_Link.objects.all():
-        if str(i.model.ID2) == str(model.ID2):
-            i.delete()
+    for test_model in Test_Model_Link.objects.all():
+        if str(test_model.model.ID2) == str(model.ID2):
+            test_model.delete()
 
     # delete Account Model Links
-    for i in Model_Account_Link.objects.all():
-        if str(i.model.ID2) == str(model.ID2):
-            i.delete()
-
-    # Delete Model
+    for link in Model_Account_Link.objects.all():
+        if str(link.model.ID2) == str(model.ID2):
+            link.delete()
 
     model.delete()
 
     # move along deleted models
-
     account = request.session['active_account']
     account.deleted_models = int(account.deleted_models) + 1
     account.save()
+    return render_to_response('Modeldeleted.html')
 
-    return    render_to_response('Modeldeleted.html')
 
-#--------------------------------------------------------------------------------------
 def help(request):
 
-    #------------------------------------------------------------------
     # Token Verification
     try:
-        if request.session['usertoken'] == False:
+        if not request.session['usertoken']:
             return render_to_response('noaccess.html',{})
     except:
         return render_to_response('noaccess.html',{})
 
-    #----------------------------------------------------------------
+    return render_to_response('help.html')
 
-    return    render_to_response('help.html')
 
-#----------------------------------------------------------------------------------------
 def help_how_alter_account(request):
     AUTHENTICATE()
-    return    render_to_response('help_how_edit_account.html')
+    return render_to_response('help_how_edit_account.html')
 
-#----------------------------------------------------------------------------
+
 def switchboard_toscenario(request):
-    '''Scenario-specific leaderboard'''
+    """Scenario-specific leaderboard"""
     AUTHENTICATE_EITHER()
     name = str(request.GET['Scenario_sort'])
 
     # Gather data
-    inputlst = []
+    input_list = []
     for i in Account.objects.all():
         for j in i.account_models.all():
             scenarioclick = 0
@@ -2958,37 +2540,37 @@ def switchboard_toscenario(request):
                     entry.extend([lowerbound, upperbound, True])
                 else: # small sample = False
                     entry.extend([lowerbound, upperbound, False])
-            inputlst.append(entry)
-            #print >> sys.stderr, entry
-
+            input_list.append(entry)
 
     # Sort Data
     # TODO Replace with Simple call!
-
     tempterm = ''
 
     count = 1
     while count > 0:
         count = 0
-        if len(inputlst) < 2:
+        if len(input_list) < 2:
             break
-        for s in range(len(inputlst)-1):
-            if inputlst[s][2] < inputlst[s+1][2]:
-                tempterm = inputlst[s]
-                inputlst[s] = inputlst[s+1]
-                inputlst[s+1] = tempterm
+        for s in range(len(input_list)-1):
+            if input_list[s][2] < input_list[s+1][2]:
+                tempterm = input_list[s]
+                input_list[s] = input_list[s+1]
+                input_list[s+1] = tempterm
                 tempterm = ''
-                count = count + 1
-    inputdic = {'scenario':name,'inputlst':inputlst}
+                count += 1
+
+    inputdict = {'scenario': name,'input_list': input_list}
     request.session['nav'] = '4'
 
-    scenario_lst = []
+    scenario_list = []
     for i in Case.objects.all():
-        if str(i.scenario) not in  scenario_lst:
-            scenario_lst.append(str(i.scenario))
-    inputdic['scenario_lst'] = scenario_lst
+        if str(i.scenario) not in  scenario_list:
+            scenario_list.append(str(i.scenario))
+
+    inputdict['scenario_list'] = scenario_list
     if request.session['active_account'] =='superuser':
-        inputdic['superuser'] = True
+        inputdict['superuser'] = True
+
     instname = '0'
     modelname ='0'
     catrating ='1'
@@ -3000,171 +2582,141 @@ def switchboard_toscenario(request):
     sortinfo.append(catrating)
     sortinfo.append(catcompleted)
 
-    inputdic['sortlst'] = sortinfo
+    inputdict['sortlst'] = sortinfo
+    request.session['inputdict'] = inputdict
+    return render_to_response('Leaderboard_scenario.html',inputdict)
 
-    request.session['inputdic'] = inputdic
 
-    return render_to_response('Leaderboard_scenario.html',inputdic)
-
-#-------------------------------------------------------------------------------
 def test_to_Scenario_switch(request):
 
-    #-------------------------------------------------------------------
     # Token Verification
     try:
-        if request.session['admintoken'] == False and request.session['usertoken'] == False:
+        if not request.session['admintoken'] and request.session['usertoken'] == False:
             return render_to_response('noaccess.html',{})
     except:
         return render_to_response('noaccess.html',{})
 
-    #-------------------------------------------------------------------
-
-    inputdic = request.session['inputdic']
-
-    scenario_lst = []
+    scenario_list = []
     for i in Case.objects.all():
-        if str(i.scenario) not in  scenario_lst:
-            scenario_lst.append(str(i.scenario))
+        if str(i.scenario) not in  scenario_list:
+            scenario_list.append(str(i.scenario))
 
-    inputdic['scenario_lst'] = scenario_lst
-
+    inputdict = request.session['inputdict']
+    inputdict['scenario_list'] = scenario_list
     request.session['nav'] = '5'
+    request.session['inputdict'] = inputdict
+    return render_to_response('test_to_scenario.html',inputdict)
 
-    request.session['inputdic'] = inputdic
 
-    return render_to_response('test_to_scenario.html',inputdic)
-
-#-------------------------------------------------------------------------------
 def test_to_test_switch(request):
 
 
-    #-------------------------------------------------------------------
     # Token Verification
     try:
-        if request.session['admintoken'] == False and request.session['usertoken'] == False:
+        if not request.session['admintoken'] and request.session['usertoken'] == False:
             return render_to_response('noaccess.html',{})
     except:
         return render_to_response('noaccess.html',{})
 
-    #-------------------------------------------------------------------
-    inputdic = request.session['inputdic']
-
+    inputdict = request.session['inputdict']
     request.session['nav']    = '3'
+    request.session['inputdict'] = inputdict
+    return render_to_response('Leaderboard_test.html',inputdict)
 
 
-    request.session['inputdic'] = inputdic
-
-    return render_to_response('Leaderboard_test.html',inputdic)
-
-#--------------------------------------------------------------------------------
 def scenario_to_test_switch(request):
 
-    #-------------------------------------------------------------------
     # Token Verification
     try:
-        if request.session['admintoken'] == False and request.session['usertoken'] == False:
+        if not request.session['admintoken'] and request.session['usertoken'] == False:
             return render_to_response('noaccess.html',{})
     except:
         return render_to_response('noaccess.html',{})
 
-    #-------------------------------------------------------------------
-
-    inputdic = request.session['inputdic']
-
+    inputdict = request.session['inputdict']
     request.session['nav']    = '7'
+    return render_to_response('scenario_to_test.html',inputdict)
 
-    return render_to_response('scenario_to_test.html',inputdic)
 
-#------------------------------------------------------------------------------
 def scenario_to_scenario_switch(request):
 
-    #-------------------------------------------------------------------
     # Token Verification
     try:
-        if request.session['admintoken'] == False and request.session['usertoken'] == False:
+        if not request.session['admintoken'] and request.session['usertoken'] == False:
             return render_to_response('noaccess.html',{})
     except:
         return render_to_response('noaccess.html',{})
 
-    #-------------------------------------------------------------------
-
-    inputdic = request.session['inputdic']
-
+    inputdict = request.session['inputdict']
     request.session['nav']    = '4'
+    request.session['inputdict'] = inputdict
 
-
-    request.session['inputdic'] = inputdic
-
-    scenario_lst = []
+    scenario_list = []
     for i in Case.objects.all():
-        if str(i.scenario) not in  scenario_lst:
-            scenario_lst.append(str(i.scenario))
+        if str(i.scenario) not in  scenario_list:
+            scenario_list.append(str(i.scenario))
 
-    inputdic['scenario_lst'] = scenario_lst
+    inputdict['scenario_list'] = scenario_list
+    return render_to_response('Leaderboard_scenario.html',inputdict)
 
-    return render_to_response('Leaderboard_scenario.html',inputdic)
 
-#---------------------------------------------------------------------------------
 def hyper_leaderboard(request):
+
     # Token Verification
     try:
-        if request.session['admintoken'] == False and request.session['usertoken'] == False:
+        if not request.session['admintoken'] and request.session['usertoken'] == False:
             return render_to_response('noaccess.html',{})
     except:
         return render_to_response('noaccess.html',{})
 
-    #-------------------------------------------------------------------
-
-    request.session['inputdic'] = ''
-
+    request.session['inputdict'] = ''
     return redirect('/Leader_model/')
 
-#---------------------------------------------------------------------------------
-def password_reset(request):
 
+def password_reset(request):
    return render_to_response('PasswordReset.html')
 
 
-#-----------------------------------------------------------------------------------
 def password_email(request):
-     User_in = request.GET['Username']
-     try:
+    User_in = request.GET['Username']
+    try:
         Active_account = Account.objects.get(username = User_in)
-     except exceptions.ObjectDoesNotExist:
+    except exceptions.ObjectDoesNotExist:
         return render_to_response('PasswordReset.html')
-#     Active_account.Email
-#debugx
-     print Active_account.password
-     length = 7
-     chars = string.ascii_letters + string.digits
-     random.seed = (os.urandom(1024))
-     Active_account.password = ''.join(random.choice(chars) for i in range(length))
-     Active_account.save()
-     print Active_account.Email
-     try:
-        s = 'Your new password is:' + Active_account.password
-        send_mail("Temporary MapScore Password", s, 'mapscore@c4i.gmu.edu', ["Active_account.Email"], fail_silently=False)
-     except:
-        print 'Tried to send this email:', s
-        print 'To this account         :', Active_account.Email
-     return render_to_response('Password_email.html')
-   #fill in later
 
-#------------------------------------------------------------------------------------
+    # Active_account.Email
+    print Active_account.password
+    length = 7
+    chars = string.ascii_letters + string.digits
+    random.seed = (os.urandom(1024))
+    Active_account.password = ''.join(random.choice(chars) for i in range(length))
+    Active_account.save()
+    print Active_account.Email
+
+    try:
+       s = 'Your new password is:' + Active_account.password
+       send_mail("Temporary MapScore Password", s,
+            'mapscore@c4i.gmu.edu', ["Active_account.Email"],
+            fail_silently=False)
+    except:
+       print 'Tried to send this email:', s
+       print 'To this account         :', Active_account.Email
+
+    return render_to_response('Password_email.html')
+
+
 def CollectingData(request):
     return render_to_response('CollectingData.html')
 
 
-#------------------------------------------------------------------------------------
 def model_inst_sort(request):
+
     # Token Verification
     try:
-        if request.session['admintoken'] == False and request.session['usertoken'] == False:
+        if not request.session['admintoken'] and request.session['usertoken'] == False:
             return render_to_response('noaccess.html',{})
     except:
         return render_to_response('noaccess.html',{})
-
-    #-------------------------------------------------------------------
 
     # extract data
     instname = str(request.GET['instname'])
@@ -3177,22 +2729,20 @@ def model_inst_sort(request):
     avgrating = '0'
     tstcomplete = '0'
 
-    inputdic = request.session['inputdic']
+    inputdict = request.session['inputdict']
+    scorelist = inputdict['Scorelist']
 
-    scorelist = inputdic['Scorelist']
-
-    if 'caseselection' in inputdic.keys():
-        caseselection = inputdic['caseselection']
+    if 'caseselection' in inputdict.keys():
+        caseselection = inputdict['caseselection']
     else:
         caseselection = None
 
     # sort depending on various circumstances
-
     if instname == '0':
         instname = '1'
-
         count = 1
         temp = ''
+
         while count > 0:
             count = 0
             for i in range(len(scorelist)-1):
@@ -3201,15 +2751,13 @@ def model_inst_sort(request):
                     temp = scorelist[i]
                     scorelist[i] = scorelist[i+1]
                     scorelist[i+1] = temp
-                    count = count + 1
-
-
+                    count += 1
 
     elif instname == '1':
         instname = '2'
-
         count = 1
         temp = ''
+
         while count > 0:
             count = 0
             for i in range(len(scorelist)-1):
@@ -3218,14 +2766,13 @@ def model_inst_sort(request):
                     temp = scorelist[i]
                     scorelist[i] = scorelist[i+1]
                     scorelist[i+1] = temp
-                    count = count + 1
-
+                    count += 1
 
     elif instname == '2':
         instname = '1'
-
         count = 1
         temp = ''
+
         while count > 0:
             count = 0
             for i in range(len(scorelist)-1):
@@ -3234,59 +2781,40 @@ def model_inst_sort(request):
                     temp = scorelist[i]
                     scorelist[i] = scorelist[i+1]
                     scorelist[i+1] = temp
-                    count = count + 1
+                    count += 1
 
+    sortinfo = [instname, modelname, avgrating, tstcomplete]
+    inputdict = {'Scorelist': scorelist, 'sortlst': sortinfo}
+    if caseselection is not None:
+        inputdict['caseselection'] = caseselection
 
-
-
-    sortinfo = []
-    sortinfo.append(instname)
-    sortinfo.append(modelname)
-    sortinfo.append(avgrating)
-    sortinfo.append(tstcomplete)
-
-    inputdic = {'Scorelist':scorelist, 'sortlst':sortinfo}
-
-    if caseselection != None:
-        inputdic['caseselection'] = caseselection
-
-    request.session['inputdic'] = inputdic
+    request.session['inputdict'] = inputdict
 
     if page == 'model_leader':
-        return render_to_response('Leader_Model.html',inputdic)
-
+        return render_to_response('Leader_Model.html',inputdict)
     elif page == 'model_to_scenario_move':
-
-        scenario_lst = []
+        scenario_list = []
         for i in Case.objects.all():
-            if str(i.scenario) not in  scenario_lst:
-                scenario_lst.append(str(i.scenario))
+            if str(i.scenario) not in  scenario_list:
+                scenario_list.append(str(i.scenario))
 
-        inputdic['scenario_lst'] = scenario_lst
-        request.session['inputdic'] = inputdic
-
-
-        return render_to_response('model_to_scenario.html',inputdic)
-
+        inputdict['scenario_list'] = scenario_list
+        request.session['inputdict'] = inputdict
+        return render_to_response('model_to_scenario.html',inputdict)
     elif page == 'model_to_test':
-        return render_to_response('Leaderboard_testname.html',inputdic)
-
+        return render_to_response('Leaderboard_testname.html',inputdict)
     elif page == 'model_to_test_fail':
-        return render_to_response('Leaderboard_testname_fail.html',inputdic)
+        return render_to_response('Leaderboard_testname_fail.html',inputdict)
 
-#-------------------------------------------------------------------------------
+
 def model_name_sort(request):
 
-
-    #-------------------------------------------------------------------
     # Token Verification
     try:
-        if request.session['admintoken'] == False and request.session['usertoken'] == False:
+        if not request.session['admintoken'] and request.session['usertoken'] == False:
             return render_to_response('noaccess.html',{})
     except:
         return render_to_response('noaccess.html',{})
-
-    #-------------------------------------------------------------------
 
     # extract data
     instname = str(request.GET['instname'])
@@ -3299,22 +2827,19 @@ def model_name_sort(request):
     avgrating = '0'
     tstcomplete = '0'
 
-    inputdic = request.session['inputdic']
-
-    scorelist = inputdic['Scorelist']
-
-    if 'caseselection' in inputdic.keys():
-        caseselection = inputdic['caseselection']
+    inputdict = request.session['inputdict']
+    scorelist = inputdict['Scorelist']
+    if 'caseselection' in inputdict.keys():
+        caseselection = inputdict['caseselection']
     else:
         caseselection = None
 
     # sort depending on various circumstances
-
     if modelname == '0':
         modelname = '1'
-
         count = 1
         temp = ''
+
         while count > 0:
             count = 0
             for i in range(len(scorelist)-1):
@@ -3323,15 +2848,12 @@ def model_name_sort(request):
                     temp = scorelist[i]
                     scorelist[i] = scorelist[i+1]
                     scorelist[i+1] = temp
-                    count = count + 1
-
-
-
+                    count += 1
     elif modelname == '1':
         modelname = '2'
-
         count = 1
         temp = ''
+
         while count > 0:
             count = 0
             for i in range(len(scorelist)-1):
@@ -3340,14 +2862,12 @@ def model_name_sort(request):
                     temp = scorelist[i]
                     scorelist[i] = scorelist[i+1]
                     scorelist[i+1] = temp
-                    count = count + 1
-
-
+                    count += 1
     elif modelname == '2':
         modelname = '1'
-
         count = 1
         temp = ''
+
         while count > 0:
             count = 0
             for i in range(len(scorelist)-1):
@@ -3356,59 +2876,40 @@ def model_name_sort(request):
                     temp = scorelist[i]
                     scorelist[i] = scorelist[i+1]
                     scorelist[i+1] = temp
-                    count = count + 1
+                    count += 1
 
+    sortinfo = [instname, modelname, avgrating, tstcomplete]
+    inputdict = {'Scorelist': scorelist, 'sortlst': sortinfo}
+    if caseselection is not None:
+        inputdict['caseselection'] = caseselection
 
-
-
-    sortinfo = []
-    sortinfo.append(instname)
-    sortinfo.append(modelname)
-    sortinfo.append(avgrating)
-    sortinfo.append(tstcomplete)
-
-    inputdic = {'Scorelist':scorelist, 'sortlst':sortinfo}
-
-    if caseselection != None:
-        inputdic['caseselection'] = caseselection
-
-    request.session['inputdic'] = inputdic
+    request.session['inputdict'] = inputdict
 
     if page == 'model_leader':
-        return render_to_response('Leader_Model.html',inputdic)
-
+        return render_to_response('Leader_Model.html',inputdict)
     elif page == 'model_to_scenario_move':
-
-
-        scenario_lst = []
+        scenario_list = []
         for i in Case.objects.all():
-            if str(i.scenario) not in  scenario_lst:
-                scenario_lst.append(str(i.scenario))
+            if str(i.scenario) not in  scenario_list:
+                scenario_list.append(str(i.scenario))
 
-        inputdic['scenario_lst'] = scenario_lst
-        request.session['inputdic'] = inputdic
-
-        return render_to_response('model_to_scenario.html',inputdic)
-
+        inputdict['scenario_list'] = scenario_list
+        request.session['inputdict'] = inputdict
+        return render_to_response('model_to_scenario.html',inputdict)
     elif page == 'model_to_test':
-        return render_to_response('Leaderboard_testname.html',inputdic)
-
+        return render_to_response('Leaderboard_testname.html',inputdict)
     elif page == 'model_to_test_fail':
-        return render_to_response('Leaderboard_testname_fail.html',inputdic)
+        return render_to_response('Leaderboard_testname_fail.html',inputdict)
 
-#------------------------------------------------------------------------------
+
 def model_rtg_sort(request):
 
-    #-------------------------------------------------------------------
     # Token Verification
     try:
-        if request.session['admintoken'] == False and request.session['usertoken'] == False:
+        if not request.session['admintoken'] and request.session['usertoken'] == False:
             return render_to_response('noaccess.html',{})
     except:
         return render_to_response('noaccess.html',{})
-
-    #-------------------------------------------------------------------
-
 
     # extract data
     instname = str(request.GET['instname'])
@@ -3421,23 +2922,19 @@ def model_rtg_sort(request):
     instname = '0'
     tstcomplete = '0'
 
-    inputdic = request.session['inputdic']
-
-    scorelist = inputdic['Scorelist']
-
-    if 'caseselection' in inputdic.keys():
-        caseselection = inputdic['caseselection']
+    inputdict = request.session['inputdict']
+    scorelist = inputdict['Scorelist']
+    if 'caseselection' in inputdict.keys():
+        caseselection = inputdict['caseselection']
     else:
         caseselection = None
 
     # sort depending on various circumstances
-
     if avgrating == '0':
-
         avgrating = '1'
-
         count = 1
         temp = ''
+
         while count > 0:
             count = 0
             for i in range(len(scorelist)-1):
@@ -3446,16 +2943,12 @@ def model_rtg_sort(request):
                     temp = scorelist[i]
                     scorelist[i] = scorelist[i+1]
                     scorelist[i+1] = temp
-                    count = count + 1
-
-
-
+                    count += 1
     elif avgrating == '1':
-
         avgrating = '2'
-
         count = 1
         temp = ''
+
         while count > 0:
             count = 0
             for i in range(len(scorelist)-1):
@@ -3464,14 +2957,12 @@ def model_rtg_sort(request):
                     temp = scorelist[i]
                     scorelist[i] = scorelist[i+1]
                     scorelist[i+1] = temp
-                    count = count + 1
-
-
+                    count += 1
     elif avgrating == '2':
         avgrating = '1'
-
         count = 1
         temp = ''
+
         while count > 0:
             count = 0
             for i in range(len(scorelist)-1):
@@ -3480,62 +2971,42 @@ def model_rtg_sort(request):
                     temp = scorelist[i]
                     scorelist[i] = scorelist[i+1]
                     scorelist[i+1] = temp
-                    count = count + 1
+                    count += 1
 
+    sortinfo = [instname, modelname, avgrating, tstcomplete]
+    inputdict = {'Scorelist': scorelist, 'sortlst': sortinfo}
+    if caseselection is not None:
+        inputdict['caseselection'] = caseselection
 
-
-
-    sortinfo = []
-    sortinfo.append(instname)
-    sortinfo.append(modelname)
-    sortinfo.append(avgrating)
-    sortinfo.append(tstcomplete)
-
-    inputdic = {'Scorelist':scorelist, 'sortlst':sortinfo}
-
-    if caseselection != None:
-        inputdic['caseselection'] = caseselection
-
-    request.session['inputdic'] = inputdic
+    request.session['inputdict'] = inputdict
 
     if page == 'model_leader':
-        return render_to_response('Leader_Model.html',inputdic)
-
+        return render_to_response('Leader_Model.html',inputdict)
     elif page == 'model_to_scenario_move':
-
-
-        scenario_lst = []
+        scenario_list = []
         for i in Case.objects.all():
-            if str(i.scenario) not in  scenario_lst:
-                scenario_lst.append(str(i.scenario))
+            if str(i.scenario) not in  scenario_list:
+                scenario_list.append(str(i.scenario))
 
-        inputdic['scenario_lst'] = scenario_lst
-        request.session['inputdic'] = inputdic
-
-
-        return render_to_response('model_to_scenario.html',inputdic)
-
+        inputdict['scenario_list'] = scenario_list
+        request.session['inputdict'] = inputdict
+        return render_to_response('model_to_scenario.html',inputdict)
     elif page == 'model_to_test':
-        return render_to_response('Leaderboard_testname.html',inputdic)
-
+        return render_to_response('Leaderboard_testname.html',inputdict)
     elif page == 'model_to_test_fail':
-        return render_to_response('Leaderboard_testname_fail.html',inputdic)
+        return render_to_response('Leaderboard_testname_fail.html',inputdict)
 
-#--------------------------------------------------------------------------------
+
 def model_tstscomp_sort(request):
 
-    #-------------------------------------------------------------------
     # Token Verification
     try:
-        if request.session['admintoken'] == False and request.session['usertoken'] == False:
+        if not request.session['admintoken'] and request.session['usertoken'] == False:
             return render_to_response('noaccess.html',{})
     except:
         return render_to_response('noaccess.html',{})
 
-    #-------------------------------------------------------------------
-
-
-        # extract data
+    # extract data
     instname = str(request.GET['instname'])
     modelname = str(request.GET['modelname'])
     avgrating = str(request.GET['avgrating'])
@@ -3546,23 +3017,19 @@ def model_tstscomp_sort(request):
     instname = '0'
     avgrating = '0'
 
-    inputdic = request.session['inputdic']
-
-    scorelist = inputdic['Scorelist']
-
-    if 'caseselection' in inputdic.keys():
-        caseselection = inputdic['caseselection']
+    inputdict = request.session['inputdict']
+    scorelist = inputdict['Scorelist']
+    if 'caseselection' in inputdict.keys():
+        caseselection = inputdict['caseselection']
     else:
         caseselection = None
 
     # sort depending on various circumstances
-
     if tstcomplete == '0':
-
         tstcomplete = '1'
-
         count = 1
         temp = ''
+
         while count > 0:
             count = 0
             for i in range(len(scorelist)-1):
@@ -3571,16 +3038,12 @@ def model_tstscomp_sort(request):
                     temp = scorelist[i]
                     scorelist[i] = scorelist[i+1]
                     scorelist[i+1] = temp
-                    count = count + 1
-
-
-
+                    count += 1
     elif tstcomplete == '1':
-
         tstcomplete = '2'
-
         count = 1
         temp = ''
+
         while count > 0:
             count = 0
             for i in range(len(scorelist)-1):
@@ -3589,14 +3052,12 @@ def model_tstscomp_sort(request):
                     temp = scorelist[i]
                     scorelist[i] = scorelist[i+1]
                     scorelist[i+1] = temp
-                    count = count + 1
-
-
+                    count += 1
     elif tstcomplete == '2':
         tstcomplete = '1'
-
         count = 1
         temp = ''
+
         while count > 0:
             count = 0
             for i in range(len(scorelist)-1):
@@ -3605,60 +3066,40 @@ def model_tstscomp_sort(request):
                     temp = scorelist[i]
                     scorelist[i] = scorelist[i+1]
                     scorelist[i+1] = temp
-                    count = count + 1
+                    count += 1
 
+    sortinfo = [instname, modelname, avgrating, tstcomplete]
+    inputdict = {'Scorelist': scorelist, 'sortlst': sortinfo}
+    if caseselection is not None:
+        inputdict['caseselection'] = caseselection
 
-
-
-    sortinfo = []
-    sortinfo.append(instname)
-    sortinfo.append(modelname)
-    sortinfo.append(avgrating)
-    sortinfo.append(tstcomplete)
-
-    inputdic = {'Scorelist':scorelist, 'sortlst':sortinfo}
-
-    if caseselection != None:
-        inputdic['caseselection'] = caseselection
-
-    request.session['inputdic'] = inputdic
+    request.session['inputdict'] = inputdict
 
     if page == 'model_leader':
-        return render_to_response('Leader_Model.html',inputdic)
-
-
+        return render_to_response('Leader_Model.html',inputdict)
     elif page == 'model_to_scenario_move':
-
-        scenario_lst = []
+        scenario_list = []
         for i in Case.objects.all():
-            if str(i.scenario) not in  scenario_lst:
-                scenario_lst.append(str(i.scenario))
+            if str(i.scenario) not in  scenario_list:
+                scenario_list.append(str(i.scenario))
 
-        inputdic['scenario_lst'] = scenario_lst
-        request.session['inputdic'] = inputdic
-
-        return render_to_response('model_to_scenario.html',inputdic)
-
+        inputdict['scenario_list'] = scenario_list
+        request.session['inputdict'] = inputdict
+        return render_to_response('model_to_scenario.html',inputdict)
     elif page == 'model_to_test':
-        return render_to_response('Leaderboard_testname.html',inputdic)
-
+        return render_to_response('Leaderboard_testname.html',inputdict)
     elif page == 'model_to_test_fail':
-        return render_to_response('Leaderboard_testname_fail.html',inputdic)
+        return render_to_response('Leaderboard_testname_fail.html',inputdict)
 
-#----------------------------------------------------------------------------------
+
 def test_inst_sort(request):
 
-    #-------------------------------------------------------------------
     # Token Verification
     try:
-        if request.session['admintoken'] == False and request.session['usertoken'] == False:
+        if not request.session['admintoken'] and request.session['usertoken'] == False:
             return render_to_response('noaccess.html',{})
     except:
         return render_to_response('noaccess.html',{})
-
-    #-------------------------------------------------------------------
-
-
 
     # extract data
     instname = str(request.GET['instname'])
@@ -3671,24 +3112,20 @@ def test_inst_sort(request):
     testname = '0'
     tstrating = '0'
 
-    inputdic = request.session['inputdic']
-
-    scorelist = inputdic['Scorelist']
-
-    casename = inputdic['casename']
-
-    if 'caseselection' in inputdic.keys():
-        caseselection = inputdic['caseselection']
+    inputdict = request.session['inputdict']
+    scorelist = inputdict['Scorelist']
+    casename = inputdict['casename']
+    if 'caseselection' in inputdict.keys():
+        caseselection = inputdict['caseselection']
     else:
         caseselection = None
 
     # sort depending on various circumstances
-
     if instname == '0':
         instname = '1'
-
         count = 1
         temp = ''
+
         while count > 0:
             count = 0
             for i in range(len(scorelist)-1):
@@ -3697,15 +3134,12 @@ def test_inst_sort(request):
                     temp = scorelist[i]
                     scorelist[i] = scorelist[i+1]
                     scorelist[i+1] = temp
-                    count = count + 1
-
-
-
+                    count += 1
     elif instname == '1':
         instname = '2'
-
         count = 1
         temp = ''
+
         while count > 0:
             count = 0
             for i in range(len(scorelist)-1):
@@ -3714,14 +3148,12 @@ def test_inst_sort(request):
                     temp = scorelist[i]
                     scorelist[i] = scorelist[i+1]
                     scorelist[i+1] = temp
-                    count = count + 1
-
-
+                    count += 1
     elif instname == '2':
         instname = '1'
-
         count = 1
         temp = ''
+
         while count > 0:
             count = 0
             for i in range(len(scorelist)-1):
@@ -3730,59 +3162,39 @@ def test_inst_sort(request):
                     temp = scorelist[i]
                     scorelist[i] = scorelist[i+1]
                     scorelist[i+1] = temp
-                    count = count + 1
+                    count += 1
 
+    sortinfo = [instname, modelname, testname, tstrating]
+    inputdict = {'Scorelist': scorelist, 'sortlst': sortinfo}
+    inputdict['casename'] = casename
+    if caseselection is not None:
+        inputdict['caseselection'] = caseselection
 
-
-
-    sortinfo = []
-    sortinfo.append(instname)
-    sortinfo.append(modelname)
-    sortinfo.append(testname)
-    sortinfo.append(tstrating)
-
-    inputdic = {'Scorelist':scorelist, 'sortlst':sortinfo}
-    inputdic['casename'] = casename
-
-    if caseselection != None:
-        inputdic['caseselection'] = caseselection
-
-
-    request.session['inputdic'] = inputdic
+    request.session['inputdict'] = inputdict
 
     if page == 'test_leader':
-        return render_to_response('Leaderboard_test.html',inputdic)
-
+        return render_to_response('Leaderboard_test.html',inputdict)
     elif page =='test_leader_fail':
-        return render_to_response('Leaderboard_Testfail.html',inputdic)
-
+        return render_to_response('Leaderboard_Testfail.html',inputdict)
     elif page =='TEST_TOSCENARIO_MOVE':
-
-        scenario_lst = []
+        scenario_list = []
         for i in Case.objects.all():
-            if str(i.scenario) not in  scenario_lst:
-                scenario_lst.append(str(i.scenario))
+            if str(i.scenario) not in  scenario_list:
+                scenario_list.append(str(i.scenario))
 
-        inputdic['scenario_lst'] = scenario_lst
-        request.session['inputdic'] = inputdic
-
-        return render_to_response('test_to_scenario.html',inputdic)
-
+        inputdict['scenario_list'] = scenario_list
+        request.session['inputdict'] = inputdict
+        return render_to_response('test_to_scenario.html',inputdict)
 
 
-#----------------------------------------------------------------------------------
 def test_modelname_sort(request):
 
-
-    #-------------------------------------------------------------------
     # Token Verification
     try:
-        if request.session['admintoken'] == False and request.session['usertoken'] == False:
+        if not request.session['admintoken'] and request.session['usertoken'] == False:
             return render_to_response('noaccess.html',{})
     except:
         return render_to_response('noaccess.html',{})
-
-    #-------------------------------------------------------------------
 
     # extract data
     instname = str(request.GET['instname'])
@@ -3795,24 +3207,20 @@ def test_modelname_sort(request):
     testname = '0'
     tstrating = '0'
 
-    inputdic = request.session['inputdic']
-
-    scorelist = inputdic['Scorelist']
-
-    casename = inputdic['casename']
-
-    if 'caseselection' in inputdic.keys():
-        caseselection = inputdic['caseselection']
+    inputdict = request.session['inputdict']
+    scorelist = inputdict['Scorelist']
+    casename = inputdict['casename']
+    if 'caseselection' in inputdict.keys():
+        caseselection = inputdict['caseselection']
     else:
         caseselection = None
 
     # sort depending on various circumstances
-
     if modelname == '0':
         modelname = '1'
-
         count = 1
         temp = ''
+
         while count > 0:
             count = 0
             for i in range(len(scorelist)-1):
@@ -3821,15 +3229,12 @@ def test_modelname_sort(request):
                     temp = scorelist[i]
                     scorelist[i] = scorelist[i+1]
                     scorelist[i+1] = temp
-                    count = count + 1
-
-
-
+                    count += 1
     elif modelname == '1':
         modelname = '2'
-
         count = 1
         temp = ''
+
         while count > 0:
             count = 0
             for i in range(len(scorelist)-1):
@@ -3838,14 +3243,12 @@ def test_modelname_sort(request):
                     temp = scorelist[i]
                     scorelist[i] = scorelist[i+1]
                     scorelist[i+1] = temp
-                    count = count + 1
-
-
+                    count += 1
     elif modelname == '2':
         modelname = '1'
-
         count = 1
         temp = ''
+
         while count > 0:
             count = 0
             for i in range(len(scorelist)-1):
@@ -3854,55 +3257,39 @@ def test_modelname_sort(request):
                     temp = scorelist[i]
                     scorelist[i] = scorelist[i+1]
                     scorelist[i+1] = temp
-                    count = count + 1
+                    count += 1
 
+    sortinfo = [instname, modelname, testname, tstrating]
+    inputdict = {'Scorelist': scorelist, 'sortlst': sortinfo}
+    inputdict['casename'] = casename
+    if caseselection is not None:
+        inputdict['caseselection'] = caseselection
 
-
-
-    sortinfo = []
-    sortinfo.append(instname)
-    sortinfo.append(modelname)
-    sortinfo.append(testname)
-    sortinfo.append(tstrating)
-
-    inputdic = {'Scorelist':scorelist, 'sortlst':sortinfo}
-    inputdic['casename'] = casename
-
-    if caseselection != None:
-        inputdic['caseselection'] = caseselection
-
-    request.session['inputdic'] = inputdic
+    request.session['inputdict'] = inputdict
 
     if page == 'test_leader':
-        return render_to_response('Leaderboard_test.html',inputdic)
-
+        return render_to_response('Leaderboard_test.html',inputdict)
     elif page =='test_leader_fail':
-        return render_to_response('Leaderboard_Testfail.html',inputdic)
-
+        return render_to_response('Leaderboard_Testfail.html',inputdict)
     elif page =='TEST_TOSCENARIO_MOVE':
-
-        scenario_lst = []
+        scenario_list = []
         for i in Case.objects.all():
-            if str(i.scenario) not in  scenario_lst:
-                scenario_lst.append(str(i.scenario))
+            if str(i.scenario) not in  scenario_list:
+                scenario_list.append(str(i.scenario))
 
-        inputdic['scenario_lst'] = scenario_lst
-        request.session['inputdic'] = inputdic
+        inputdict['scenario_list'] = scenario_list
+        request.session['inputdict'] = inputdict
+        return render_to_response('test_to_scenario.html',inputdict)
 
-        return render_to_response('test_to_scenario.html',inputdic)
 
-#-------------------------------------------------------------------------------
 def test_name_sort(request):
 
-    #-------------------------------------------------------------------
     # Token Verification
     try:
-        if request.session['admintoken'] == False and request.session['usertoken'] == False:
+        if not request.session['admintoken'] and request.session['usertoken'] == False:
             return render_to_response('noaccess.html',{})
     except:
         return render_to_response('noaccess.html',{})
-
-    #-------------------------------------------------------------------
 
     # extract data
     instname = str(request.GET['instname'])
@@ -3915,24 +3302,20 @@ def test_name_sort(request):
     modelname = '0'
     tstrating = '0'
 
-    inputdic = request.session['inputdic']
-
-    scorelist = inputdic['Scorelist']
-
-    casename = inputdic['casename']
-
-    if 'caseselection' in inputdic.keys():
-        caseselection = inputdic['caseselection']
+    inputdict = request.session['inputdict']
+    scorelist = inputdict['Scorelist']
+    casename = inputdict['casename']
+    if 'caseselection' in inputdict.keys():
+        caseselection = inputdict['caseselection']
     else:
         caseselection = None
 
     # sort depending on various circumstances
-
     if testname == '0':
         testname = '1'
-
         count = 1
         temp = ''
+
         while count > 0:
             count = 0
             for i in range(len(scorelist)-1):
@@ -3941,15 +3324,12 @@ def test_name_sort(request):
                     temp = scorelist[i]
                     scorelist[i] = scorelist[i+1]
                     scorelist[i+1] = temp
-                    count = count + 1
-
-
-
+                    count += 1
     elif testname == '1':
         testname = '2'
-
         count = 1
         temp = ''
+
         while count > 0:
             count = 0
             for i in range(len(scorelist)-1):
@@ -3958,14 +3338,12 @@ def test_name_sort(request):
                     temp = scorelist[i]
                     scorelist[i] = scorelist[i+1]
                     scorelist[i+1] = temp
-                    count = count + 1
-
-
+                    count += 1
     elif testname == '2':
         testname = '1'
-
         count = 1
         temp = ''
+
         while count > 0:
             count = 0
             for i in range(len(scorelist)-1):
@@ -3974,55 +3352,39 @@ def test_name_sort(request):
                     temp = scorelist[i]
                     scorelist[i] = scorelist[i+1]
                     scorelist[i+1] = temp
-                    count = count + 1
+                    count += 1
 
+    sortinfo = [instname, modelname, testname, tstrating]
+    inputdict = {'Scorelist': scorelist, 'sortlst': sortinfo}
+    inputdict['casename'] = casename
+    if caseselection is not None:
+        inputdict['caseselection'] = caseselection
 
-
-
-    sortinfo = []
-    sortinfo.append(instname)
-    sortinfo.append(modelname)
-    sortinfo.append(testname)
-    sortinfo.append(tstrating)
-
-    inputdic = {'Scorelist':scorelist, 'sortlst':sortinfo}
-    inputdic['casename'] = casename
-
-    if caseselection != None:
-        inputdic['caseselection'] = caseselection
-
-    request.session['inputdic'] = inputdic
+    request.session['inputdict'] = inputdict
 
     if page == 'test_leader':
-        return render_to_response('Leaderboard_test.html',inputdic)
-
+        return render_to_response('Leaderboard_test.html',inputdict)
     elif page =='test_leader_fail':
-        return render_to_response('Leaderboard_Testfail.html',inputdic)
-
+        return render_to_response('Leaderboard_Testfail.html',inputdict)
     elif page =='TEST_TOSCENARIO_MOVE':
-
-        scenario_lst = []
+        scenario_list = []
         for i in Case.objects.all():
-            if str(i.scenario) not in  scenario_lst:
-                scenario_lst.append(str(i.scenario))
+            if str(i.scenario) not in  scenario_list:
+                scenario_list.append(str(i.scenario))
 
-        inputdic['scenario_lst'] = scenario_lst
-        request.session['inputdic'] = inputdic
+        inputdict['scenario_list'] = scenario_list
+        request.session['inputdict'] = inputdict
+        return render_to_response('test_to_scenario.html',inputdict)
 
-        return render_to_response('test_to_scenario.html',inputdic)
 
-#--------------------------------------------------------------------------------
 def test_rating_sort(request):
 
-    #-------------------------------------------------------------------
     # Token Verification
     try:
-        if request.session['admintoken'] == False and request.session['usertoken'] == False:
+        if not request.session['admintoken'] and request.session['usertoken'] == False:
             return render_to_response('noaccess.html',{})
     except:
         return render_to_response('noaccess.html',{})
-
-    #-------------------------------------------------------------------
 
     # extract data
     instname = str(request.GET['instname'])
@@ -4035,24 +3397,20 @@ def test_rating_sort(request):
     modelname = '0'
     testname = '0'
 
-    inputdic = request.session['inputdic']
-
-    scorelist = inputdic['Scorelist']
-
-    casename = inputdic['casename']
-
-    if 'caseselection' in inputdic.keys():
-        caseselection = inputdic['caseselection']
+    inputdict = request.session['inputdict']
+    scorelist = inputdict['Scorelist']
+    casename = inputdict['casename']
+    if 'caseselection' in inputdict.keys():
+        caseselection = inputdict['caseselection']
     else:
         caseselection = None
 
     # sort depending on various circumstances
-
     if tstrating == '0':
         tstrating = '1'
-
         count = 1
         temp = ''
+
         while count > 0:
             count = 0
             for i in range(len(scorelist)-1):
@@ -4061,15 +3419,12 @@ def test_rating_sort(request):
                     temp = scorelist[i]
                     scorelist[i] = scorelist[i+1]
                     scorelist[i+1] = temp
-                    count = count + 1
-
-
-
+                    count += 1
     elif tstrating == '1':
         tstrating = '2'
-
         count = 1
         temp = ''
+
         while count > 0:
             count = 0
             for i in range(len(scorelist)-1):
@@ -4078,14 +3433,12 @@ def test_rating_sort(request):
                     temp = scorelist[i]
                     scorelist[i] = scorelist[i+1]
                     scorelist[i+1] = temp
-                    count = count + 1
-
-
+                    count += 1
     elif tstrating == '2':
         tstrating = '1'
-
         count = 1
         temp = ''
+
         while count > 0:
             count = 0
             for i in range(len(scorelist)-1):
@@ -4094,56 +3447,39 @@ def test_rating_sort(request):
                     temp = scorelist[i]
                     scorelist[i] = scorelist[i+1]
                     scorelist[i+1] = temp
-                    count = count + 1
+                    count += 1
 
+    sortinfo = [instname, modelname, testname, tstrating]
+    inputdict = {'Scorelist': scorelist, 'sortlst': sortinfo}
+    inputdict['casename'] = casename
+    if caseselection is not None:
+        inputdict['caseselection'] = caseselection
 
-
-
-    sortinfo = []
-    sortinfo.append(instname)
-    sortinfo.append(modelname)
-    sortinfo.append(testname)
-    sortinfo.append(tstrating)
-
-    inputdic = {'Scorelist':scorelist, 'sortlst':sortinfo}
-    inputdic['casename'] = casename
-
-    if caseselection != None:
-        inputdic['caseselection'] = caseselection
-
-    request.session['inputdic'] = inputdic
+    request.session['inputdict'] = inputdict
 
     if page == 'test_leader':
-        return render_to_response('Leaderboard_test.html',inputdic)
-
+        return render_to_response('Leaderboard_test.html',inputdict)
     elif page =='test_leader_fail':
-        return render_to_response('Leaderboard_Testfail.html',inputdic)
-
+        return render_to_response('Leaderboard_Testfail.html',inputdict)
     elif page =='TEST_TOSCENARIO_MOVE':
-
-        scenario_lst = []
+        scenario_list = []
         for i in Case.objects.all():
-            if str(i.scenario) not in  scenario_lst:
-                scenario_lst.append(str(i.scenario))
+            if str(i.scenario) not in  scenario_list:
+                scenario_list.append(str(i.scenario))
 
-        inputdic['scenario_lst'] = scenario_lst
-        request.session['inputdic'] = inputdic
+        inputdict['scenario_list'] = scenario_list
+        request.session['inputdict'] = inputdict
+        return render_to_response('test_to_scenario.html',inputdict)
 
-        return render_to_response('test_to_scenario.html',inputdic)
 
-
-#------------------------------------------------------------------------------
 def cat_inst_sort(request):
 
-    #-------------------------------------------------------------------
     # Token Verification
     try:
-        if request.session['admintoken'] == False and request.session['usertoken'] == False:
+        if not request.session['admintoken'] and request.session['usertoken'] == False:
             return render_to_response('noaccess.html',{})
     except:
         return render_to_response('noaccess.html',{})
-
-    #-------------------------------------------------------------------
 
     # extract data
     instname = str(request.GET['instname'])
@@ -4156,24 +3492,20 @@ def cat_inst_sort(request):
     catrating = '0'
     catcompleted = '0'
 
-    inputdic = request.session['inputdic']
-
-    scorelist = inputdic['inputlst']
-
-    name = inputdic['scenario']
-
-    if 'caseselection' in inputdic.keys():
-        caseselection = inputdic['caseselection']
+    inputdict = request.session['inputdict']
+    scorelist = inputdict['input_list']
+    name = inputdict['scenario']
+    if 'caseselection' in inputdict.keys():
+        caseselection = inputdict['caseselection']
     else:
         caseselection = None
 
     # sort depending on various circumstances
-
     if instname == '0':
         instname = '1'
-
         count = 1
         temp = ''
+
         while count > 0:
             count = 0
             for i in range(len(scorelist)-1):
@@ -4182,15 +3514,12 @@ def cat_inst_sort(request):
                     temp = scorelist[i]
                     scorelist[i] = scorelist[i+1]
                     scorelist[i+1] = temp
-                    count = count + 1
-
-
-
+                    count += 1
     elif instname == '1':
         instname = '2'
-
         count = 1
         temp = ''
+
         while count > 0:
             count = 0
             for i in range(len(scorelist)-1):
@@ -4199,14 +3528,12 @@ def cat_inst_sort(request):
                     temp = scorelist[i]
                     scorelist[i] = scorelist[i+1]
                     scorelist[i+1] = temp
-                    count = count + 1
-
-
+                    count += 1
     elif instname == '2':
         instname = '1'
-
         count = 1
         temp = ''
+
         while count > 0:
             count = 0
             for i in range(len(scorelist)-1):
@@ -4215,70 +3542,45 @@ def cat_inst_sort(request):
                     temp = scorelist[i]
                     scorelist[i] = scorelist[i+1]
                     scorelist[i+1] = temp
-                    count = count + 1
+                    count += 1
 
+    sortinfo = [instname, modelname, catrating, catcompleted]
+    inputdict = {'input_list': scorelist, 'sortlst': sortinfo}
+    if caseselection is not None:
+        inputdict['caseselection'] = caseselection
 
-
-
-    sortinfo = []
-    sortinfo.append(instname)
-    sortinfo.append(modelname)
-    sortinfo.append(catrating)
-    sortinfo.append(catcompleted)
-
-    inputdic = {'inputlst':scorelist, 'sortlst':sortinfo}
-
-
-    if caseselection != None:
-        inputdic['caseselection'] = caseselection
-
-    request.session['inputdic'] = inputdic
-
-
+    request.session['inputdict'] = inputdict
 
     if page == 'category_leader':
-
-        scenario_lst = []
+        scenario_list = []
         for i in Case.objects.all():
-            if str(i.scenario) not in  scenario_lst:
-                scenario_lst.append(str(i.scenario))
+            if str(i.scenario) not in  scenario_list:
+                scenario_list.append(str(i.scenario))
 
-        inputdic['scenario_lst'] = scenario_lst
-        inputdic['scenario'] = name
-
-
-        request.session['inputdic'] = inputdic
-
-
-        return render_to_response('Leaderboard_scenario.html',inputdic)
+        inputdict['scenario_list'] = scenario_list
+        inputdict['scenario'] = name
+        request.session['inputdict'] = inputdict
+        return render_to_response('Leaderboard_scenario.html',inputdict)
 
     elif page == 'scenario_to_test':
-
-        inputdic['scenario'] = name
-        request.session['inputdic'] = inputdic
-
-        return render_to_response('scenario_to_test.html',inputdic)
+        inputdict['scenario'] = name
+        request.session['inputdict'] = inputdict
+        return render_to_response('scenario_to_test.html',inputdict)
 
     elif page =='scenario_to_test_fail':
+        inputdict['scenario'] = name
+        request.session['inputdict'] = inputdict
+        return render_to_response('scenario_to_testfail.html',inputdict)
 
-        inputdic['scenario'] = name
-        request.session['inputdic'] = inputdic
 
-        return render_to_response('scenario_to_testfail.html',inputdic)
-
-#----------------------------------------------------------------------------
 def cat_modelname_sort(request):
 
-    #-------------------------------------------------------------------
     # Token Verification
     try:
-        if request.session['admintoken'] == False and request.session['usertoken'] == False:
+        if not request.session['admintoken'] and request.session['usertoken'] == False:
             return render_to_response('noaccess.html',{})
     except:
         return render_to_response('noaccess.html',{})
-
-    #-------------------------------------------------------------------
-
 
     # extract data
     instname = str(request.GET['instname'])
@@ -4291,24 +3593,20 @@ def cat_modelname_sort(request):
     catrating = '0'
     catcompleted = '0'
 
-    inputdic = request.session['inputdic']
-
-    scorelist = inputdic['inputlst']
-
-    name = inputdic['scenario']
-
-    if 'caseselection' in inputdic.keys():
-        caseselection = inputdic['caseselection']
+    inputdict = request.session['inputdict']
+    scorelist = inputdict['input_list']
+    name = inputdict['scenario']
+    if 'caseselection' in inputdict.keys():
+        caseselection = inputdict['caseselection']
     else:
         caseselection = None
 
     # sort depending on various circumstances
-
     if modelname == '0':
         modelname = '1'
-
         count = 1
         temp = ''
+
         while count > 0:
             count = 0
             for i in range(len(scorelist)-1):
@@ -4317,15 +3615,12 @@ def cat_modelname_sort(request):
                     temp = scorelist[i]
                     scorelist[i] = scorelist[i+1]
                     scorelist[i+1] = temp
-                    count = count + 1
-
-
-
+                    count += 1
     elif modelname == '1':
         modelname = '2'
-
         count = 1
         temp = ''
+
         while count > 0:
             count = 0
             for i in range(len(scorelist)-1):
@@ -4334,14 +3629,12 @@ def cat_modelname_sort(request):
                     temp = scorelist[i]
                     scorelist[i] = scorelist[i+1]
                     scorelist[i+1] = temp
-                    count = count + 1
-
-
+                    count += 1
     elif modelname == '2':
         modelname = '1'
-
         count = 1
         temp = ''
+
         while count > 0:
             count = 0
             for i in range(len(scorelist)-1):
@@ -4350,71 +3643,45 @@ def cat_modelname_sort(request):
                     temp = scorelist[i]
                     scorelist[i] = scorelist[i+1]
                     scorelist[i+1] = temp
-                    count = count + 1
+                    count += 1
 
+    sortinfo = [instname, modelname, catrating, catcompleted]
+    inputdict = {'input_list': scorelist, 'sortlst': sortinfo}
+    if caseselection is not None:
+        inputdict['caseselection'] = caseselection
 
-
-
-    sortinfo = []
-    sortinfo.append(instname)
-    sortinfo.append(modelname)
-    sortinfo.append(catrating)
-    sortinfo.append(catcompleted)
-
-    inputdic = {'inputlst':scorelist, 'sortlst':sortinfo}
-
-
-    if caseselection != None:
-        inputdic['caseselection'] = caseselection
-
-    request.session['inputdic'] = inputdic
-
-
+    request.session['inputdict'] = inputdict
 
     if page == 'category_leader':
-
-        scenario_lst = []
+        scenario_list = []
         for i in Case.objects.all():
-            if str(i.scenario) not in  scenario_lst:
-                scenario_lst.append(str(i.scenario))
+            if str(i.scenario) not in  scenario_list:
+                scenario_list.append(str(i.scenario))
 
-        inputdic['scenario_lst'] = scenario_lst
-        inputdic['scenario'] = name
-
-
-        request.session['inputdic'] = inputdic
-
-
-        return render_to_response('Leaderboard_scenario.html',inputdic)
+        inputdict['scenario_list'] = scenario_list
+        inputdict['scenario'] = name
+        request.session['inputdict'] = inputdict
+        return render_to_response('Leaderboard_scenario.html',inputdict)
 
     elif page == 'scenario_to_test':
-
-        inputdic['scenario'] = name
-        request.session['inputdic'] = inputdic
-
-        return render_to_response('scenario_to_test.html',inputdic)
+        inputdict['scenario'] = name
+        request.session['inputdict'] = inputdict
+        return render_to_response('scenario_to_test.html',inputdict)
 
     elif page =='scenario_to_test_fail':
-
-        inputdic['scenario'] = name
-        request.session['inputdic'] = inputdic
-
-        return render_to_response('scenario_to_testfail.html',inputdic)
+        inputdict['scenario'] = name
+        request.session['inputdict'] = inputdict
+        return render_to_response('scenario_to_testfail.html',inputdict)
 
 
-#-----------------------------------------------------------------------------
 def catrating_sort(request):
 
-    #-------------------------------------------------------------------
     # Token Verification
     try:
-        if request.session['admintoken'] == False and request.session['usertoken'] == False:
+        if not request.session['admintoken'] and request.session['usertoken'] == False:
             return render_to_response('noaccess.html',{})
     except:
         return render_to_response('noaccess.html',{})
-
-    #-------------------------------------------------------------------
-
 
     # extract data
     instname = str(request.GET['instname'])
@@ -4427,24 +3694,20 @@ def catrating_sort(request):
     modelname = '0'
     catcompleted = '0'
 
-    inputdic = request.session['inputdic']
-
-    scorelist = inputdic['inputlst']
-
-    name = inputdic['scenario']
-
-    if 'caseselection' in inputdic.keys():
-        caseselection = inputdic['caseselection']
+    inputdict = request.session['inputdict']
+    scorelist = inputdict['input_list']
+    name = inputdict['scenario']
+    if 'caseselection' in inputdict.keys():
+        caseselection = inputdict['caseselection']
     else:
         caseselection = None
 
     # sort depending on various circumstances
-
     if catrating == '0':
         catrating = '1'
-
         count = 1
         temp = ''
+
         while count > 0:
             count = 0
             for i in range(len(scorelist)-1):
@@ -4453,15 +3716,12 @@ def catrating_sort(request):
                     temp = scorelist[i]
                     scorelist[i] = scorelist[i+1]
                     scorelist[i+1] = temp
-                    count = count + 1
-
-
-
+                    count += 1
     elif catrating == '1':
         catrating = '2'
-
         count = 1
         temp = ''
+
         while count > 0:
             count = 0
             for i in range(len(scorelist)-1):
@@ -4470,14 +3730,12 @@ def catrating_sort(request):
                     temp = scorelist[i]
                     scorelist[i] = scorelist[i+1]
                     scorelist[i+1] = temp
-                    count = count + 1
-
-
+                    count += 1
     elif catrating == '2':
         catrating = '1'
-
         count = 1
         temp = ''
+
         while count > 0:
             count = 0
             for i in range(len(scorelist)-1):
@@ -4486,71 +3744,45 @@ def catrating_sort(request):
                     temp = scorelist[i]
                     scorelist[i] = scorelist[i+1]
                     scorelist[i+1] = temp
-                    count = count + 1
+                    count += 1
 
+    sortinfo = [instname, modelname, catrating, catcompleted]
+    inputdict = {'input_list': scorelist, 'sortlst': sortinfo}
+    if caseselection is not None:
+        inputdict['caseselection'] = caseselection
 
-
-
-    sortinfo = []
-    sortinfo.append(instname)
-    sortinfo.append(modelname)
-    sortinfo.append(catrating)
-    sortinfo.append(catcompleted)
-
-    inputdic = {'inputlst':scorelist, 'sortlst':sortinfo}
-
-
-    if caseselection != None:
-        inputdic['caseselection'] = caseselection
-
-
-    request.session['inputdic'] = inputdic
-
-
+    request.session['inputdict'] = inputdict
 
     if page == 'category_leader':
-
-        scenario_lst = []
+        scenario_list = []
         for i in Case.objects.all():
-            if str(i.scenario) not in  scenario_lst:
-                scenario_lst.append(str(i.scenario))
+            if str(i.scenario) not in  scenario_list:
+                scenario_list.append(str(i.scenario))
 
-        inputdic['scenario_lst'] = scenario_lst
-        inputdic['scenario'] = name
-
-
-        request.session['inputdic'] = inputdic
-
-
-        return render_to_response('Leaderboard_scenario.html',inputdic)
+        inputdict['scenario_list'] = scenario_list
+        inputdict['scenario'] = name
+        request.session['inputdict'] = inputdict
+        return render_to_response('Leaderboard_scenario.html',inputdict)
 
     elif page == 'scenario_to_test':
-
-        inputdic['scenario'] = name
-        request.session['inputdic'] = inputdic
-
-        return render_to_response('scenario_to_test.html',inputdic)
+        inputdict['scenario'] = name
+        request.session['inputdict'] = inputdict
+        return render_to_response('scenario_to_test.html',inputdict)
 
     elif page =='scenario_to_test_fail':
-
-        inputdic['scenario'] = name
-        request.session['inputdic'] = inputdic
-
-        return render_to_response('scenario_to_testfail.html',inputdic)
+        inputdict['scenario'] = name
+        request.session['inputdict'] = inputdict
+        return render_to_response('scenario_to_testfail.html',inputdict)
 
 
-#-------------------------------------------------------------------------------
 def catcompleted_sort(request):
 
-    #-------------------------------------------------------------------
     # Token Verification
     try:
-        if request.session['admintoken'] == False and request.session['usertoken'] == False:
+        if not request.session['admintoken'] and request.session['usertoken'] == False:
             return render_to_response('noaccess.html',{})
     except:
         return render_to_response('noaccess.html',{})
-
-    #-------------------------------------------------------------------
 
     # extract data
     instname = str(request.GET['instname'])
@@ -4559,45 +3791,35 @@ def catcompleted_sort(request):
     catcompleted = str(request.GET['catcompleted'])
     page = str(request.GET['page'])
 
-    instname = '0'
-    catrating = '0'
-    modelname = '0'
-
-    inputdic = request.session['inputdic']
-
-    scorelist = inputdic['inputlst']
-
-    name = inputdic['scenario']
-    if 'caseselection' in inputdic.keys():
-        caseselection = inputdic['caseselection']
+    instname = catrating = modelname = '0'
+    inputdict = request.session['inputdict']
+    scorelist = inputdict['input_list']
+    name = inputdict['scenario']
+    if 'caseselection' in inputdict.keys():
+        caseselection = inputdict['caseselection']
     else:
         caseselection = None
 
-
     # sort depending on various circumstances
-
     if catcompleted == '0':
         catcompleted = '1'
-
         count = 1
         temp = ''
+
         while count > 0:
             count = 0
             for i in range(len(scorelist)-1):
                 temp = ''
-                if float(scorelist[i][3]) < float(scorelist[i+1][3]) :
+                if float(scorelist[i][3]) < float(scorelist[i+1][3]):
                     temp = scorelist[i]
                     scorelist[i] = scorelist[i+1]
                     scorelist[i+1] = temp
-                    count = count + 1
-
-
-
+                    count += 1
     elif catcompleted == '1':
         catcompleted = '2'
-
         count = 1
         temp = ''
+
         while count > 0:
             count = 0
             for i in range(len(scorelist)-1):
@@ -4606,14 +3828,12 @@ def catcompleted_sort(request):
                     temp = scorelist[i]
                     scorelist[i] = scorelist[i+1]
                     scorelist[i+1] = temp
-                    count = count + 1
-
-
+                    count += 1
     elif catcompleted == '2':
         catcompleted = '1'
-
         count = 1
         temp = ''
+
         while count > 0:
             count = 0
             for i in range(len(scorelist)-1):
@@ -4622,150 +3842,106 @@ def catcompleted_sort(request):
                     temp = scorelist[i]
                     scorelist[i] = scorelist[i+1]
                     scorelist[i+1] = temp
-                    count = count + 1
+                    count += 1
 
+    sortinfo = [instname, modelname, catrating, catcompleted]
+    inputdict = {'input_list': scorelist, 'sortlst': sortinfo}
+    if caseselection is not None:
+        inputdict['caseselection'] = caseselection
 
-
-
-    sortinfo = []
-    sortinfo.append(instname)
-    sortinfo.append(modelname)
-    sortinfo.append(catrating)
-    sortinfo.append(catcompleted)
-
-    inputdic = {'inputlst':scorelist, 'sortlst':sortinfo}
-
-
-    if caseselection != None:
-        inputdic['caseselection'] = caseselection
-
-
-    request.session['inputdic'] = inputdic
-
-
+    request.session['inputdict'] = inputdict
 
     if page == 'category_leader':
-
-        scenario_lst = []
+        scenario_list = []
         for i in Case.objects.all():
-            if str(i.scenario) not in  scenario_lst:
-                scenario_lst.append(str(i.scenario))
+            if str(i.scenario) not in  scenario_list:
+                scenario_list.append(str(i.scenario))
 
-        inputdic['scenario_lst'] = scenario_lst
-        inputdic['scenario'] = name
-
-
-        request.session['inputdic'] = inputdic
-
-
-        return render_to_response('Leaderboard_scenario.html',inputdic)
+        inputdict['scenario_list'] = scenario_list
+        inputdict['scenario'] = name
+        request.session['inputdict'] = inputdict
+        return render_to_response('Leaderboard_scenario.html',inputdict)
 
     elif page == 'scenario_to_test':
-
-        inputdic['scenario'] = name
-        request.session['inputdic'] = inputdic
-
-        return render_to_response('scenario_to_test.html',inputdic)
+        inputdict['scenario'] = name
+        request.session['inputdict'] = inputdict
+        return render_to_response('scenario_to_test.html',inputdict)
 
     elif page =='scenario_to_test_fail':
+        inputdict['scenario'] = name
+        request.session['inputdict'] = inputdict
+        return render_to_response('scenario_to_testfail.html',inputdict)
 
-        inputdic['scenario'] = name
-        request.session['inputdic'] = inputdic
 
-        return render_to_response('scenario_to_testfail.html',inputdic)
-
-#-----------------------------------------------------------------------------
 def model_edit_info(request):
 
-    #------------------------------------------------------------------
     # Token Verification
     try:
-        if request.session['usertoken'] == False:
+        if not request.session['usertoken']:
             return render_to_response('noaccess.html',{})
     except:
         return render_to_response('noaccess.html',{})
-
-    #----------------------------------------------------------------
 
     description = str(request.session['active_model'].Description)
     name = request.session['active_model'].model_nameID
 
-    inputdic = {}
-    inputdic['description'] = description
-    inputdic['model_name'] = name
+    inputdict = {}
+    inputdict['description'] = description
+    inputdict['model_name'] = name
+    return render_to_response('edit_model_info.html',inputdict)
 
-    return render_to_response('edit_model_info.html',inputdic)
 
-#----------------------------------------------------------------------------
 def model_change_info(request):
 
-    #------------------------------------------------------------------
     # Token Verification
     try:
-        if request.session['usertoken'] == False:
+        if not request.session['usertoken']:
             return render_to_response('noaccess.html',{})
     except:
         return render_to_response('noaccess.html',{})
-
-    #----------------------------------------------------------------
 
     pw = str(request.GET['Password'])
     des = str(request.GET['description'])
     name = request.session['active_model'].model_nameID
-
-
     account = request.session['active_account']
     model = request.session['active_model']
-
     password = str(account.password)
 
-    inputdic = {}
-    inputdic['description'] = des
-    inputdic['model_name'] = name
+    inputdict = {}
+    inputdict['description'] = des
+    inputdict['model_name'] = name
 
     count = 0
     if pw != password:
-        count = count + 1
-        inputdic['passfail'] = True
-
+        count += 1
+        inputdict['passfail'] = True
 
     baddescription = r'^\s*$'
 
-    if re.match(baddescription,des) != None:
-        count = count + 1
-        inputdic['Fail1'] = True
-
+    if re.match(baddescription,des) is not None:
+        count += 1
+        inputdict['Fail1'] = True
 
     if count > 0:
-        return render_to_response('edit_model_info.html',inputdic)
-
-
-
-
+        return render_to_response('edit_model_info.html',inputdict)
 
     # If everything works out
-
     model.Description = des
     model.save()
-
     return render_to_response('model_info_updated.html')
 
-#----------------------------------------------------------------------------
+
 def model_Profile(request):
 
-    #-------------------------------------------------------------------
     # Token Verification
     try:
-        if request.session['admintoken'] == False and request.session['usertoken'] == False:
+        if not request.session['admintoken'] and request.session['usertoken'] == False:
             return render_to_response('noaccess.html',{})
     except:
         return render_to_response('noaccess.html',{})
 
-    #-------------------------------------------------------------------
-
     Account_in = str(request.GET['Account'])
     Model = str(request.GET['Model'])
-
     Active_account = Account.objects.get(username = Account_in)
     Active_model = Active_account.account_models.get(model_nameID = Model)
 
@@ -4774,85 +3950,71 @@ def model_Profile(request):
     description = str(Active_model.Description)
     username = str(Active_account.username)
 
-    modeldic = {'Name':Name,'Accountname':Accountname,'Description':description,'username':username}
+    model_dict = {
+        'Name': Name,
+        'Accountname': Accountname,
+        'Description': description,
+        'username': username
+    }
+    return render_to_response('model_Profile.html',model_dict)
 
-    return render_to_response('model_Profile.html',modeldic)
 
-#------------------------------------------------------------------------------
-def metric_description (request):
+def metric_description(request):
 
-    #------------------------------------------------------------------
     # Token Verification
     try:
-        if request.session['usertoken'] == False:
+        if not request.session['usertoken']:
             return render_to_response('noaccess.html',{})
     except:
         return render_to_response('noaccess.html',{})
-
-    #----------------------------------------------------------------
 
     return render_to_response('metric_description.html')
 
-#------------------------------------------------------------------------------
-def metric_description_nonactive (request):
 
-    #------------------------------------------------------------------
+def metric_description_nonactive(request):
+
     # Token Verification
     try:
-        if request.session['usertoken'] == False:
+        if not request.session['usertoken']:
             return render_to_response('noaccess.html',{})
     except:
         return render_to_response('noaccess.html',{})
-
-    #----------------------------------------------------------------
 
     return render_to_response('metric_description_nonactive.html')
 
-#------------------------------------------------------------------------------
-def metric_description_submissionreview (request):
 
-    #------------------------------------------------------------------
+def metric_description_submissionreview(request):
+
     # Token Verification
     try:
-        if request.session['usertoken'] == False:
+        if not request.session['usertoken']:
             return render_to_response('noaccess.html',{})
     except:
         return render_to_response('noaccess.html',{})
-
-    #----------------------------------------------------------------
 
     return render_to_response('metric_description_submissionreview.html')
 
-#------------------------------------------------------------------------------
-def reg_conditions(request):
 
+def reg_conditions(request):
     return render_to_response('regconditions.html')
 
 
-#----------------------------------------------------------------------------------------
 def DownloadParam(request):
 
-    #------------------------------------------------------------------
     # Token Verification
     try:
-        if request.session['usertoken'] == False:
+        if not request.session['usertoken']:
             return render_to_response('noaccess.html',{})
     except:
         return render_to_response('noaccess.html',{})
-
-    #----------------------------------------------------------------
-
 
     active_test = request.session['active_test']
     active_case = active_test.test_case
 
-
-
-
-    instring =   "Case_Name: " + active_case.case_name + '\r\n'
+    instring = "Case_Name: " + active_case.case_name + '\r\n'
     instring = instring + "Coordinate_System: WGS_84" + '\r\n'
-    instring =  instring + "Subject_Age: " +  active_case.Age + '\r\n'
-    instring =  instring +"Subject_Gender: " + active_case.Sex + '\r\n'
+    instring = instring + "Subject_Age: " +  active_case.Age + '\r\n'
+    instring = instring + "Subject_Gender: " + active_case.Sex + '\r\n'
     instring = instring + "Subject_Category: " + active_case.subject_category  + '\r\n'
     instring = instring + "Subject_Scenario: " + active_case.scenario + '\r\n'
     instring = instring + "Subject_SubCategory: " + active_case.subject_subcategory + '\r\n'
@@ -4863,7 +4025,7 @@ def DownloadParam(request):
     instring = instring + "Ecoregion_Domain: " + active_case.ecoregion_domain  + '\r\n'
     instring = instring + "Ecoregion_Division: " + active_case.ecoregion_division + '\r\n'
     instring = instring + "Total_Hours_Before_Location: " + active_case.total_hours  + '\r\n'
-    instring = instring +"Last_Known_Position: " + '('+active_case.lastlat + ',' +active_case.lastlon + ')'  + '\r\n'
+    instring = instring + "Last_Known_Position: " + '('+active_case.lastlat + ',' +active_case.lastlon + ')'  + '\r\n'
     instring = instring + "Number_Horizantal_Cells: " + active_case.sidecellnumber + '\r\n'
     instring = instring + "Number_Vertical_Cells: " + active_case.sidecellnumber + '\r\n'
     instring = instring + "Total_Number_Cells: " + active_case.totalcellnumber + '\r\n'
@@ -4874,119 +4036,80 @@ def DownloadParam(request):
     instring = instring + "Search_Region_Right_Lon: " + active_case.downright_lon + '\r\n'
     instring = instring + "Search_Region_Left_Lon: " + active_case.upleft_lon  + '\r\n'
 
-
-
     #image = Image.open(NameFile)
-
     #wrap = FileWrapper(NameFile)
 
     resp = HttpResponse(content_type = 'text/plain')
-
     #resp['Content-Length'] = os.path.getsize(NameFile)
-
     resp['Content-Disposition'] = 'attachment; filename= ScenarioParameters.txt'
-
     #image.save(resp,'png')
-
     resp.write(instring)
-
-
     return resp
 
-#----------------------------------------------------------------
+
 def UploadLayers(request):
 
-    #------------------------------------------------------------------
     # Token Verification
     try:
-        if request.session['admintoken'] == False:
+        if not request.session['admintoken']:
             return render_to_response('noaccess.html',{})
     except:
         return render_to_response('noaccess.html',{})
-
-    #----------------------------------------------------------------
-
 
     request.session['ActiveAdminCase'] = int(request.GET['id'])
-
     admincase = Case.objects.get(id = request.session['ActiveAdminCase'])
 
-    inputdic = {}
-    inputdic['id'] = request.session['ActiveAdminCase']
-    inputdic['Name'] =  admincase.case_name
-    inputdic.update(csrf(request))
+    inputdict = {}
+    inputdict['id'] = request.session['ActiveAdminCase']
+    inputdict['Name'] =  admincase.case_name
+    inputdict.update(csrf(request))
+    inputdict['layersexist'] = True if admincase.UploadedLayers else False
+    return render_to_response('UploadLayersMenu.html',inputdict)
 
-    if admincase.UploadedLayers == True:
-
-        inputdic['layersexist'] = True
-    else:
-        inputdic['layersexist'] = False
-
-    return render_to_response('UploadLayersMenu.html',inputdic)
-
-#---------------------------------------------------------------
 
 def upload_Layerfile(request):
-    #------------------------------------------------------------------
+
     # Token Verification
     try:
-        if request.session['admintoken'] == False:
+        if not request.session['admintoken']:
             return render_to_response('noaccess.html',{})
     except:
         return render_to_response('noaccess.html',{})
 
-    #----------------------------------------------------------------
     # Take in file - save to server
-
     admincase = Case.objects.get(id = request.session['ActiveAdminCase'])
-
     string = str(admincase.LayerField)
 
     if admincase.UploadedLayers == True:
-
         stream = "Layers/" + str(admincase.id) +'_' + str(admincase.case_name)
-
         os.remove(string)
         shutil.rmtree(stream)
-
         admincase.UploadedLayers = False
         admincase.save()
 
-    destination = open(string,'wb+')
-
-    for chunk in request.FILES['caselayer'].chunks():
-        destination.write(chunk)
-    destination.close()
+    with open(string,'wb+') as destination:
+        for chunk in request.FILES['caselayer'].chunks():
+            destination.write(chunk)
 
     admincase.UploadedLayers = True
     admincase.save()
 
-
-
     zippin = zipfile.ZipFile(string,'r')
-
     stream = "Layers/" + str(admincase.id) +'_' + str(admincase.case_name)
-
     zippin.extractall(stream)
-
-
 
     return render_to_response('CaseLayersComplete.html')
 
 
-
-#---------------------------------------------------------------
 def DownloadLayers(request):
 
-    #------------------------------------------------------------------
     # Token Verification
     try:
-        if request.session['usertoken'] == False:
+        if not request.session['usertoken']:
             return render_to_response('noaccess.html',{})
     except:
         return render_to_response('noaccess.html',{})
 
-    #----------------------------------------------------------------
     active_test = request.session['active_test']
     active_case = active_test.test_case
     string = str(active_case.LayerField)
@@ -4995,15 +4118,15 @@ def DownloadLayers(request):
     zippin.close()
     buff = cStringIO.StringIO()
     zippin2 = zipfile.ZipFile(buff,'w',zipfile.ZIP_DEFLATED)
-    for name in zippinlst:
 
+    for name in zippinlst:
         stream = "Layers/" + str(active_case.id) +'_' + str(active_case.case_name) + "/" + name
         for i in range(len(name)-1):
             if name[i] == '/':
                 term = i
                 break
 
-        name2 = name[term+1:len(name)]
+        name2 = name[term+1: len(name)]
         if not stream[len(stream)-1] == '/':
             filein = open(stream,'rb')
             zippin2.writestr(name2,filein.read())
@@ -5016,52 +4139,39 @@ def DownloadLayers(request):
     resp = HttpResponse( content_type = 'application/zip')
     resp['Content-Disposition'] = 'attachment; filename= Layers.zip'
     resp.write(writeinfo)
-
     return resp
 
-#-------------------------------------------------------------------------------
+
 def delete_Layers(request):
 
-
-    #------------------------------------------------------------------
     # Token Verification
     try:
-        if request.session['admintoken'] == False:
+        if not request.session['admintoken']:
             return render_to_response('noaccess.html',{})
     except:
         return render_to_response('noaccess.html',{})
 
-    #----------------------------------------------------------------
-
     # Take in file - save to server
-
     admincase = Case.objects.get(id = request.session['ActiveAdminCase'])
-
     string = str(admincase.LayerField)
-
     stream = "Layers/" + str(admincase.id) +'_' + str(admincase.case_name)
-
     os.remove(string)
     shutil.rmtree(stream)
 
     admincase.UploadedLayers = False
     admincase.save()
-
     return redirect("/admin_cases/")
 
-#---------------------------------------------------------------
+
 def DownloadLayersadmin(request):
 
-
-    #------------------------------------------------------------------
     # Token Verification
     try:
-        if request.session['admintoken'] == False:
+        if not request.session['admintoken']:
             return render_to_response('noaccess.html',{})
     except:
         return render_to_response('noaccess.html',{})
 
-    #----------------------------------------------------------------
     active_case = Case.objects.get(id = request.session['ActiveAdminCase'])
 
     string = str(active_case.LayerField)
@@ -5078,7 +4188,7 @@ def DownloadLayersadmin(request):
                 term = i
                 break
 
-        name2 = name[term+1:len(name)]
+        name2 = name[term+1: len(name)]
 
         if not stream[len(stream)-1] == '/':
             filein = open(stream,'rb')
@@ -5088,27 +4198,25 @@ def DownloadLayersadmin(request):
     buff.flush()
     writeinfo = buff.getvalue()
     buff.close()
-    resp = HttpResponse( content_type = 'application/zip')
+
+    resp = HttpResponse(content_type='application/zip')
     resp['Content-Disposition'] = 'attachment; filename= Layers.zip'
     resp.write(writeinfo)
-
     return resp
 
 
-#--------------------------------------------------------------------------------
 def casetypeselect(request):
     AUTHENTICATE()
-
     name_lst = sorted(set([str(x.case_name) for x in Case.objects.all()]))
     type_lst = sorted(set([str(x.subject_category) for x in Case.objects.all()]))
-    return render_to_response('Testselect.html',{'names':name_lst, 'types':type_lst})
+    return render_to_response('Testselect.html',{'names': name_lst, 'types': type_lst})
 
-#--------------------------------------------------------------------------------
+
 def TesttypeSwitch(request):
     AUTHENTICATE()
 
     selection = request.GET['typein2']
-    if selection ==0:
+    if selection == 0:
         return redirect("/casetypeselect/")
 
     for i in Case.objects.all():
@@ -5117,54 +4225,53 @@ def TesttypeSwitch(request):
             havecase = False
             for j in request.session['active_model'].model_tests.all():
                 if i.case_name == j.test_case.case_name:
-                    counter01 = counter01+1
+                    counter01 += 1
 
             if counter01 == 0:
                 request.session['active_case_temp'] = i
                 havecase = True
                 break
 
-    if havecase == False:
-        return render_to_response('nomorecasestype.html',{'selection':selection})
+    if not havecase:
+        return render_to_response('nomorecasestype.html',{'selection': selection})
 
     return redirect("/new_test/")
 
-#--------------------------------------------------------------------------------
+
 def TestNameSwitch(request):
     AUTHENTICATE()
+
     selection = request.GET['casename']
-    if selection ==0:
+    if selection == 0:
         return redirect("/casetypeselect/")
 
-    havecase = False
     try:
         request.session['active_case_temp'] = Case.objects.get(case_name=selection)
         return redirect("/new_test/")
     except Case.DoesNotExist:
-        return render_to_response('nomorecasestype.html',{'selection':selection})
-    else:
-        # Multiple Cases Found -- Pick the first
+        return render_to_response('nomorecasestype.html',{'selection': selection})
+    else:  # multiple cases found; pick the first
         cases = Case.objects.filter(case_name = selection)
         request.session['active_case_temp'] = cases[0]
         return redirect("/new_test/")
 
-#--------------------------------------------------------------------------------
 
 def NextSequentialTestSwitch(request):
     AUTHENTICATE()
 
-    for i in Case.objects.all():
+    for case in Case.objects.all():
         counter01 = 0
         havecase = False
         for j in request.session['active_model'].model_tests.all():
-            if i.case_name == j.test_case.case_name:
-                counter01 = counter01+1
+            if case.case_name == j.test_case.case_name:
+                counter01 += 1
 
         if counter01 == 0:
-            request.session['active_case_temp'] = i
+            request.session['active_case_temp'] = case
             havecase = True
             break
-    if havecase == False:
+
+    if not havecase:
         return render_to_response('nomorecases.html')
 
     return redirect("/new_test/")
