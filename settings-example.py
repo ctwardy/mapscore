@@ -1,4 +1,7 @@
-# Django settings for MapRateWeb project.
+"""
+Django settings for MapRateWeb project.
+
+"""
 import os
 
 DEBUG = True
@@ -17,7 +20,9 @@ DATABASES = {
         # 'ENGINE': 'postgresql_psycopg2',
         # 'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': 'probmap',  # Or path to database file if using sqlite3.
+        # db name, or path to database file if using sqlite3
+        # 'NAME': 'probmap',
+        'NAME': 'database/website_data.db',
         'USER': 'probmap',  # Not used with sqlite3.
         'PASSWORD': 'probmap',  # Not used with sqlite3.
         'HOST': 'localhost',  # Set to empty string for localhost. Not used with sqlite3.
@@ -140,6 +145,7 @@ LOGGING = {
     'handlers': {
         'mail_admins': {
             'level': 'ERROR',
+            'filters': [],
             'class': 'django.utils.log.AdminEmailHandler'
         }
     },
@@ -147,6 +153,7 @@ LOGGING = {
         'django.request': {
             'handlers': ['mail_admins'],
             'level': 'ERROR',
+            'filters': [],
             'propagate': True,
         },
     }
