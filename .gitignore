@@ -1,6 +1,7 @@
 *.pyc
 *.[oa]
 *~
+database/*
 media/t*png
 media/profpic*png
 todo.txt
@@ -13,5 +14,4 @@ probmap
 *.png
 
 arc-models/lognorm_summary.pdf
-
 arc-models/motion_model_flymake.py
