@@ -347,26 +347,33 @@ class Model(models.Model):
 
 
 class Account(models.Model):
-    sessionticker = models.CharField(max_length=30)
-    completedtests = models.CharField(max_length=30)
-    photolocation = models.CharField(max_length=30)
-    photourl = models.CharField(max_length=30)
-    institution_name = models.CharField(max_length=40)
     firstname_user = models.CharField(max_length=30)
     lastname_user = models.CharField(max_length=30)
     username = models.CharField(max_length=30)
-    password  = models.CharField(max_length=30)
-    account_models = models.ManyToManyField(Model, through='ModelAccountLink')
+    password = models.CharField(max_length=30)
+    institution_name = models.CharField(max_length=40)
     Email = models.EmailField()
     Website = models.URLField()
+
+    photosizex = models.SmallIntegerField(default=0)
+    photosizey = models.SmallIntegerField(default=0)
+    photolocation = models.CharField(max_length=30)
+    photourl = models.CharField(max_length=30)
+
+    account_models = models.ManyToManyField(Model, through='ModelAccountLink')
     ID2 = models.CharField(max_length=100)
-    photosizex = models.CharField(max_length=10)
-    photosizey = models.CharField(max_length=10)
-    deleted_models = models.CharField(max_length=10)
-    profpicrefresh =  models.CharField(max_length=10)
+
+    sessionticker = models.SmallIntegerField(default=0)
+    completedtests = models.SmallIntegerField(default=0)
+    deleted_models = models.SmallIntegerField(default=0)
+    profpicrefresh = models.SmallIntegerField(default=0)
 
     class Meta:
         db_table = 'account'
+
+    @property
+    def user_fullname(self):
+        return '{} {}'.format(self.firstname_user, self.lastname_user).strip()
 
 
 class ModelAccountLink(models.Model):

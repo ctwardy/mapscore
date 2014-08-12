@@ -112,11 +112,12 @@ def main_page(request):
     for model in sorted_models:
         num_finished = sum((not test.Active for test in model.model_tests.all()))
         if num_finished >= 5:
-            inputlist.append(
-                [model.account_set.all()[0].institution_name,
-                 model.model_nameID,
-                 model.model_avgrating,
-                 num_finished])
+            inputlist.append([
+                model.account_set.all()[0].institution_name,
+                model.model_nameID,
+                model.model_avgrating,
+                num_finished
+            ])
 
     # Limit to Top-10
     inputdict = {'Scorelist': inputlist[:9]}
@@ -130,31 +131,30 @@ def account_reg(request):
 def create_account(request):
 
     # Extract form Data
-    Firstname = str(request.GET['FirstName'])
-    Lastname = str(request.GET['LastName'])
-    Email_in = str(request.GET['Email'])
-    Institution = str(request.GET['Institution'])
-    Username = str(request.GET['Username'])
-    Password1 = str(request.GET['Password1'])
-    Password2 = str(request.GET['Password2'])
-    Websitein = str(request.GET['Website'])
-    #betakey = str(request.GET['Betakey'])
-    captchain = str(request.GET['captcha'])
+    Firstname = request.GET['FirstName']
+    Lastname = request.GET['LastName']
+    Email_in = request.GET['Email']
+    Institution = request.GET['Institution']
+    Username = request.GET['Username']
+    Password1 = request.GET['Password1']
+    Password2 = request.GET['Password2']
+    Websitein = request.GET['Website']
+    captchain = request.GET['captcha']
 
-    #Verify Input
+    # Verify Input
 
     # Beta Key ************
     actualbetakey = 'sarbayes334$$beta%Test'
-    betakey = actualbetakey     # Disable betakey
+    betakey = actualbetakey  # Disable betakey
 
     Firstname_r = r'^.+$'
     Lastname_r  = r'^.+$'
     Email_in_r  = r'^[a-zA-z0-9\.\-]+@[a-zA-z0-9\-]+[\.a-zA-z0-9\-]+$'
     Institution_r = r"^[a-zA-z\s:0-9']+$"
     Username_r = r'^[a-zA-z0-9_]+$'
-    Password1_r =r'^.+$'
-    Password2_r =r'^.+$'
-    Websitein_r =r'.*$'
+    Password1_r = r'^.+$'
+    Password2_r = r'^.+$'
+    Websitein_r = r'.*$'
     actualcaptcha = 'H4bN'
 
     # Verify input
@@ -172,46 +172,38 @@ def create_account(request):
 
     if re.match(Firstname_r, Firstname) is None:
         count += 1
-        firstfail = True
-        inputdict['firstfail'] = firstfail
-
+        inputdict['firstfail'] = True
 
     if re.match(Lastname_r, Lastname) is None:
         count += 1
-        lastfail = True
-        inputdict['lastfail'] = lastfail
+        inputdict['lastfail'] = True
 
     if re.match(Email_in_r, Email_in) is None:
         count += 1
-        emailfail = True
-        inputdict['emailfail'] = emailfail
+        inputdict['emailfail'] = True
 
     if re.match(Institution_r, Institution) is None:
         count += 1
-        Institutionfail = True
-        inputdict['Institutionfail'] = Institutionfail
-
+        inputdict['Institutionfail'] = True
 
     if re.match(Username_r, Username) is None:
         count += 1
-        usernamefail = True
-        inputdict['usernamefail'] = usernamefail
+        inputdict['usernamefail'] = True
 
     if captchain != actualcaptcha:
         count += 1
-        captchafail = True
-        inputdict['captchafail'] = captchafail
+        inputdict['captchafail'] = True
 
     if betakey == actualbetakey:
         # For Beta Testing
         # don't allow multiple groups to have more than one username
         counter = 0
-        for c in Account.objects.all():
-            if Username == str(c.username):
+        for account in Account.objects.all():
+            if Username == str(account.username):
                 counter += 1
 
-        for d in TerminatedAccounts.objects.all():
-            if Username == str(d.username):
+        for terminated_account in TerminatedAccounts.objects.all():
+            if Username == str(terminated_account.username):
                 counter += 1
 
         if counter > 0:
@@ -233,86 +225,53 @@ def create_account(request):
 
     if Password1 != Password2:
         count += 1
-        passsyncfail = True
-        inputdict['passsyncfail'] = passsyncfail
+        inputdict['passsyncfail'] = True
 
     if count > 0:
-
         inputdict['fail'] = True
         return render_to_response('NewAccount.html', inputdict)
 
-
-
-
     # Create User
-
-
-
-    user = User.objects.create_user(username = Username,
-                    email = Email_in,
-                    password = Password1)
+    user = User.objects.create_user(
+        username=Username,
+        email=Email_in,
+        password=Password1)
 
     user.is_active = True
     user.save()
 
-
-
     #Create Account
-
     if Websitein == '':
         Websitein = 'none'
 
+    account = Account(
+        institution_name=Institution,
+        firstname_user=Firstname,
+        lastname_user=Lastname,
+        username=Username,
+        password =Password1,
+        Email=Email_in,
+        ID2=Username,
+        Website=Websitein)
 
-    account = Account(institution_name = Institution,
-            firstname_user = Firstname,
-            lastname_user = Lastname,
-            username = Username,
-            password  = Password1,
-            Email = Email_in,
-            ID2 = Username,
-            Website = Websitein,
-            sessionticker = 0,
-            completedtests = 0,
-            deleted_models = 0,
-            profpicrefresh = 0,
-
-                )
     account.save()
 
-
-
-
-
     # Set up profile pic locations
-
-    ID2 = account.ID2
-    stringurl = '/media/profpic_'
-    stringurl = stringurl + str(ID2)+'_'+ str(account.profpicrefresh) + '.png'
-    account.photourl = stringurl
-
-
-    stringlocation = 'media/profpic_' + str(ID2) + '_'+ str(account.profpicrefresh) + '.png'
-    #'C:\Users\Nathan Jones\Django Website\MapRateWeb\media\profpic_' + str(ID2) + '.png'
-    account.photolocation = stringlocation
-
-
+    account.photourl = '/media/profpic_{}_{}.png'.format(
+        account.ID2, account.profpicrefresh)
+    account.photolocation = 'media/profpic_{}_{}.png'.format(
+        account.ID2, account.profpicrefresh)
     account.save()
 
     # set default profpic
-    #shutil.copyfile('C:\Users\Nathan Jones\Django Website\MapRateWeb\in_images\Defaultprofpic.png', stringlocation)
-    shutil.copyfile('in_images/Defaultprofpic.png', stringlocation)
+    shutil.copyfile('in_images/Defaultprofpic.png', account.photolocation)
 
     # Save image size parameters
-    im = Image.open(account.photolocation)
-    size = im.size
-    xsize = size[0]
-    ysize = size[1]
-
-    account.photosizex = int(xsize)
-    account.photosizey = int(ysize)
+    img = Image.open(account.photolocation)
+    account.photosizex, account.photosizey = img.size
     account.save()
 
-    request.session['active_account'] =  account
+    request.session['active_account'] = account
     return redirect('/uploadprofpic/')
 
 
@@ -1576,32 +1535,27 @@ def Account_Profile(request):
     authenticate(request)
 
     Account_in = request.GET['Account']
-    Active_account = Account.objects.get(username = Account_in)
+    active_account = Account.objects.get(username=Account_in)
 
-    Name = str(Active_account.institution_name)
-    Email = str(Active_account.Email)
-    RegisteredUser = str(Active_account.firstname_user) + ' ' + str(Active_account.lastname_user)
-    website = str(Active_account.Website)
-    profpic = str(Active_account.photourl)
-
-    inputdict = {'Name': Name, 'Email': Email, 'RegisteredUser': RegisteredUser, 'website': website, 'profpic': profpic}
+    inputdict = {
+        'Name': active_account.institution_name,
+        'Email': active_account.Email,
+        'RegisteredUser': active_account.user_fullname,
+        'website': active_account.Website,
+        'profpic': active_account.photourl,
+        'xsize': active_account.photosizex,
+        'ysize': active_account.photosizey
+    }
 
     if website !='none':
         inputdict['websitexists'] = True
 
-    inputdict['xsize'] = int(Active_account.photosizex)
-    inputdict['ysize'] = int(Active_account.photosizey)
-
     # get model descriptions
-    modellst = []
-    for i in Active_account.account_models.all():
-        templst = []
-        templst.append(i.model_nameID)
-        templst.append(i.Description)
-        templst.append(Account_in)
-        modellst.append(templst)
+    model_list = []
+    for acct in active_account.account_models.all():
+        model_list.append(acct.model_nameID, acct.Description, Account_in)
 
-    inputdict['modellst'] = modellst
+    inputdict['model_list'] = model_list
     return render_to_response('Account_Profile.html', inputdict)
 
 
@@ -1645,10 +1599,12 @@ def case_hyperin(request):
 
 
 def upload_casefile(request):
-    # bulk add new cases to the database
-    # should use a CSV file, most easily generated in Excel
-    # Comma separated and quotes for text delimiter
-    # be tolerant about use of carriage returns (win vs mac vs linux)
+    """Bulk add new cases to the database.
+    Should use a CSV file (with quotes for text delimiter), since this is easily
+    generated in Excel. The reader is tolerant about use of carriage returns
+    (win vs mac vs linux).
+
+    """
     authenticate_admin(request)
 
     file = request.FILES['casecsv']
@@ -1666,32 +1622,32 @@ def upload_casefile(request):
 
     for row in data:
         new_case = Case(
-            case_name = row[0],
-            key = row[1],
-            country = row[2],
-            state =     row[3],
-            county = row[4],
-            populationdensity = row[5],
-            weather = row[6],
-            subject_category = row[7],
-            subject_subcategory = row[8],
-            scenario  = row[9],
-            subject_activity = row[10],
-            Age = row[11],
-            Sex = row[12],
-            number_lost = row[13],
-            group_type = row[14],
-            ecoregion_domain = row[15],
-            ecoregion_division = row[16],
-            terrain = row[17],
-            lastlat = row[18],
-            lastlon = row[19],
-            findlat = row[20],
-            findlon = row[21],
-            total_hours = row[22],
-            notify_hours = row[23],
-            search_hours = row[24],
-            comments = row[25]
+            case_name=row[0],
+            key=row[1],
+            country=row[2],
+            state=row[3],
+            county=row[4],
+            populationdensity=row[5],
+            weather=row[6],
+            subject_category=row[7],
+            subject_subcategory=row[8],
+            scenario =row[9],
+            subject_activity=row[10],
+            Age=row[11],
+            Sex=row[12],
+            number_lost=row[13],
+            group_type=row[14],
+            ecoregion_domain=row[15],
+            ecoregion_division=row[16],
+            terrain=row[17],
+            lastlat=row[18],
+            lastlon=row[19],
+            findlat=row[20],
+            findlon=row[21],
+            total_hours=row[22],
+            notify_hours=row[23],
+            search_hours=row[24],
+            comments=row[25]
         )
 
         # look and see if this case already exists, ignore it if it does
@@ -1754,7 +1710,11 @@ def edit_user(request):
     Lastname_in = str(Account.lastname_user)
     Email_in = str(Account.Email)
 
-    inputdict = {'Firstname_in': Firstname_in, 'Lastname_in': Lastname_in, 'Email_in': Email_in}
+    inputdict = {
+        'Firstname_in': Account.firstname_user,
+        'Lastname_in': Account.lastname_user,
+        'Email_in': Account.Email
+    }
     return render_to_response('account_useredit.html', inputdict)
 
 
