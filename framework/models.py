@@ -31,17 +31,25 @@ Google Static Maps API URLs must be of the following form:
 see the docs at: https://developers.google.com/maps/documentation/staticmaps/
 for more details.
 
+Some other marker options::
+
+    "&markers=color:green%7Clabel:A%7c{upleft_lat},{upleft_lon}"
+    "&markers=color:green%7Clabel:B%7c{upright_lat},{upright_lon}"
+    "&markers=color:green%7Clabel:C%7c{downright_lat},{downright_lon}"
+    "&markers=color:green%7Clabel:D%7c{downleft_lat},{downleft_lon}"
+
 """
 GOOGLE_STATIC_MAPS_URL_TEMPLATE ="\
 http://maps.googleapis.com/maps/api/staticmap?\
-size=500x500&maptype=hybrid&sensor=false&\
-center={center_lat},{center_lon}&\
-path=color:0x0000ff|weight:5|\
+size=500x500&maptype=hybrid&sensor=false\
+&center={lastlat},{lastlon}\
+&path=color:0x0000ff|weight:5|\
 {upleft_lat},{upleft_lon}|\
 {upright_lat},{upright_lon}|\
 {downright_lat},{downright_lon}|\
 {downleft_lat},{downleft_lon}|\
-{upleft_lat},{upleft_lon}"
+{upleft_lat},{upleft_lon}\
+&markers=color:red%7Clabel:L%7c{lastlat},{lastlon}"
 
 GOOGLE_STATIC_MAPS_URL_FIND_TEMPLATE = (GOOGLE_STATIC_MAPS_URL_TEMPLATE +
     "&markers=color:yellow%7Clabel:F%7c{findlat},{findlon}")
@@ -134,7 +142,7 @@ class Case(models.Model):
 
         #Generate boundary Coordinates
         Hor_step = self.GreatSphere(LastLat)
-        ver_step = float(cellside_m) / 111122.19769903777
+        ver_step = float(cellside_m) / 111122.19769903777  # what's this number?
         self.horstep = Hor_step
         self.verstep = ver_step
 
@@ -171,7 +179,6 @@ class Case(models.Model):
         # for i in (range(self.sidecellnumber)):
         #     LatList.append(LatList[i] - ver_step)
 
-
         # Screen Coords of FindLoc, with (0,0) in the top left
         self.findx = int((FindLon - leftbound) / Hor_step)
         self.findy = int((upbound - FindLat) / ver_step)
@@ -179,14 +186,13 @@ class Case(models.Model):
 
         # We used to show FindLoc only for the first 20 trials
         # but right now we are always showing it.
-        #if self.id <= 20:
-        #    self.showfind = True
         self.showfind = True
 
         # Try to fill in a missing Total_Time
         if str(self.total_hours).lower() == 'unknown':
             try:
-                self.total_hours = float(self.notify_hours) + float(self.search_hours)
+                self.total_hours = (float(self.notify_hours) +
+                                    float(self.search_hours))
             except ValueError:
                 pass
 
@@ -196,29 +202,9 @@ class Case(models.Model):
 
     def generate_image_url(self):
         """Generates image URL using Google Maps """
-        sidepixels = 500
-        #Generate url
-        url = 'http://maps.google.com/maps/api/staticmap?center='
-        url = url + str(self.lastlat) + ',' + str(self.lastlon)
-        url = url + '&size=' + str(sidepixels) +'x' + str(sidepixels)
-        url = url + '&path=color:0x0000ff|weight:5'
-        url = url + '|' + str(self.upleft_lat) + ',' +str(self.upleft_lon) + '|'
-        url = url + str(self.upright_lat) + ',' +str(self.upright_lon) + '|'
-        url = url + str(self.downright_lat) + ',' +str(self.downright_lon) + '|'
-        url = url + str(self.downleft_lat) + ',' +str(self.downleft_lon)
-        url = url + '|' + str(self.upleft_lat) + ',' +str(self.upleft_lon)
-        url = url + "&markers=color:red%7Clabel:L%7c" + str(self.lastlat) + ',' + str(self.lastlon)
-        #url = url + "&markers=color:green%7Clabel:A%7c" + str(self.upleft_lat) + ',' +str(self.upleft_lon)
-        #url = url + "&markers=color:green%7Clabel:B%7c" + str(self.upright_lat) + ',' +str(self.upright_lon)
-        #url = url +   "&markers=color:green%7Clabel:C%7c" + str(self.downright_lat) + ',' +str(self.downright_lon)
-        #url = url +   "&markers=color:green%7Clabel:D%7c" + str(self.downleft_lat) + ',' +str(self.downleft_lon)
-
-        URLfind = url +  "&markers=color:yellow%7Clabel:F%7c" + str(self.findlat) + ',' +str(self.findlon)
-
-        url = url + '&maptype=hybrid&sensor=false'
-        URLfind = URLfind + '&maptype=hybrid&sensor=false'
-        self.URL = url
-        self.URLfind = URLfind
+        attrs = self.__dict__
+        self.URL = GOOGLE_STATIC_MAPS_URL_TEMPLATE.format(**attrs)
+        self.URLfind = GOOGLE_STATIC_MAPS_URL_FIND_TEMPLATE.format(**attrs)
 
 
 class Test(models.Model):
