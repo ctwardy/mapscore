@@ -1,6 +1,18 @@
 #!/usr/env/python
-# models.py
+"""
+This module contains the data models for the mapscore application. The following
+models are defined:
 
+1.  Account
+2.  Case
+3.  Mainhits
+4.  Model
+5.  Model_Account_Link
+6.  Test
+7.  Test_Model_Link
+8.  TerminatedAccounts
+
+"""
 import os
 import math
 import random
@@ -11,8 +23,31 @@ from django import forms
 from django.db import models
 
 
-class Case(models.Model):
+"""
+Google Static Maps API URLs must be of the following form:
 
+    http://maps.googleapis.com/maps/api/staticmap?parameters
+
+see the docs at: https://developers.google.com/maps/documentation/staticmaps/
+for more details.
+
+"""
+GOOGLE_STATIC_MAPS_URL_TEMPLATE ="\
+http://maps.googleapis.com/maps/api/staticmap?\
+size=500x500&maptype=hybrid&sensor=false&\
+center={center_lat},{center_lon}&\
+path=color:0x0000ff|weight:5|\
+{upleft_lat},{upleft_lon}|\
+{upright_lat},{upright_lon}|\
+{downright_lat},{downright_lon}|\
+{downleft_lat},{downleft_lon}|\
+{upleft_lat},{upleft_lon}"
+
+GOOGLE_STATIC_MAPS_URL_FIND_TEMPLATE = (GOOGLE_STATIC_MAPS_URL_TEMPLATE +
+    "&markers=color:yellow%7Clabel:F%7c{findlat},{findlon}")
+
+
+class Case(models.Model):
     country = models.CharField(max_length=50)
     state =  models.CharField(max_length=50)
     county = models.CharField(max_length=50)
@@ -78,9 +113,9 @@ class Case(models.Model):
         """
         lat = math.radians(float(lat_in))
         distance_translated = 5
-        earth_radius_meters = 6372.8 *1000
+        earth_radius_meters = 6372.8 * 1000
 
-        num = 1 - math.cos(distance_translated/earth_radius_meters)
+        num = 1 - math.cos(distance_translated / earth_radius_meters)
         denom = math.pow(math.cos(lat), 2)
         full = 1 - (num / denom)
         rad_diff = math.acos(full)
