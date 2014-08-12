@@ -1,7 +1,8 @@
 # -*- mode: python; py-indent-offset: 4 -*-
-#
-# MapScore Main Views File
+"""
+MapScore Main Views File
 
+"""
 # Stdlib Imports
 import re
 import os
@@ -47,20 +48,25 @@ def base_redirect(response):
     return redirect('/main/')
 
 
-def AUTHENTICATE(token='usertoken'):
-    """Token is either 'usertoken' or 'admintoken'"""
-    # TODO: fix because I don't think this works without passing the request object
+def _authenticate(request, token_type):
     try:
-        if not request.session[token]:
+        if not request.session[token_type]:
             return render_to_response('noaccess.html', {})
     except:
         return render_to_response('noaccess.html', {})
 
+def authenticate_user(request):
+    _authenticate(request, 'usertoken')
 
-def AUTHENTICATE_EITHER():
+
+def authenticate_admin(request):
+    _authenticate(request, 'admintoken')
+
+
+def authenticate(request):
     """Authenticates with either 'usertoken' or 'admintoken'."""
     try:
-        if not request.session['admintoken'] and request.session['usertoken'] == False:
+        if any((request.session['admintoken'], request.session['usertoken'])):
             return render_to_response('noaccess.html', {})
     except:
         return render_to_response('noaccess.html', {})
@@ -356,7 +362,7 @@ def account_access(request):
         else:  # user does not exist
             return render_to_response('IncorrectLogin.html', {})
     else:
-        AUTHENTICATE()
+        authenticate_user(request)
 
         model_list = []
         for i in request.session['active_account'].account_models.all():
@@ -373,7 +379,7 @@ def account_access(request):
 
 
 def batch_test_upload(request):
-    AUTHENTICATE() # does not work ??
+    authenticate_user(request) # does not work ??
     try:
          if not request.session['admintoken'] and request.session['usertoken'] == False:
              return render_to_response('noaccess.html', {})
@@ -428,7 +434,7 @@ def batch_test_upload(request):
 
 
 def batch_test_upload_final(request):
-    AUTHENTICATE() # this functions doesn't work, needs fixen'
+    authenticate_user(request) # this functions doesn't work, needs fixen'
 
     try:
          if not request.session['admintoken'] and request.session['usertoken'] == False:
@@ -568,15 +574,15 @@ def process_batch_tests(request):
 
 
 def model_regform(request):
-    AUTHENTICATE()
+    authenticate_user(request)
     return render_to_response('NewModel.html', {})
 
 
-def PasswordReset(request):
+def password_reset(request):
     return render_to_response('PasswordReset.html', {})
 
 
-def CollectingData(request):
+def collecting_data(request):
     return render_to_response('CollectingData.html', {})
 
 
@@ -594,7 +600,7 @@ def emaillink(request):
 
 
 def model_created(request):
-    AUTHENTICATE()
+    authenticate_user(request)
 
     # if page refresh
     if request.session['createcheck'] == True:
@@ -650,7 +656,7 @@ def model_created(request):
 
 
 def model_access(request):
-    AUTHENTICATE()
+    authenticate_user(request)
 
     request.session['active_case_temp'] = 'none'
     request.session['active_test'] = 'none'
@@ -748,13 +754,13 @@ def admin_account(request):
             return render_to_response('IncorrectLogin.html', {})
 
     elif request.session['Superlogin']:
-        AUTHENTICATE(token='admintoken')
+        authenticate_admin(request)
         request.session['active_account'] = 'superuser'
         return render_to_response('AdminScreen.html', {})
 
 
 def testcase_admin(request):
-    AUTHENTICATE(token='admintoken')
+    authenticate_admin(request)
 
     for case in Case.objects.filter(UploadedLayers = False):
         if os.path.exists(str(case.LayerField)):
@@ -779,14 +785,14 @@ def testcase_admin(request):
 
 
 def Casereg(request):
-    AUTHENTICATE(token='admintoken')
+    authenticate_admin(request)
     inputdict = {}
     inputdict.update(csrf(request))
     return render_to_response('Casereg.html', inputdict)
 
 
 def newtest(request):
-    AUTHENTICATE()
+    authenticate_user(request)
 
     # Use names requested by TestWelcome.html so we can use locals() later.
     case = request.session['active_case_temp']
@@ -827,7 +833,7 @@ def newtest(request):
 
 
 def create_test(request):
-    AUTHENTICATE()
+    authenticate_user(request)
 
     # If refresh
     if request.session['createcheck'] == True:
@@ -885,7 +891,7 @@ def active_test(request):
     TODO: there is no need to define all these local variables.
 
     """
-    AUTHENTICATE()
+    authenticate_user(request)
 
     active_test = request.session['active_test']
     print str(active_test.nav) + '-----nav'
@@ -945,7 +951,7 @@ def active_test(request):
 
 
 def load_image(request):
-    AUTHENTICATE()
+    authenticate_user(request)
 
     # increment counter
     active_test = request.session['active_test']
@@ -968,7 +974,7 @@ def load_image(request):
 
 
 def confirm_grayscale(request):
-    AUTHENTICATE()
+    authenticate_user(request)
 
     # Verify Image
     image_in = Image.open(request.session['active_test'].grayscale_path)
@@ -1003,7 +1009,7 @@ def confirm_grayscale(request):
 
 
 def denygrayscale_confirm(request):
-    AUTHENTICATE()
+    authenticate_user(request)
 
     # Remove served Grayscale image
     os.remove(request.session['active_test'].grayscale_path)
@@ -1015,7 +1021,7 @@ def denygrayscale_confirm(request):
 
 
 def acceptgrayscale_confirm(request):
-    AUTHENTICATE()
+    authenticate_user(request)
 
     # iterate counter
     request.session['active_test'].grayrefresh = int(request.session['active_test'].grayrefresh) + 1
@@ -1044,7 +1050,7 @@ def acceptgrayscale_confirm(request):
 
 
 def Rate(request):
-    AUTHENTICATE()
+    authenticate_user(request)
     response = request.session['active_test'].rate()
 
     # Resync Model
@@ -1068,7 +1074,7 @@ def show_find_pt(URL2):
 
 
 def submissionreview(request):
-    AUTHENTICATE()
+    authenticate_user(request)
 
     request.session['active_model'].Completed_cases = int(request.session['active_model'].Completed_cases) + 1
     request.session['active_model'].save()
@@ -1134,7 +1140,7 @@ def submissionreview(request):
 
 
 def setcompletedtest(request):
-    AUTHENTICATE()
+    authenticate_user(request)
 
     intest_raw = str(request.GET['Nonactive_Testin'])
     intest = intest_raw.strip()
@@ -1157,7 +1163,7 @@ def setcompletedtest(request):
 
 
 def nonactivetest(request):
-    AUTHENTICATE()
+    authenticate_user(request)
 
     active_test = request.session['active_test']
     active_case = active_test.test_case
@@ -1254,12 +1260,11 @@ def confidence_interval(scores):
 
 def Leader_model(request):
     """Create the leaderboard."""
-    AUTHENTICATE_EITHER()
-
-    sorted_models = get_sorted_models(Model.objects.all())
+    authenticate(request)
 
     # Build Leaderboard
     inputlist = []
+    sorted_models = get_sorted_models(Model.objects.all())
     for model in sorted_models:
         # Read info
         account = model.account_set.all()[0]
@@ -1316,7 +1321,7 @@ def switchboard(request):
         6. model -> scenario
         7. scenario -> test
     """
-    AUTHENTICATE_EITHER()
+    authenticate(request)
 
     # anything to model
     if request.GET['Sort_by'] == '0':
@@ -1348,14 +1353,14 @@ def switchboard(request):
 
 
 def model_to_test_switch(request):
-    AUTHENTICATE_EITHER()
+    authenticate(request)
     request.session['nav']    = '2'
     inputdict = request.session['inputdict']
     return render_to_response('Leaderboard_testname.html', inputdict)
 
 
 def switchboard_totest(request):
-    AUTHENTICATE_EITHER()
+    authenticate(request)
 
     casename_raw = str(request.GET['casename'])
     casename = casename_raw.replace(' ', '')
@@ -1417,7 +1422,7 @@ def switchboard_totest(request):
 
 
 def model_to_Scenario_switch(request):
-    AUTHENTICATE_EITHER()
+    authenticate(request)
 
     scenario_list = []
     for i in Case.objects.all():
@@ -1432,7 +1437,7 @@ def model_to_Scenario_switch(request):
 
 
 def testcaseshow(request):
-    AUTHENTICATE_EITHER()
+    authenticate(request)
 
     if request.session['active_account'] =='superuser':
         AllCases = []
@@ -1465,7 +1470,7 @@ def testcaseshow(request):
 
 
 def return_leader(request):
-    AUTHENTICATE_EITHER()
+    authenticate(request)
 
     inputdict = request.session['inputdict']
 
@@ -1486,7 +1491,7 @@ def return_leader(request):
 
 
 def completedtest_info(request):
-    AUTHENTICATE_EITHER()
+    authenticate(request)
 
     completed_list = []
     for i in list(request.session['active_model'].model_tests.all()):
@@ -1502,7 +1507,7 @@ def completedtest_info(request):
 
 
 def case_ref(request):
-    AUTHENTICATE_EITHER()
+    authenticate(request)
 
     Input = request.GET['CaseName2']
     active_case = Case.objects.get(case_name = Input)
@@ -1550,7 +1555,7 @@ def case_ref(request):
 
 
 def caseref_return(request):
-    AUTHENTICATE_EITHER()
+    authenticate(request)
 
     inputdict = request.session['inputdict']
 
@@ -1571,7 +1576,7 @@ def caseref_return(request):
 
 
 def Account_Profile(request):
-    AUTHENTICATE_EITHER()
+    authenticate(request)
 
     Account_in = request.GET['Account']
     Active_account = Account.objects.get(username = Account_in)
@@ -1604,7 +1609,7 @@ def Account_Profile(request):
 
 
 def returnfrom_profile(request):
-    AUTHENTICATE_EITHER()
+    authenticate(request)
 
     inputdict = request.session['inputdict']
 
@@ -1625,7 +1630,7 @@ def returnfrom_profile(request):
 
 
 def case_hyperin(request):
-    AUTHENTICATE_EITHER()
+    authenticate(request)
     inputdict = request.session['inputdict']
     caseselection = str(request.GET['casein'])
 
@@ -1706,38 +1711,46 @@ def upload_casefile(request):
     return render_to_response('bulkcasereg_complete.html', {'result': data})
 
 
-def exportcaselibrary(request):
+def export_case_library(request):
+    AUTHENTICATE(request, token='admintoken')
 
-    # Token Verification
-    try:
-        if not request.session['admintoken']:
-            return render_to_response('noaccess.html', {})
-    except:
-        return render_to_response('noaccess.html', {})
+    export_cols = [
+        'Name', 'Key#', 'Subject Category', 'Subject Sub-Category', 'Scenario',
+        'Subject Activity', 'Age', 'Sex', 'Number Lost', 'Group Type',
+        'EcoRegion Domain', 'EcoRegion Division', 'Terrain', 'LKP Coord. (N/S)',
+        'LKP Coord. (E/W)', 'Find Coord. (N/S)', 'Fid Coord. (E/W)', 'Total',
+        'Hours', 'Notify Hours', 'Search Hours', 'Comments'
+    ]
 
-    export_file = open('case_in/exported_case_Library.csv', 'wb')
+    with open('case_in/exported_case_Library.csv', 'wb') as export_file:
+        writer = csv.writer(export_file, delimiter = '|')
+        writer.writerow(export_cols)
 
-    tempexport = ['Name', 'Key#', 'Subject Category', 'Subject Sub-Category', 'Scenario', 'Subject Activity', 'Age', 'Sex', 'Number Lost', 'Group Type', 'EcoRegion Domain', 'EcoRegion Division', 'Terrain', 'LKP Coord. (N/S)', 'LKP Coord. (E/W)', 'Find Coord. (N/S)', 'Fid Coord. (E/W)', 'Total Hours', 'Notify Hours', 'Search Hours', 'Comments']
+        for case in Case.objects.all():
+            case_export_fields = [
+                str(case.case_name), str(case.key), str(case.subject_category),
+                str(case.subject_subcategory), str(case.scenario),
+                str(case.subject_activity), str(case.Age), str(case.Sex),
+                str(case.number_lost), str(case.group_type),
+                str(case.ecoregion_domain), str(case.ecoregion_division),
+                str(case.terrain), str(case.lastlat), str(case.lastlon),
+                str(case.findlat), str(case.findlon), str(case.total_hours),
+                str(case.notify_hours), str(case.search_hours),
+                str(case.comments)
+            ]
+            writer.writerow(case_export_fields)
 
-    writer = csv.writer(export_file, delimiter = '|')
-    writer.writerow(tempexport)
-
-    for i in Case.objects.all():
-        tempexport = [str(i.case_name), str(i.key), str(i.subject_category), str(i.subject_subcategory), str(i.scenario), str(i.subject_activity), str(i.Age), str(i.Sex), str(i.number_lost), str(i.group_type), str(i.ecoregion_domain), str(i.ecoregion_division), str(i.terrain), str(i.lastlat), str(i.lastlon), str(i.findlat), str(i.findlon), str(i.total_hours), str(i.notify_hours), str(i.search_hours), str(i.comments)]
-        writer.writerow(tempexport)
-
-    export_file.close
     return render_to_response('casexport_complete.html', {'data': data})
 
 
 def Manage_Account(request):
-    AUTHENTICATE()
+    authenticate_user(request)
     request.session['active_model'] = 'none'
     return render_to_response('Account_manage.html')
 
 
 def edit_user(request):
-    AUTHENTICATE()
+    authenticate_user(request)
 
     Account = request.session['active_account']
     Firstname_in = str(Account.firstname_user)
@@ -1749,7 +1762,7 @@ def edit_user(request):
 
 
 def edit_user_run(request):
-    AUTHENTICATE()
+    authenticate_user(request)
 
     # read in information
     Account = request.session['active_account']
@@ -1800,7 +1813,7 @@ def edit_user_run(request):
 
 
 def edit_inst(request):
-    AUTHENTICATE()
+    authenticate_user(request)
 
     Account = request.session['active_account']
     Institution_in = str(Account.institution_name)
@@ -1811,7 +1824,7 @@ def edit_inst(request):
 
 
 def edit_inst_run(request):
-    AUTHENTICATE()
+    authenticate_user(request)
 
     # read in information
     Account = request.session['active_account']
@@ -1861,25 +1874,12 @@ def edit_inst_run(request):
 
 
 def edit_pw(request):
-
-    # Token Verification
-    try:
-        if not request.session['usertoken']:
-            return render_to_response('noaccess.html', {})
-    except:
-        return render_to_response('noaccess.html', {})
-
+    AUTHENTICATE(request, 'usertoken')
     return render_to_response('account_editpw.html')
 
 
 def edit_pw_run(request):
-
-    # Token Verification
-    try:
-        if not request.session['usertoken']:
-            return render_to_response('noaccess.html', {})
-    except:
-        return render_to_response('noaccess.html', {})
+    AUTHENTICATE(request, 'usertoken')
 
     # read in information
     Account = request.session['active_account']
@@ -2053,13 +2053,7 @@ def confirmprofpic_confirm(request):
 
 
 def edit_picture(request):
-
-    # Token Verification
-    try:
-        if not request.session['usertoken']:
-            return render_to_response('noaccess.html', {})
-    except:
-        return render_to_response('noaccess.html', {})
+    authenticate_user(request)
 
     account = request.session['active_account']
     inputdict = {
@@ -2071,13 +2065,7 @@ def edit_picture(request):
 
 
 def remove_profpic(request):
-
-    # Token Verification
-    try:
-        if not request.session['usertoken']:
-            return render_to_response('noaccess.html', {})
-    except:
-        return render_to_response('noaccess.html', {})
+    authenticate_user(request)
 
     account = request.session['active_account']
     os.remove(account.photolocation)  # remove old picture
@@ -2112,27 +2100,14 @@ def remove_profpic(request):
 
 
 def alterprofpic(request):
-
-    # Token Verification
-    try:
-        if not request.session['usertoken']:
-            return render_to_response('noaccess.html', {})
-    except:
-        return render_to_response('noaccess.html', {})
-
+    authenticate_user(request)
     inputdict = {}
     inputdict.update(csrf(request))
     return render_to_response('change_accountpic.html', inputdict)
 
 
 def change_accountpic(request):
-
-    # Token Verification
-    try:
-        if not request.session['usertoken']:
-            return render_to_response('noaccess.html', {})
-    except:
-        return render_to_response('noaccess.html', {})
+    authenticate_user(request)
 
     account = request.session['active_account']
     os.remove(account.photolocation)
@@ -2197,13 +2172,7 @@ def change_accountpic(request):
 
 
 def traffic(request):
-
-    # Token Verification
-    try:
-        if not request.session['admintoken']:
-            return render_to_response('noaccess.html', {})
-    except:
-        return render_to_response('noaccess.html', {})
+    authenticate_admin(request)
 
     mainhits = int(Mainhits.objects.all()[0].hits)
 
@@ -2238,28 +2207,15 @@ def traffic(request):
 
 
 def delete_account(request):
-
-    # Token Verification
-    try:
-        if not request.session['usertoken']:
-            return render_to_response('noaccess.html', {})
-    except:
-        return render_to_response('noaccess.html', {})
-
+    authenticate_user(request)
     return render_to_response('Deleteaccount.html')
 
 
 def deleteaccount_confirm(request):
-
-    # Token Verification
-    try:
-        if not request.session['usertoken']:
-            return render_to_response('noaccess.html', {})
-    except:
-        return render_to_response('noaccess.html', {})
+    authenticate_user(request)
 
     password = str(request.GET['Password'])
-    account =  request.session['active_account']
+    account = request.session['active_account']
 
     if password != str(account.password):  # password invalid
         inputdict = {'passfail': True}
@@ -2276,7 +2232,7 @@ def deleteaccount_confirm(request):
         t.deleted_models = str(account.deleted_models)
         t.save()
 
-        #Delete Tests / models
+        # Delete Tests / models
         for i in account.account_models.all():
             for j in i.model_tests.all():
                 j.delete()
@@ -2301,13 +2257,7 @@ def deleteaccount_confirm(request):
 
 
 def terminate_accounts(request):
-
-    # Token Verification
-    try:
-        if not request.session['admintoken']:
-            return render_to_response('noaccess.html', {})
-    except:
-        return render_to_response('noaccess.html', {})
+    authenticate_admin(request)
 
     inputdict = {}
     if str(request.session['userdel']) != '':
@@ -2319,13 +2269,7 @@ def terminate_accounts(request):
 
 
 def view_username_admin(request):
-
-    # Token Verification
-    try:
-        if not request.session['admintoken']:
-            return render_to_response('noaccess.html', {})
-    except:
-        return render_to_response('noaccess.html', {})
+    authenticate_admin(request)
 
     inputlist = []
     for i in Account.objects.all():
@@ -2339,13 +2283,7 @@ def view_username_admin(request):
 
 
 def delaccountlink(request):
-
-    # Token Verification
-    try:
-        if not request.session['admintoken']:
-            return render_to_response('noaccess.html', {})
-    except:
-        return render_to_response('noaccess.html', {})
+    authenticate_admin(request)
 
     user = str(request.GET['username'])
     request.session['userdel'] = user
@@ -2353,13 +2291,7 @@ def delaccountlink(request):
 
 
 def adminterminate_account(request):
-
-    # Token Verification
-    try:
-        if not request.session['admintoken']:
-            return render_to_response('noaccess.html', {})
-    except:
-        return render_to_response('noaccess.html', {})
+    authenticate_admin(request)
 
     username = request.GET['account']
     password_in = request.GET['Password']
@@ -2421,13 +2353,7 @@ def adminterminate_account(request):
 
 
 def delete_model(request):
-
-    # Token Verification
-    try:
-        if not request.session['usertoken']:
-            return render_to_response('noaccess.html', {})
-    except:
-        return render_to_response('noaccess.html', {})
+    authenticate_user(request)
 
     model_list = []
     account = request.session['active_account']
@@ -2440,13 +2366,7 @@ def delete_model(request):
 
 
 def deletemodel_confirm(request):
-
-    # Token Verification
-    try:
-        if not request.session['usertoken']:
-            return render_to_response('noaccess.html', {})
-    except:
-        return render_to_response('noaccess.html', {})
+    authenticate_user(request)
 
     selection = request.GET['model_in']
     if selection == '0':
@@ -2491,25 +2411,18 @@ def deletemodel_confirm(request):
 
 
 def help(request):
-
-    # Token Verification
-    try:
-        if not request.session['usertoken']:
-            return render_to_response('noaccess.html', {})
-    except:
-        return render_to_response('noaccess.html', {})
-
+    authenticate_user(request)
     return render_to_response('help.html')
 
 
 def help_how_alter_account(request):
-    AUTHENTICATE()
+    authenticate_user(request)
     return render_to_response('help_how_edit_account.html')
 
 
 def switchboard_toscenario(request):
     """Scenario-specific leaderboard"""
-    AUTHENTICATE_EITHER()
+    authenticate(request)
     name = str(request.GET['Scenario_sort'])
 
     # Gather data
@@ -2588,13 +2501,7 @@ def switchboard_toscenario(request):
 
 
 def test_to_Scenario_switch(request):
-
-    # Token Verification
-    try:
-        if not request.session['admintoken'] and request.session['usertoken'] == False:
-            return render_to_response('noaccess.html', {})
-    except:
-        return render_to_response('noaccess.html', {})
+    authenticate(request)
 
     scenario_list = []
     for i in Case.objects.all():
@@ -2609,14 +2516,7 @@ def test_to_Scenario_switch(request):
 
 
 def test_to_test_switch(request):
-
-
-    # Token Verification
-    try:
-        if not request.session['admintoken'] and request.session['usertoken'] == False:
-            return render_to_response('noaccess.html', {})
-    except:
-        return render_to_response('noaccess.html', {})
+    authenticate(request)
 
     inputdict = request.session['inputdict']
     request.session['nav']    = '3'
@@ -2625,13 +2525,7 @@ def test_to_test_switch(request):
 
 
 def scenario_to_test_switch(request):
-
-    # Token Verification
-    try:
-        if not request.session['admintoken'] and request.session['usertoken'] == False:
-            return render_to_response('noaccess.html', {})
-    except:
-        return render_to_response('noaccess.html', {})
+    authenticate(request)
 
     inputdict = request.session['inputdict']
     request.session['nav']    = '7'
@@ -2639,13 +2533,7 @@ def scenario_to_test_switch(request):
 
 
 def scenario_to_scenario_switch(request):
-
-    # Token Verification
-    try:
-        if not request.session['admintoken'] and request.session['usertoken'] == False:
-            return render_to_response('noaccess.html', {})
-    except:
-        return render_to_response('noaccess.html', {})
+    authenticate(request)
 
     inputdict = request.session['inputdict']
     request.session['nav']    = '4'
@@ -2661,14 +2549,7 @@ def scenario_to_scenario_switch(request):
 
 
 def hyper_leaderboard(request):
-
-    # Token Verification
-    try:
-        if not request.session['admintoken'] and request.session['usertoken'] == False:
-            return render_to_response('noaccess.html', {})
-    except:
-        return render_to_response('noaccess.html', {})
-
+    authenticate(request)
     request.session['inputdict'] = ''
     return redirect('/Leader_model/')
 
@@ -2682,7 +2563,7 @@ def password_email(request):
     try:
         Active_account = Account.objects.get(username = User_in)
     except exceptions.ObjectDoesNotExist:
-        return render_to_response('PasswordReset.html')
+        return render_to_response('password_reset.html')
 
     # Active_account.Email
     print Active_account.password
@@ -2705,18 +2586,12 @@ def password_email(request):
     return render_to_response('Password_email.html')
 
 
-def CollectingData(request):
-    return render_to_response('CollectingData.html')
+def collecting_data(request):
+    return render_to_response('collecting_data.html')
 
 
 def model_inst_sort(request):
-
-    # Token Verification
-    try:
-        if not request.session['admintoken'] and request.session['usertoken'] == False:
-            return render_to_response('noaccess.html', {})
-    except:
-        return render_to_response('noaccess.html', {})
+    authenticate(request)
 
     # extract data
     instname = str(request.GET['instname'])
@@ -2808,13 +2683,7 @@ def model_inst_sort(request):
 
 
 def model_name_sort(request):
-
-    # Token Verification
-    try:
-        if not request.session['admintoken'] and request.session['usertoken'] == False:
-            return render_to_response('noaccess.html', {})
-    except:
-        return render_to_response('noaccess.html', {})
+    authenticate(request)
 
     # extract data
     instname = str(request.GET['instname'])
@@ -2829,10 +2698,7 @@ def model_name_sort(request):
 
     inputdict = request.session['inputdict']
     scorelist = inputdict['Scorelist']
-    if 'caseselection' in inputdict.keys():
-        caseselection = inputdict['caseselection']
-    else:
-        caseselection = None
+    caseselection = inputdict.get('caseselection', None)
 
     # sort depending on various circumstances
     if modelname == '0':
@@ -2903,13 +2769,7 @@ def model_name_sort(request):
 
 
 def model_rtg_sort(request):
-
-    # Token Verification
-    try:
-        if not request.session['admintoken'] and request.session['usertoken'] == False:
-            return render_to_response('noaccess.html', {})
-    except:
-        return render_to_response('noaccess.html', {})
+    authenticate(request)
 
     # extract data
     instname = str(request.GET['instname'])
@@ -2998,13 +2858,7 @@ def model_rtg_sort(request):
 
 
 def model_tstscomp_sort(request):
-
-    # Token Verification
-    try:
-        if not request.session['admintoken'] and request.session['usertoken'] == False:
-            return render_to_response('noaccess.html', {})
-    except:
-        return render_to_response('noaccess.html', {})
+    authenticate(request)
 
     # extract data
     instname = str(request.GET['instname'])
@@ -3093,13 +2947,7 @@ def model_tstscomp_sort(request):
 
 
 def test_inst_sort(request):
-
-    # Token Verification
-    try:
-        if not request.session['admintoken'] and request.session['usertoken'] == False:
-            return render_to_response('noaccess.html', {})
-    except:
-        return render_to_response('noaccess.html', {})
+    authenticate(request)
 
     # extract data
     instname = str(request.GET['instname'])
@@ -3188,13 +3036,7 @@ def test_inst_sort(request):
 
 
 def test_modelname_sort(request):
-
-    # Token Verification
-    try:
-        if not request.session['admintoken'] and request.session['usertoken'] == False:
-            return render_to_response('noaccess.html', {})
-    except:
-        return render_to_response('noaccess.html', {})
+    authenticate(request)
 
     # extract data
     instname = str(request.GET['instname'])
@@ -3283,13 +3125,7 @@ def test_modelname_sort(request):
 
 
 def test_name_sort(request):
-
-    # Token Verification
-    try:
-        if not request.session['admintoken'] and request.session['usertoken'] == False:
-            return render_to_response('noaccess.html', {})
-    except:
-        return render_to_response('noaccess.html', {})
+    authenticate(request)
 
     # extract data
     instname = str(request.GET['instname'])
@@ -3378,13 +3214,7 @@ def test_name_sort(request):
 
 
 def test_rating_sort(request):
-
-    # Token Verification
-    try:
-        if not request.session['admintoken'] and request.session['usertoken'] == False:
-            return render_to_response('noaccess.html', {})
-    except:
-        return render_to_response('noaccess.html', {})
+    authenticate(request)
 
     # extract data
     instname = str(request.GET['instname'])
@@ -3473,13 +3303,7 @@ def test_rating_sort(request):
 
 
 def cat_inst_sort(request):
-
-    # Token Verification
-    try:
-        if not request.session['admintoken'] and request.session['usertoken'] == False:
-            return render_to_response('noaccess.html', {})
-    except:
-        return render_to_response('noaccess.html', {})
+    authenticate(request)
 
     # extract data
     instname = str(request.GET['instname'])
@@ -3574,13 +3398,7 @@ def cat_inst_sort(request):
 
 
 def cat_modelname_sort(request):
-
-    # Token Verification
-    try:
-        if not request.session['admintoken'] and request.session['usertoken'] == False:
-            return render_to_response('noaccess.html', {})
-    except:
-        return render_to_response('noaccess.html', {})
+    authenticate(request)
 
     # extract data
     instname = str(request.GET['instname'])
@@ -3675,13 +3493,7 @@ def cat_modelname_sort(request):
 
 
 def catrating_sort(request):
-
-    # Token Verification
-    try:
-        if not request.session['admintoken'] and request.session['usertoken'] == False:
-            return render_to_response('noaccess.html', {})
-    except:
-        return render_to_response('noaccess.html', {})
+    authenticate(request)
 
     # extract data
     instname = str(request.GET['instname'])
@@ -3776,13 +3588,7 @@ def catrating_sort(request):
 
 
 def catcompleted_sort(request):
-
-    # Token Verification
-    try:
-        if not request.session['admintoken'] and request.session['usertoken'] == False:
-            return render_to_response('noaccess.html', {})
-    except:
-        return render_to_response('noaccess.html', {})
+    authenticate(request)
 
     # extract data
     instname = str(request.GET['instname'])
@@ -3874,31 +3680,17 @@ def catcompleted_sort(request):
 
 
 def model_edit_info(request):
+    authenticate_user(request)
 
-    # Token Verification
-    try:
-        if not request.session['usertoken']:
-            return render_to_response('noaccess.html', {})
-    except:
-        return render_to_response('noaccess.html', {})
-
-    description = str(request.session['active_model'].Description)
-    name = request.session['active_model'].model_nameID
-
-    inputdict = {}
-    inputdict['description'] = description
-    inputdict['model_name'] = name
+    inputdict = {
+        'description': str(request.session['active_model'].Description),
+        'model_name': request.session['active_model'].model_nameID
+    }
     return render_to_response('edit_model_info.html', inputdict)
 
 
 def model_change_info(request):
-
-    # Token Verification
-    try:
-        if not request.session['usertoken']:
-            return render_to_response('noaccess.html', {})
-    except:
-        return render_to_response('noaccess.html', {})
+    authenticate_user(request)
 
     pw = str(request.GET['Password'])
     des = str(request.GET['description'])
@@ -3907,9 +3699,10 @@ def model_change_info(request):
     model = request.session['active_model']
     password = str(account.password)
 
-    inputdict = {}
-    inputdict['description'] = des
-    inputdict['model_name'] = name
+    inputdict = {
+        'description': des,
+        'model_name': name
+    }
 
     count = 0
     if pw != password:
@@ -3932,13 +3725,7 @@ def model_change_info(request):
 
 
 def model_Profile(request):
-
-    # Token Verification
-    try:
-        if not request.session['admintoken'] and request.session['usertoken'] == False:
-            return render_to_response('noaccess.html', {})
-    except:
-        return render_to_response('noaccess.html', {})
+    authenticate(request)
 
     Account_in = str(request.GET['Account'])
     Model = str(request.GET['Model'])
@@ -3960,38 +3747,17 @@ def model_Profile(request):
 
 
 def metric_description(request):
-
-    # Token Verification
-    try:
-        if not request.session['usertoken']:
-            return render_to_response('noaccess.html', {})
-    except:
-        return render_to_response('noaccess.html', {})
-
+    authenticate_user(request)
     return render_to_response('metric_description.html')
 
 
 def metric_description_nonactive(request):
-
-    # Token Verification
-    try:
-        if not request.session['usertoken']:
-            return render_to_response('noaccess.html', {})
-    except:
-        return render_to_response('noaccess.html', {})
-
+    authenticate_user(request)
     return render_to_response('metric_description_nonactive.html')
 
 
 def metric_description_submissionreview(request):
-
-    # Token Verification
-    try:
-        if not request.session['usertoken']:
-            return render_to_response('noaccess.html', {})
-    except:
-        return render_to_response('noaccess.html', {})
-
+    authenticate_user(request)
     return render_to_response('metric_description_submissionreview.html')
 
 
@@ -3999,14 +3765,8 @@ def reg_conditions(request):
     return render_to_response('regconditions.html')
 
 
-def DownloadParam(request):
-
-    # Token Verification
-    try:
-        if not request.session['usertoken']:
-            return render_to_response('noaccess.html', {})
-    except:
-        return render_to_response('noaccess.html', {})
+def download_param(request):
+    authenticate_user(request)
 
     active_test = request.session['active_test']
     active_case = active_test.test_case
@@ -4047,14 +3807,8 @@ def DownloadParam(request):
     return resp
 
 
-def UploadLayers(request):
-
-    # Token Verification
-    try:
-        if not request.session['admintoken']:
-            return render_to_response('noaccess.html', {})
-    except:
-        return render_to_response('noaccess.html', {})
+def upload_layers(request):
+    authenticate_admin(request)
 
     request.session['ActiveAdminCase'] = int(request.GET['id'])
     admincase = Case.objects.get(id = request.session['ActiveAdminCase'])
@@ -4068,13 +3822,7 @@ def UploadLayers(request):
 
 
 def upload_Layerfile(request):
-
-    # Token Verification
-    try:
-        if not request.session['admintoken']:
-            return render_to_response('noaccess.html', {})
-    except:
-        return render_to_response('noaccess.html', {})
+    authenticate_admin(request)
 
     # Take in file - save to server
     admincase = Case.objects.get(id = request.session['ActiveAdminCase'])
@@ -4102,13 +3850,7 @@ def upload_Layerfile(request):
 
 
 def DownloadLayers(request):
-
-    # Token Verification
-    try:
-        if not request.session['usertoken']:
-            return render_to_response('noaccess.html', {})
-    except:
-        return render_to_response('noaccess.html', {})
+    authenticate_user(request)
 
     active_test = request.session['active_test']
     active_case = active_test.test_case
@@ -4143,13 +3885,7 @@ def DownloadLayers(request):
 
 
 def delete_Layers(request):
-
-    # Token Verification
-    try:
-        if not request.session['admintoken']:
-            return render_to_response('noaccess.html', {})
-    except:
-        return render_to_response('noaccess.html', {})
+    authenticate_admin(request)
 
     # Take in file - save to server
     admincase = Case.objects.get(id = request.session['ActiveAdminCase'])
@@ -4164,15 +3900,9 @@ def delete_Layers(request):
 
 
 def DownloadLayersadmin(request):
+    authenticate_admin(request)
 
-    # Token Verification
-    try:
-        if not request.session['admintoken']:
-            return render_to_response('noaccess.html', {})
-    except:
-        return render_to_response('noaccess.html', {})
-
-    active_case = Case.objects.get(id = request.session['ActiveAdminCase'])
+    active_case = Case.objects.get(id=request.session['ActiveAdminCase'])
 
     string = str(active_case.LayerField)
     zippin = zipfile.ZipFile(string, 'r')
@@ -4182,7 +3912,8 @@ def DownloadLayersadmin(request):
     zippin2 = zipfile.ZipFile(buff, 'w', zipfile.ZIP_DEFLATED)
 
     for name in zippinlst:
-        stream = "Layers/" + str(active_case.id) +'_' + str(active_case.case_name) + "/" + name
+        stream = ("Layers/" + str(active_case.id) +'_' +
+                  str(active_case.case_name) + "/" + name)
         for i in range(len(name)-1):
             if name[i] == '/':
                 term = i
@@ -4206,14 +3937,14 @@ def DownloadLayersadmin(request):
 
 
 def casetypeselect(request):
-    AUTHENTICATE()
+    authenticate_user(request)
     name_lst = sorted(set([str(x.case_name) for x in Case.objects.all()]))
     type_lst = sorted(set([str(x.subject_category) for x in Case.objects.all()]))
     return render_to_response('Testselect.html', {'names': name_lst, 'types': type_lst})
 
 
 def TesttypeSwitch(request):
-    AUTHENTICATE()
+    authenticate_user(request)
 
     selection = request.GET['typein2']
     if selection == 0:
@@ -4239,7 +3970,7 @@ def TesttypeSwitch(request):
 
 
 def TestNameSwitch(request):
-    AUTHENTICATE()
+    authenticate_user(request)
 
     selection = request.GET['casename']
     if selection == 0:
@@ -4256,9 +3987,10 @@ def TestNameSwitch(request):
         return redirect("/new_test/")
 
 
-def NextSequentialTestSwitch(request):
-    AUTHENTICATE()
+def next_sequential_test_switch(request):
+    authenticate_user(request)
 
+    havecase = False
     for case in Case.objects.all():
         counter01 = 0
         havecase = False
