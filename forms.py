@@ -1,4 +1,17 @@
 # -*- coding: utf-8 -*-
+"""
+This module contains the zip file upload form, which takes zip archives of png
+files, validates them, and uploads the contained pngs.
+
+TODO::
+
+    The current coding style being used is both inefficient and confusing. Error
+    checking should be exchanged for try/except blocks with a custom
+    InvalidImageError being raised to pass the reason for invalidity around.
+    Additionally, a generator pipeline would be a clearer and more efficient way
+    to extract, check, and process files from a zip archive.
+
+"""
 import re
 import os
 import sys
@@ -92,7 +105,7 @@ class ZipUploadForm(forms.Form):
                 # output_gr = trial_image.convert("LP")
                 # trial_image.convert("LP")
                 output_gr = ImageOps.grayscale(trial_image)
-                output_gr.save(path,"PNG")  
+                output_gr.save(path,"PNG")
                 return "ok"
             elif bands[0] in 'LP':  # actual lgrayscale
                  return "ok"
