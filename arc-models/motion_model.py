@@ -23,7 +23,7 @@ from scipy import misc
 
 #base_dir = 'C:/Users/Eric Cawi/Documents/SAR/motion_model_test/'
 base_dir = './'
-NUM_SIMS = 10000
+NUM_SIMS = 1000
 IMAGE_SIZE = (501,501) # pixels
 
 def tag_image(filename, p_out):#for saving and adding images
