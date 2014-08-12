@@ -107,6 +107,7 @@ def main():
         
         sl = misc.imread(base_dir + "slope.tif")
         sl = np.add(sl,.1)#get rid of divide by 0 errors
+        sl = sl* np.pi/180.0 #convert slope to radians
         print 'shape(sl):', str(np.shape(sl))
         #have to resize image to make the arrays multiply correctly
         img = Image.open(base_dir + 'imp2.png')
@@ -122,8 +123,7 @@ def main():
         # for simplicity right now using tobler's hiking function and multiplying with the impedance weight
         walking_speeds = 6*np.exp(-3.5*np.abs(np.add(np.tan(sl),.05)))*1000.0/60.0 # speed in kmph*1000 m/km *1hr/60min
         sl = np.divide(1,sl)
-        imp_shape = imp.shape
-        sl_shape = sl.shape
+
         imp.astype('float')
         
   
@@ -137,9 +137,9 @@ def main():
         print 'imp:', imp
         print 'sl:', sl
         print 'vw:', vel_weight
-        sl_res = 25000/sl_shape[0] #NED should be a square so this should work for both ways, should be integer division
-        imp_res = 25000/imp_shape[0]#30 meter impedance resolution from the land cover dataset
-        end_time = 240 #arbitrary 4 hours
+        sl_res = 25000/shp[0] #NED should be a square so this should work for both ways, should be integer division
+        imp_res = 25000/shp[0]#30 meter impedance resolution from the land cover dataset
+        end_time = 240#arbitrary 4 hours
         #establish initial conditions in polar coordinates, using polar coordinates because i think it's easier to deal with the angles
         #r is the radius from the last known point, theta is the angle from "west"/the positive x axis through the lkp
         r = np.zeros(NUM_SIMS)#simulates 1000 hikers starting at ipp
@@ -155,9 +155,9 @@ def main():
         #get average impedance around 100 meters ahead, average flatness, weight each one by half
         #then scale to 1 - (prob go back + prob stay put)  these guys are all free parameters I think
 
-        current_cell_imp = [imp_shape[0]/2 - 1, imp_shape[1]/2 - 1] #-1 is to compensate for the indeces starting at 0, starting at middle of array should represent the ipp
-        current_cell_sl = [sl_shape[0]/2 - 1, sl_shape[1]/2 - 1]
-        
+        current_cell_imp = [shp[0]/2 - 1, shp[1]/2 - 1] #-1 is to compensate for the indeces starting at 0, starting at middle of array should represent the ipp
+        current_cell_sl = [shp[0]/2 - 1, shp[1]/2 - 1]
+        print walking_speeds[shp[0]/2][shp[1]/2]
         for i in range(NUM_SIMS):
                 t = 0.0
                 current_r = r[i]
@@ -204,7 +204,7 @@ def main():
                                 v = avg_speed(current_cell_sl,dtheta,dr,walking_speeds,sl_res)#some way to figure out either average speed or distance traveled along the line chosen
                                 dt = 120.0/v
                         #update for current time step
-                      
+                        print v
                         current_r= r_new
                         current_theta= theta_new
                         t=t+dt
@@ -217,7 +217,7 @@ def main():
                         sly = np.floor(y/sl_res)
                         current_cell_imp = np.add(current_cell_imp , [impx,impy])
                         current_cell_sl = np.add(current_cell_sl, [slx,sly])
-                        print t
+                        #print t
                         
                 #update r and theta
                 r[i] = current_r
