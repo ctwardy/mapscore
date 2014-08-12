@@ -204,7 +204,7 @@ def main():
                                 v = avg_speed(current_cell_sl,dtheta,dr,walking_speeds,sl_res)#some way to figure out either average speed or distance traveled along the line chosen
                                 dt = 120.0/v
                         #update for current time step
-                        print v
+                        #print v
                         current_r= r_new
                         current_theta= theta_new
                         t=t+dt
