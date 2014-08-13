@@ -1293,13 +1293,13 @@ def Account_Profile(request):
         'ysize': active_account.photosizey
     }
 
-    if website !='none':
+    if active_account.Website != 'none':
         inputdict['websitexists'] = True
 
     # get model descriptions
     model_list = []
     for acct in active_account.account_models.all():
-        model_list.append(acct.model_nameID, acct.Description, Account_in)
+        model_list.append([acct.model_nameID, acct.Description, Account_in])
 
     inputdict['model_list'] = model_list
     return render_to_response('Account_Profile.html', inputdict)
