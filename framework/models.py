@@ -220,7 +220,6 @@ class Test(models.Model):
     show_instructions = models.BooleanField()
 
     Validated = models.BooleanField()
-
     test_url = models.CharField(max_length=300)
     test_url2 = models.CharField(max_length=300)
     grayscale_path = models.CharField(max_length=300)
@@ -229,10 +228,15 @@ class Test(models.Model):
     class Meta:
         db_table = 'test'
 
+    # TODO: This looks like a HUGE hack. Why return str type?
+    # when this is obviously supposed to return unicode?
+    def __unicode__(self):
+        return str(self.test_name)
+
     def setup(self):
         self.grayrefresh = 0
         self.test_rating = 'unrated'
-        self.Active = True
+        self.Active = False
         self.nav = 0
         self.show_instructions = True
         self.save()
@@ -275,36 +279,37 @@ class Test(models.Model):
         for PNG images), then we use a conventional split with ROW=5% and
         bounding box=95%.  In that case, r = .95 and R = -.9.
 
-        2014-02:
-         * Refactored load to getmap(), and removed duplicate code.
-         * Replaced inefficient loop with numpy ops. Thanks msonwalk for template!
-         * Handled case where findloc is outside the image. (ROW)
+        2014-02::
+
+            *   Refactored load to getmap(), and removed duplicate code.
+            *   Replaced inefficient loop with numpy ops.
+                Thanks msonwalk for template!
+            *   Handled case where findloc is outside the image. (ROW)
 
         """
         x,y = int(self.test_case.findx), int(self.test_case.findy)
         values = self.getmap()  # a numpy array
         N = np.size(values)  # num pixels
-        assert(N == 5001*5001)
+        assert(N == 5001 * 5001)
 
         if (0 <= x <= 5000) and (0 <= y <= 5000):
-            p = values[x,y]             # prob at find location
-            n = np.sum(values > p)      # num pixels > p
-            m = np.sum(values == p)     # num pixels == p
-            r = (n + m/2.)/N            # Uses decimal to force float division
+            prob = values[x,y]             # prob at find location
+            n = np.sum(values > prob)      # num pixels > p
+            m = np.sum(values == prob)     # num pixels == p
+            r = (n + m/2.)/N               # force float division with decimal
         else:
-            p = 1. - np.sum(values)     # prob for ROW
-            if p < 0 or p > 1:          # model didn't consider ROW
-                p = .05                 # assume 5% for ROW
-            r = 1-p                     # Assume we search bbox before ROW
+            prob = 1. - np.sum(values)     # prob for ROW
+            if prob < 0 or p > 1:          # model didn't consider ROW
+                prob = .05                 # assume 5% for ROW
+            r = 1-prob                     # Assume we search bbox before ROW
 
-        R = (.5-r)/.5                   # Rescale to -1..1
+        R = (.5-r)/.5                      # Rescale to -1..1
 
         # Store result and update model
         self.test_rating = round(R,6)
-        self.Active = False
         self.save()
         self.model_set.all()[0].update_rating()
-        return 0                        # could return r, R
+        return 0                           # could return r, R
 
 
 class Model(models.Model):
@@ -312,7 +317,6 @@ class Model(models.Model):
 
     Completed_cases = models.CharField(max_length=30)
     model_nameID = models.CharField(max_length=30)
-    #gridvalidated = models.BooleanField()
     model_tests = models.ManyToManyField(Test, through='TestModelLink')
     model_avgrating = models.CharField(max_length=10)
     ID2 = models.CharField(max_length=100)
@@ -325,7 +329,6 @@ class Model(models.Model):
         """Models start out unrated."""
         self.model_avgrating = 'unrated'
         self.Completed_cases = 0
-        #self.gridvalidated = False
         self.save()
 
     def update_rating(self):
@@ -334,14 +337,14 @@ class Model(models.Model):
 
         """
         counter = 0
-        add = float(0)
+        add = 0.0
         tests = [x for x in self.model_tests.all() if x.Active == False]
 
-        if len(tests) == 0:
+        if not tests:
             self.model_avgrating = 'unrated'
         else:
             ratings = [float(t.test_rating) for t in tests]
-            self.model_avgrating = round(np.average(ratings),5)
+            self.model_avgrating = round(np.average(ratings), 5)
 
         self.save()
 

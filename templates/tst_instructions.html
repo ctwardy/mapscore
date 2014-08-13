@@ -19,7 +19,7 @@
 <table>
   <tr>
     <td>
-      <form action = "/test_active/" method = "get" name = "Continue">
+      <form action = "/test/" method = "get" name = "Continue">
       <button name = "Continue" type = "submit"
       value = "HTML" title='I know this. Continue with test.'>
       Skip Instructions
@@ -30,11 +30,11 @@
       <form action = "/model_menu/" method = "get" name = "Return to Model Menu">
       <button name = "Return To Model Menu" type = "submit" value = "HTML">
       Return To Model Menu
-      </button>	
+      </button> 
       </form>
     </td>
   </table>
-</center>		
+</center>       
 
 <p>Given the (lat, lon) boundary points for the region, you must
 create a regular grid of 5001 x 5001 rectangular cells with the IPP at
@@ -51,82 +51,82 @@ Note: We use a Great Sphere approximation of the Earth.</b>
 </p>
   
     <p style='bold'> Each case supplies the 4 (lat,lon) points
-	defining the corners of the search region, and the number of
-	cells.  Each cell must have the same height and width.</p>
-	
+    defining the corners of the search region, and the number of
+    cells.  Each cell must have the same height and width.</p>
+    
     <p style='bold'> Your model should rate each cell based on the
-	probability that the lost person will be located in that
-	cell. This process is left to you and your individual
-	model. You are encouraged to use all provided test case
-	information as well as all layers needed as input to your
-	model.</p>
+    probability that the lost person will be located in that
+    cell. This process is left to you and your individual
+    model. You are encouraged to use all provided test case
+    information as well as all layers needed as input to your
+    model.</p>
 
     <p style='bold'>Ideally, your model works with probabilities. If
-	so, the following will be true:
+    so, the following will be true:
         <ul>
-	  <li><i>P</i> + <i>Q</i> = 100%, where</li>
-	  <li><i>P</i> = sum of probabilities for cells in the search region</li>
-	  <li><i>Q</i> = probability subject is outside the search region</li>
-	</ul>
-	For now you must project these to <i>an 8-bit grayscale
-	image</i> for display and scoring purposes. Pixel values range
-	from 0 to 255, with 255 (white) being the highest relative value. (The
-	scoring metric only considers rank order.) Our native format
-	is grayscale PNG (color bands 'P' or 'L').</p>
+      <li><i>P</i> + <i>Q</i> = 100%, where</li>
+      <li><i>P</i> = sum of probabilities for cells in the search region</li>
+      <li><i>Q</i> = probability subject is outside the search region</li>
+    </ul>
+    For now you must project these to <i>an 8-bit grayscale
+    image</i> for display and scoring purposes. Pixel values range
+    from 0 to 255, with 255 (white) being the highest relative value. (The
+    scoring metric only considers rank order.) Our native format
+    is grayscale PNG (color bands 'P' or 'L').</p>
 
     <p style='bold'>If you work in probabilities, your numbers will
-	span several orders of magnitude. There are 25 million pixels
-	in the image, so a uniform map assigns each cell a probability
-	of about 4x10<sup>-8</sup> (0.00000004). An actual map may
-	have cell probabilities ranging several orders of magnitude
-	above and below 10<sup>-8</sup>.The following suggested transform
-	allows 17 distinctions at each order of magnitude from 1.0
-	down to 10<sup>-15</sup> and even a few at
-	10<sup>-16</sup>:
+    span several orders of magnitude. There are 25 million pixels
+    in the image, so a uniform map assigns each cell a probability
+    of about 4x10<sup>-8</sup> (0.00000004). An actual map may
+    have cell probabilities ranging several orders of magnitude
+    above and below 10<sup>-8</sup>.The following suggested transform
+    allows 17 distinctions at each order of magnitude from 1.0
+    down to 10<sup>-15</sup> and even a few at
+    10<sup>-16</sup>:
 
-	<center>V = 5 * log<sub>2</sub>(P) + 255</math></center>
+    <center>V = 5 * log<sub>2</sub>(P) + 255</math></center>
 
-	In Python using numpy this would be:<br/>
+    In Python using numpy this would be:<br/>
 
-	<center><code>V = 5 * int(numpy.log2(P)) + 255</code></center>
+    <center><code>V = 5 * int(numpy.log2(P)) + 255</code></center>
 
-	If P were the matrix of probabilities, then V is now the
-	matrix of grayscale values, though they may require converting
-	to integers with <code>P.astype(int)</code> before saving.</p>
+    If P were the matrix of probabilities, then V is now the
+    matrix of grayscale values, though they may require converting
+    to integers with <code>P.astype(int)</code> before saving.</p>
 
-	<p style='bold'>Lastly, you will be prompted to submit your
-	grayscale image for analysis.  Once submitted, we will rate
-	your image and "close" the test case for now. The new rating
-	will be used to update your model's overall rating and your
-	leaderboard status will be updated.</p>
+    <p style='bold'>Lastly, you will be prompted to submit your
+    grayscale image for analysis.  Once submitted, we will rate
+    your image and "close" the test case for now. The new rating
+    will be used to update your model's overall rating and your
+    leaderboard status will be updated.</p>
 
-	<br>
+    <br>
 
-	<center>
-	<table>
-	  <tr>
-	    <td>
-	      <form action = "/test_active/" method = "get" name = "Continue">
-	      <button name = "Continue" type = "submit"
-	      value = "HTML" title='Continue with test.'>
-	      Continue with Test
-	      </button>
-	      </form>
-	    </td>
-	    <td>
-	      <form action = "/model_menu/" method = "get" name = "Return to Model Menu">
-	      <button name = "Return To Model Menu" type = "submit" value = "HTML">
-	      Return To Model Menu
-	      </button>	
-	      </form>
-	    </td>
-	  </table>
-	  </center>		
-	  
-	</div>	
-	</div>
-	</div>
-	<br>
+    <center>
+    <table>
+      <tr>
+        <td>
+          <form action = "/test/" method = "get" name = "Continue">
+          <button name = "Continue" type = "submit"
+          value = "HTML" title='Continue with test.'>
+          Continue with Test
+          </button>
+          </form>
+        </td>
+        <td>
+          <form action = "/model_menu/" method = "get" name = "Return to Model Menu">
+          <button name = "Return To Model Menu" type = "submit" value = "HTML">
+          Return To Model Menu
+          </button> 
+          </form>
+        </td>
+      </table>
+      </center>     
+      
+    </div>  
+    </div>
+    </div>
+    <br>
 
 
 {% include "footer.html" %}

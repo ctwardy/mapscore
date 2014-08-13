@@ -13,9 +13,21 @@ from views import *
 handler403 = 'mapscore.views.noaccess'
 
 urlpatterns = patterns(
+
+    # Examples:
+    # url(r'^$', 'MapRateWeb.views.home', name='home'),
+    # url(r'^MapRateWeb/', include('MapRateWeb.foo.urls')),
+
+    # Uncomment the admin/doc line below to enable admin documentation:
+    # url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
+
+    # Uncomment the next line to enable the admin:
+    # url(r'^admin/', include(admin.site.urls)),
+
     '',
     ('^$', base_redirect),
     ('^main/$', main_page),
+    ('^log_out/$',log_out),
     ('^account_reg/$', account_reg),
     ('^create_account/$', create_account),
     ('^account/$', account_access),
@@ -31,18 +43,13 @@ urlpatterns = patterns(
     ('^admin_account/$', admin_account),
     ('^admin_cases/$', testcase_admin),
     ('^new_testcase/$', Casereg),
-    ('^new_test/$', newtest),
-    ('^create_test/$', create_test),
     ('^test_instructions/$', tst_instructions),
-    ('^test_active/$', active_test),
-    # ('^regen_test/$', regen_test),
     ('^upload_file/$', load_image),
     ('^Rate_Test/$', Rate),
     ('^confirm_grayscale/$', confirm_grayscale),
     ('^denygrayscale_confirm/$', denygrayscale_confirm),
     ('^acceptgrayscale_confirm/$', acceptgrayscale_confirm),
     ('^submissionreview/$', submissionreview),
-    ('^nonactive_test/$', setcompletedtest),
     ('^Nonactive_test/$', nonactivetest),
     ('^Leader_model/$', Leader_model),
     ('^switchboard/$', switchboard),
@@ -96,7 +103,6 @@ urlpatterns = patterns(
     ('^hyper_leaderboard/$', hyper_leaderboard),
     ('^password_reset/$', password_reset),
     ('^password_email/$', password_email),
-    ('^CollectingData/$', collecting_data),
     ('^model_inst_sort/$', model_inst_sort),
     ('^model_name_sort/$', model_name_sort),
     ('^model_rtg_sort/$', model_rtg_sort),
@@ -110,7 +116,6 @@ urlpatterns = patterns(
     ('^catrating_sort/$', catrating_sort),
     ('^catcompleted_sort/$', catcompleted_sort),
     ('^model_edit_info/$', model_edit_info),
-    ('^model_change_info/$', model_change_info),
     ('^model_change_info/$', model_change_info),
     ('^model_Profile/$', model_Profile),
     ('^metric_description/$', metric_description),
@@ -127,18 +132,9 @@ urlpatterns = patterns(
     ('^NextSequentialTestSwitch/$', next_sequential_test_switch),
     ('^TesttypeSwitch/$', TesttypeSwitch),
     ('^TestNameSwitch/$', TestNameSwitch),
+    ('^test/$', test),
     (r'^robots\.txt$',
         lambda r: HttpResponse("User-agent: *\nDisallow: /",
                                mimetype="text/plain")),
-
-    # Examples:
-    # url(r'^$', 'MapRateWeb.views.home', name='home'),
-    # url(r'^MapRateWeb/', include('MapRateWeb.foo.urls')),
-
-    # Uncomment the admin/doc line below to enable admin documentation:
-    # url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
-
-    # Uncomment the next line to enable the admin:
-    # url(r'^admin/', include(admin.site.urls)),
 
 ) + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -5,86 +5,86 @@
 
 <center><div>
 
-	<br><br>
+    <br><br>
 
-	<b>To Select the next sequential test:</b>
-	
-	<br><br>
-	
-	<form action = "/NextSequentialTestSwitch/" method = "get" name = "Return to Main Menu">
-	
-		<button name = "Return To Model Menu" type = "submit" value = "HTML">
-		Next Test
-		
-		</button>
-	</form>
-	
-	<br><br>
-	
-	<br><br>
-	
-	
+    <b>To Select the next sequential test:</b>
+    
+    <br><br>
+    
+    <form action = "/NextSequentialTestSwitch/" method = "get" name = "Return to Main Menu">
+    
+        <button name = "Return To Model Menu" type = "submit" value = "HTML">
+        Next Test
+        
+        </button>
+    </form>
+    
+    <br><br>
+    
+    <br><br>
+    
+    
 
-	<div style = "border:double 6px; color: #B00000; background-color: #FFFF99; width:500px ">
-	<p style = "color :black">
-		<i>To select the next test of a particular type:</i> <br>
-	</p>
-	
-	<br>
-	
-	<form action = "/TesttypeSwitch/" method = "get">	
-		<select name = 'typein2'>
-			<option value= '0' >-- Please select your test type --</option>
-			
-			{% for i in types %}
-				<option> {{i}} </option>
-			 {% endfor %}
-		<input type ='submit' value = 'Submit'/>
-		</select> 
-	</form>
-	<br><br>
+    <div style = "border:double 6px; color: #B00000; background-color: #FFFF99; width:500px ">
+    <p style = "color :black">
+        <i>To select the next test of a particular type:</i> <br>
+    </p>
+    
+    <br>
+    
+    <form action = "/TesttypeSwitch/" method = "get">   
+        <select name = 'typein2'>
+            <option value= '0' >-- Please select your test type --</option>
+            
+            {% for i in types %}
+                <option> {{i}} </option>
+             {% endfor %}
+        <input type ='submit' value = 'Submit'/>
+        </select> 
+    </form>
+    <br><br>
 
 
     <p><b>NEW! </b><i>To select a case directly by name:</i></p><br>
-	<form action = "/TestNameSwitch/" method = "get">	
-		<select name = 'casename'>
-			<option value= '0' >-- Please select your case name --</option>
-			
-			{% for i in names %}
-				<option> {{i}} </option>
-			 {% endfor %}
-		<input type ='submit' value = 'Submit'/>
-		</select> 
-	</form>
-	<br><br>
-	</div>
+    <form action = "/TestNameSwitch/" method = "get">   
+        <select name = 'casename'>
+            <option value= '0' >-- Please select your case name --</option>
+            
+            {% for i in names %}
+                <option> {{i}} </option>
+             {% endfor %}
+        <input type ='submit' value = 'Submit'/>
+        </select> 
+    </form>
+    <br><br>
+    </div>
 
 
-	</div>
-	
-	
+    </div>
+    
+    
 
 <br><br><br><br>
 
 
 
-	
-	<form action = "/model_menu/" method = "get" name = "Return to Model Menu">
-	
-		<button name = "Return To Model Menu" type = "submit" value = "HTML">
-		Return To Model Menu
-		</button>
-	</form>
-	
-	<br>
+    
+    <form action = "/model_menu/" method = "get" name = "Return to Model Menu">
+    
+        <button name = "Return To Model Menu" type = "submit" value = "HTML">
+        Return To Model Menu
+        </button>
+    </form>
+    
+    <br>
 
 
-</div>	</center>
+</div>  </center>
 
 </div>
 
 
-	
+    
 {% include "footer.html" %}
 
 
