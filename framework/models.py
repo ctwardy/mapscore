@@ -133,26 +133,30 @@ class Case(models.Model):
         return math.degrees(rad_diff)
 
     def initialize(self):
-        SideLength_km_ex = 25         # length of bounding box in km
-        cellside_m = 5                # length of cell (pixel) in m
+        SideLength_km_ex = 25  # length of bounding box in km
+        cellside_m = 5         # length of cell (pixel) in m
         SideLength_m_ex = SideLength_km_ex * 1000
         self.sidecellnumber = SideLength_m_ex/cellside_m + 1
         self.totalcellnumber = math.pow(self.sidecellnumber, 2)
-        LastLat = float(self.lastlat)
-        LastLon = float(self.lastlon)
-        FindLat = float(self.findlat)
-        FindLon = float(self.findlon)
+        last_lat = float(self.lastlat)
+        last_lon = float(self.lastlon)
+        find_lat = float(self.findlat)
+        find_lon = float(self.findlon)
 
-        #Generate boundary Coordinates
-        Hor_step = self.GreatSphere(LastLat)
+        # Generate boundary Coordinates
+        hor_step = self.GreatSphere(last_lat)
         ver_step = float(cellside_m) / 111122.19769903777  # what's this number?
-        self.horstep = Hor_step
+        self.horstep = hor_step
         self.verstep = ver_step
 
-        rightbound = LastLon + Hor_step/2 + ((SideLength_m_ex/cellside_m)/2)*Hor_step
-        leftbound = LastLon - Hor_step/2 - ((SideLength_m_ex/cellside_m)/2)*Hor_step
-        upbound = LastLat + ver_step/2 + ((SideLength_m_ex/cellside_m)/2)*ver_step
-        lowbound = LastLat - ver_step/2 - ((SideLength_m_ex/cellside_m)/2)*ver_step
+        val = (SideLength_m_ex / cellside_m) / 2
+        hor_scale = val * hor_step
+        ver_scale = val * ver_step
+
+        rightbound = last_lon + (hor_step / 2) + hor_scale
+        leftbound = last_lon - (hor_step / 2) - hor_scale
+        upbound = last_lat + (ver_step / 2) + ver_scale
+        lowbound = last_lat - (ver_step / 2) - ver_scale
 
         # Corners
         self.upright_lat = upbound
@@ -168,14 +172,14 @@ class Case(models.Model):
 
         # TODO crt 2014-03: Can't we just do:
         # N = self.sidecellnumber
-        # LonList = [leftbound + i*Hor_step for i in range(N)]
+        # LonList = [leftbound + i*hor_step for i in range(N)]
         # LatList = [upbound - i*ver_step for i in range(N)]
         #
         # Wait. We dont' even need these.
         # LonList = []
         # LonList.append(leftbound)
         # for i in (range(self.sidecellnumber)):
-        #     LonList.append(LonList[i] + Hor_step)
+        #     LonList.append(LonList[i] + hor_step)
 
         # LatList = []
         # LatList.append(upbound)
@@ -183,8 +187,8 @@ class Case(models.Model):
         #     LatList.append(LatList[i] - ver_step)
 
         # Screen Coords of FindLoc, with (0,0) in the top left
-        self.findx = int((FindLon - leftbound) / Hor_step)
-        self.findy = int((upbound - FindLat) / ver_step)
+        self.findx = int((find_lon - leftbound) / hor_step)
+        self.findy = int((upbound - find_lat) / ver_step)
         self.generate_image_url()
 
         # We used to show FindLoc only for the first 20 trials
