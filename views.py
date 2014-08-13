@@ -946,14 +946,14 @@ def nonactive_test(request):
 
     intest_raw = str(request.GET['Nonactive_Testin'])
     intest = intest_raw.strip()
-    completed_lst = [test.test_name for test in
+    completed_list = [test.test_name for test in
         request.session['active_model'].model_tests.all() if not test.Active]
 
     #debugx
     print >> sys.stderr, 'DEBUG:\n'
     print >> sys.stderr, intest
 
-    if intest not in completed_lst:
+    if intest not in completed_list:
         request.session['failure'] = True
         return redirect('/model_menu/')
 
@@ -1236,7 +1236,7 @@ def completedtest_info(request):
     for case in list(request.session['active_model'].model_tests.all()):
         if not case.Active:
             thumb = MEDIA_DIR + "thumb_" + str(case.ID2).replace(':','_') + ".png"
-            completed_lst.append({
+            completed_list.append({
                 'test_name': case.test_name,
                 'test_rating': case.test_rating,
                 'thumb': thumb,
@@ -1245,7 +1245,7 @@ def completedtest_info(request):
 
     return render_to_response(
         'completedtest_info.html',
-        {'completed_lst': completed_lst})
+        {'completed_list': completed_list})
 
 def case_ref(request):
     authenticate(request)
