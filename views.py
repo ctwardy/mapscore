@@ -41,6 +41,7 @@ from mapscore.forms import ZipUploadForm
 
 
 COORDS = '({},{})'
+PHOTO_URL_TEMPLATE = '/media/profpic_{}_{}.png'
 
 ##################### Media File Locations ################################
 MEDIA_DIR = 'media/'  # for the server
@@ -56,29 +57,57 @@ def noaccess(request):
 
 
 def _authenticate(request, token_type):
-    try:
-        if not request.session[token_type]:
-            raise PermissionDenied()
-    except:
+    if not request.session.get(token_type, False):
         raise PermissionDenied()
 
 
 def authenticate_user(request):
-    return _authenticate(request, 'usertoken')
+    _authenticate(request, 'usertoken')
 
 
 def authenticate_admin(request):
-    return _authenticate(request, 'admintoken')
+    _authenticate(request, 'admintoken')
 
 
 def authenticate(request):
     """Authenticates with either 'usertoken' or 'admintoken'."""
-    try:
-        if (not request.session['admintoken']
-            and not request.session['usertoken']):
-            raise PermissionDenied()
-    except:
+    is_admin = request.session.get('admintoken', False)
+    is_user = request.session.get('usertoken', False)
+    admin_or_user = any(is_admin, is_user)
+    if not admin_or_user:
         raise PermissionDenied()
+
+
+class BadLogin(Exception):
+
+    def __init__(self, error_page, msg):
+        self.error_page = error_page
+        self.msg = msg
+
+
+def verify_user(request):
+    """Verify user login and return verified account.
+
+    :return: Account object
+    :raise BadLogin: if the username/password is not valid or the user is
+        attempting to login with a deleted account.
+
+    """
+    username = request.POST.get('Username', '')
+    password = request.POST.get('Password', '')
+    user = auth.authenticate(username=username, password=password)
+    if user is None:
+        raise BadLogin('IncorrectLogin.html', 'user does not exist')
+
+    # Set user Token
+    account = Account.objects.get(ID2=username)
+    request.session['usertoken'] = True
+    request.session['active_account'] = account
+
+    # record session login
+    account.sessionticker = 1 + int(account.sessionticker)
+    account.save()
+    return account
 
 
 def main_page(request):
@@ -261,13 +290,10 @@ def create_account(request):
         ID2=Username,
         Website=Websitein)
 
-    account.save()
-
     # Set up profile pic locations
-    account.photourl = '/media/profpic_{}_{}.png'.format(
+    account.photourl = PHOTO_URL_TEMPLATE.format(
         account.ID2, account.profpicrefresh)
-    account.photolocation = 'media/profpic_{}_{}.png'.format(
-        account.ID2, account.profpicrefresh)
+    account.photolocation = account.photourl[1:]
     account.save()
 
     # set default profpic
@@ -292,72 +318,29 @@ def account_access(request):
     request.session['active_case'] = 'none'
     request.session['active_model'] = 'none'
 
-    if request.session.get('active_account', '') == 'none':
-        User_in = request.POST.get('Username', '')
-        Pass_in = request.POST.get('Password', '')
-
-        # Verify user
-        user = auth.authenticate(username=User_in, password=Pass_in)
-        if user is not None:  # user exists
-
-            # If account deleted:
-            deletedcount = 0
-            for i in TerminatedAccounts.objects.all():
-                if User_in == str(i.username):
-                    deletedcount = deletedcount + 1
-
-            if deletedcount > 0:
-                return render_to_response('accountdeletedlogin.html')
-
-            # Set user Token
-            model_list = []
-            request.session['usertoken'] = True
-            request.session['active_account'] = Account.objects.get(ID2=User_in)
-
-            # record session login
-            request.session['active_account'].sessionticker = (1 +
-                    int(request.session['active_account'].sessionticker))
-            request.session['active_account'].save()
-
-            for i in request.session['active_account'].account_models.all():
-                model_list.append(i.model_nameID)
-
-            inputdict = {
-                'Name': request.session['active_account'].institution_name,
-                'modelname_list': model_list,
-                'profpic': request.session['active_account'].photourl
-            }
-
-            account = request.session['active_account']
-            inputdict['xsize'] = account.photosizex
-            inputdict['ysize'] = account.photosizey
-            return render_to_response('AccountScreen.html', inputdict)
-
-        else:  # user does not exist
-            return render_to_response('IncorrectLogin.html', {})
-    else:
+    if request.session.get('active_account', 'none') != 'none':
         authenticate_user(request)
 
-        model_list = []
-        for i in request.session['active_account'].account_models.all():
-            model_list.append(i.model_nameID)
+    try:
+        account = verify_user(request)
+    except BadLogin as err:
+        return render_to_response(err.error_page, {'error_msg': err.msg})
 
-        inputdict = {
-            'Name': request.session['active_account'].institution_name,
-            'modelname_list': model_list,
-            'profpic': request.session['active_account'].photourl
-        }
-
-        account = request.session['active_account']
-        inputdict['xsize'] = account.photosizex
-        inputdict['ysize'] = account.photosizey
-        return render_to_response('AccountScreen.html', inputdict)
+    models = account.account_models.all()
+    inputdict = {
+        'Name': account.institution_name,
+        'modelname_list': [model.model_nameID for model in models],
+        'profpic': account.photourl,
+        'xsize': account.photosizex,
+        'ysize': account.photosizey
+    }
+    return render_to_response('AccountScreen.html', inputdict)
 
 
 def batch_test_upload(request):
     authenticate(request)
 
-    context_instance=RequestContext(request)
+    context_instance = RequestContext(request)
     case_list = []
     update_list = []
 
@@ -365,8 +348,8 @@ def batch_test_upload(request):
         form = ZipUploadForm(request.POST, request.FILES)
         if form.is_valid():
             case_list = form.process_zip_file()
-            gc = 0 #good count
-            bc = 0 #bad count
+            gc = 0  # good count
+            bc = 0  # bad count
             for index, (path, fname, file_size, model, case, status) in enumerate(case_list):
                 if status == "ready":
                     active_id = request.session['active_account'].ID2
@@ -414,15 +397,15 @@ def batch_test_upload_final(request):
 
     result_data = []
 
-    if request.session.get("batch_list") == False:
+    if not request.session.get("batch_list"):
         result = "Error, contact batch_list session was not found."
-        return render_to_response('batch_test_upload_final.html', {'result': result,
-            'result_data': result_data})
+        return render_to_response('batch_test_upload_final.html',
+            {'result': result, 'result_data': result_data})
 
     if request.session["batch_list"] == "completed":
         result = "completed"
-        return render_to_response('batch_test_upload_final.html', {'result': result,
-            'result_data': result_data})
+        return render_to_response('batch_test_upload_final.html',
+            {'result': result, 'result_data': result_data})
 
     if 'abort' in request.POST:
         # User aborted, so delete all the ready temp grayscales
@@ -438,8 +421,8 @@ def batch_test_upload_final(request):
 
     (result, result_data) = process_batch_tests(request)
 
-    return render_to_response('batch_test_upload_final.html', {'result': result,
-        'result_data': result_data})
+    return render_to_response('batch_test_upload_final.html',
+        {'result': result, 'result_data': result_data})
 
 
 def process_batch_tests(request):
@@ -690,21 +673,21 @@ def admin_account(request):
     request.session['inputdic'] = 'none'
 
     if not request.session['Superlogin']:
-        User_in = request.GET['Username']
-        Pass_in = request.GET['Password']
+        username = request.GET['Username']
+        password = request.GET['Password']
 
         # Verify user
-        user = auth.authenticate(username=User_in, password=Pass_in)
-        if user is not None:  # user exists
-            if user.is_superuser == True:
-                request.session['admintoken'] = True
-                request.session['admin_name'] = User_in
-                request.session['active_account'] ='superuser'
-                request.session['Superlogin'] = True
-                return render_to_response('AdminScreen.html', {})
-            else:
-                return render_to_response('IncorrectLogin.html', {})
-        else:  # user does not exist
+        user = auth.authenticate(username=username, password=password)
+        if user is None:  # user does not exist
+            return render_to_response('IncorrectLogin.html', {})
+
+        if user.is_superuser:
+            request.session['admintoken'] = True
+            request.session['admin_name'] = username
+            request.session['active_account'] ='superuser'
+            request.session['Superlogin'] = True
+            return render_to_response('AdminScreen.html', {})
+        else:
             return render_to_response('IncorrectLogin.html', {})
 
     elif request.session['Superlogin']:
@@ -1651,11 +1634,9 @@ def confirm_prof_pic(request):
         for chunk in request.FILES['profilephoto'].chunks():
             destination.write(chunk)
 
-    #resize image
+    # resize image
     im = Image.open(account.photolocation)
-    size = im.size
-    xsize = size[0]
-    ysize = size[1]
+    xsize, ysize = im.size
 
     if xsize > ysize:
         diffx = xsize - 350
@@ -1671,41 +1652,28 @@ def confirm_prof_pic(request):
         if diffy > 0:
             totaldiff = diffy
             ypixels = ysize - totaldiff
-            percentdiff = float(ypixels)/float(ysize)
+            percentdiff = float(ypixels) / float(ysize)
             xpixels = int(xsize * percentdiff)
             im = im.resize((xpixels, ypixels))
 
     elif xsize == ysize:
         im = im.resize((350, 350))
 
-    # Remove old picture
+    # Remove old picture and increment profile pic refresh counter
     os.remove(account.photolocation)
-
-    # iterate profpic request
     account.profpicrefresh = int(account.profpicrefresh) + 1
     account.save()
 
     # Set up profile pic locations
-    ID2 = account.ID2
-    stringurl = '/media/profpic_'
-    stringurl = stringurl + str(ID2)+'_'+ str(account.profpicrefresh) + '.png'
-    account.photourl = stringurl
-
-    stringlocation = 'media/profpic_' + str(ID2) + '_'+ str(account.profpicrefresh) + '.png'
-    #'C:\Users\Nathan Jones\Django Website\MapRateWeb\media\profpic_' + str(ID2) + '.png'
-    account.photolocation = stringlocation
+    account.photourl = PHOTO_URL_TEMPLATE.format(
+        account.ID2, account.profpicrefresh)
+    account.photolocation = account.photourl[1:]
     account.save()
-    im.save(str(account.photolocation))  # save new profile pic
-
+    im.save(account.photolocation)  # save new profile pic
 
     # Save image size parameters
     im = Image.open(account.photolocation)
-    size = im.size
-    xsize = size[0]
-    ysize = size[1]
-
-    account.photosizex = int(xsize)
-    account.photosizey = int(ysize)
+    account.photosizex, account.photosizey = im.size
     account.save()
 
     inputdict = {
@@ -1718,33 +1686,22 @@ def confirm_prof_pic(request):
 
 def denyprofpic_confirm(request):
     account = request.session['active_account']
-    os.remove(account.photolocation)  # remove old picture
 
-    # iterate profpic request
+    # Remove old picture and increment profile pic refresh counter
+    os.remove(account.photolocation)  # remove old picture
     account.profpicrefresh = int(account.profpicrefresh) + 1
     account.save()
 
     # Set up profile pic locations
-    ID2 = account.ID2
-    stringurl = '/media/profpic_'
-    stringurl = stringurl + str(ID2)+'_'+ str(account.profpicrefresh) + '.png'
-    account.photourl = stringurl
-
-    stringlocation = 'media/profpic_' + str(ID2) + '_'+ str(account.profpicrefresh) + '.png'
-    #'C:\Users\Nathan Jones\Django Website\MapRateWeb\media\profpic_' + str(ID2) + '.png'
-    account.photolocation = stringlocation
+    account.photourl = PHOTO_URL_TEMPLATE.format(
+        account.ID2, account.profpicrefresh)
+    account.photolocation = account.photourl[1:]
     account.save()
-
     shutil.copyfile('in_images/Defaultprofpic.png', account.photolocation)
 
     # Save image size parameters
     im = Image.open(account.photolocation)
-    size = im.size
-    xsize = size[0]
-    ysize = size[1]
-
-    account.photosizex = int(xsize)
-    account.photosizey = int(ysize)
+    account.photosizex, account.photosizey = im.size
     account.save()
     return redirect('/uploadprofpic/')
 
@@ -1769,33 +1726,26 @@ def remove_profpic(request):
     authenticate_user(request)
 
     account = request.session['active_account']
-    os.remove(account.photolocation)  # remove old picture
 
-    # iterate profpic request
+    # Remove old picture and increment profile pic refresh counter
+    os.remove(account.photolocation)  # remove old picture
     account.profpicrefresh = int(account.profpicrefresh) + 1
     account.save()
 
     # Set up profile pic locations
-    ID2 = account.ID2
-    stringurl = '/media/profpic_'
-    stringurl = stringurl + str(ID2)+'_'+ str(account.profpicrefresh) + '.png'
-    account.photourl = stringurl
-
-    stringlocation = 'media/profpic_' + str(ID2) + '_'+ str(account.profpicrefresh) + '.png'
-    #'C:\Users\Nathan Jones\Django Website\MapRateWeb\media\profpic_' + str(ID2) + '.png'
-    account.photolocation = stringlocation
+    account.photourl = PHOTO_URL_TEMPLATE.format(
+        account.ID2, account.profpicrefresh)
+    account.photolocation = account.photourl[1:]
     account.save()
 
+    # replace old pic with default
     shutil.copyfile('in_images/Defaultprofpic.png', account.photolocation)
 
     # Save image size parameters
     im = Image.open(account.photolocation)
-    size = im.size
-    xsize = size[0]
-    ysize = size[1]
-
-    account.photosizex = int(xsize)
-    account.photosizey = int(ysize)
+    account.photosizex, account.photosizey = im.size
+    account.save()
+    account.save()
     account.save()
     return redirect('/edit_picture/')
 
@@ -1817,11 +1767,9 @@ def change_accountpic(request):
         for chunk in request.FILES['profilephoto'].chunks():
             destination.write(chunk)
 
-    #resize image
+    # resize image
     im = Image.open(account.photolocation)
-    size = im.size
-    xsize = size[0]
-    ysize = size[1]
+    xsize, ysize = im.size
 
     if xsize > ysize:
         diffx = xsize - 350
@@ -1844,30 +1792,21 @@ def change_accountpic(request):
     elif xsize == ysize:
         im = im.resize((350, 350))
 
-    os.remove(account.photolocation)  # remove raw image
-
-    # iterate profpic request
+    # remove raw image and increment profile pic request
+    os.remove(account.photolocation)
     account.profpicrefresh = int(account.profpicrefresh) + 1
     account.save()
 
     # Set up profile pic locations
-    ID2 = account.ID2
-    stringurl = '/media/profpic_'
-    stringurl = stringurl + str(ID2)+'_'+ str(account.profpicrefresh) + '.png'
-    account.photourl = stringurl
-    stringlocation = 'media/profpic_' + str(ID2) + '_'+ str(account.profpicrefresh) + '.png'
-    account.photolocation = stringlocation
+    account.photourl = PHOTO_URL_TEMPLATE.format(
+        account.ID2, account.profpicrefresh)
+    account.photolocation = account.photourl[1:]
     account.save()
+    im.save(account.photolocation)  # save new profile pic
 
-    # Save image and size params
-    im.save(str(account.photolocation))
-    im = Image.open(account.photolocation)
-    size = im.size
-    xsize = size[0]
-    ysize = size[1]
-
-    account.photosizex = int(xsize)
-    account.photosizey = int(ysize)
+    # Save image size params
+    img = Image.open(account.photolocation)
+    account.photosizex, account.photosizey = img.size
     account.save()
     return redirect('/edit_picture/')
 
