@@ -50,7 +50,7 @@ urlpatterns = patterns(
     ('^denygrayscale_confirm/$', denygrayscale_confirm),
     ('^acceptgrayscale_confirm/$', acceptgrayscale_confirm),
     ('^submissionreview/$', submissionreview),
-    ('^Nonactive_test/$', nonactivetest),
+    ('^nonactive_test/$', nonactive_test),
     ('^Leader_model/$', Leader_model),
     ('^switchboard/$', switchboard),
     ('^model_to_test_switch/$', model_to_test_switch),

@@ -83,9 +83,6 @@ def authenticate(request):
 
 def main_page(request):
 
-    if request.session['active_account'] != 'none':
-        return redirect('/account/')
-
     # record a hit on the main page
     if len(Mainhits.objects.all()) == 0:
         newhits = Mainhits()
@@ -295,9 +292,9 @@ def account_access(request):
     request.session['active_case'] = 'none'
     request.session['active_model'] = 'none'
 
-    if request.session['active_account'] == 'none':
-        User_in = str(request.POST['Username'])
-        Pass_in = str(request.POST['Password'])
+    if request.session.get('active_account', '') == 'none':
+        User_in = request.POST.get('Username', '')
+        Pass_in = request.POST.get('Password', '')
 
         # Verify user
         user = auth.authenticate(username=User_in, password=Pass_in)
@@ -1072,7 +1069,7 @@ def switchboard(request):
         return redirect('/Leader_model/')
 
     #Model to test
-    elif (request.GET['Sort_by'] == '1' and (request.session['nav'] == '1' or request.session['nav'] == '6'):
+    elif request.GET['Sort_by'] == '1' and (request.session['nav'] == '1' or request.session['nav'] == '6'):
         return redirect('/model_to_test_switch/')
 
     # model to scenario
