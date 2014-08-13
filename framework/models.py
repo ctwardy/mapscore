@@ -115,7 +115,7 @@ class Case(models.Model):
     verstep = models.CharField(max_length=30)
 
     class Meta:
-        db_table = 'case'
+        db_table = 'mapscore_case'
 
     def GreatSphere(self, lat_in):
         """Calculate the longitude cellsize at this latitude.

@@ -17,7 +17,6 @@ SESSION_SAVE_EVERY_REQUEST = True
 DATABASES = {
     'default': {
         # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-        # 'ENGINE': 'postgresql_psycopg2',
         # 'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'ENGINE': 'django.db.backends.sqlite3',
         # db name, or path to database file if using sqlite3
