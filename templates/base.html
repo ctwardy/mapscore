@@ -1,0 +1,80 @@
+<!DOCTYPE HTML Public "-//W3C//DTD HTML 4.01//EN">
+<html lang="en">
+
+<head>
+    <META NAME="ROBOTS" CONTENT="NOINDEX, NOFOLLOW">
+
+    <!-- Latest compiled and minified CSS for Twitter Bootstrap-->
+    <link rel="stylesheet"
+    href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+
+    <!-- Optional theme -->
+    <link rel="stylesheet"
+    href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css">
+
+    {% load staticfiles %}
+    <link rel="stylesheet"
+    href="{% static "css/style.css" %}">
+</head>
+
+<body>
+  <div class="container main-frame">
+    <nav class="mason-border navbar navbar-default" role="navigation">
+      <div class="container-fluid">
+        <span class="mason-logo pull-left"></span>
+        <span class="mason-logo pull-right"></span>
+
+        <center style="color:white">
+          <h1>
+            MapScore<br>
+            Lost Person Model Rating System
+          </h1>
+        </center>
+
+        <div class="row">
+          <center class="nav-options">
+            [<a href="/main/"> Log Out </a>
+            |<a href="/hyper_leaderboard/"> Leaderboard </a>
+            |<a href="https://github.com/ctwardy/Pmap-Score/issues?sort=created&direction=desc&state=open"
+              target="_blank"> Issue Tracker </a>
+            |<a href="/help/" target="_blank"> Help </a>]
+          </center>
+        </div><!-- row -->
+      </div><!-- /.container-fluid -->
+    </nav><!-- /.navbar-default -->
+
+    {% block content %}
+    {% endblock content %}
+
+  </div><!-- /.container.main-frame -->
+  <div class="container">
+    <div class="row">
+      <hr color="white">
+      <p align="center" style="color:white;font-weight:bold;font-style:italic;">
+        GMU: C4I Center  -- Dr. Charles Twardy(ctwardy@gmu.edu) -----
+        (Partly funded by the National Science Foundation)
+      </p>
+      <br>
+    </div><!-- /.row -->
+  </div><!-- /.container -->
+
+  <!-- Latest jQuery -->
+  <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js">
+  </script>
+  <!-- Tablesorter jQuery plugin -->
+  <script
+      src="//cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.17.5/js/jquery.tablesorter.min.js">
+  </script>
+  <!-- Latest compiled and minified Twitter Bootstrap -->
+  <script
+    src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js">
+  </script>
+  <!-- Kick off tablesorter script -->
+  <script>
+      $(document).ready(function() {
+          $("#leaderboard").tablesorter();
+      });
+  </script>
+
+</body>
+</html>
