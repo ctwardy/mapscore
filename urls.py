@@ -25,6 +25,7 @@ urlpatterns = patterns(
     # url(r'^admin/', include(admin.site.urls)),
 
     '',
+    ('^test_tablesorter', test_tablesorter),
     ('^$', base_redirect),
     ('^main/$', main_page),
     ('^log_out/$',log_out),

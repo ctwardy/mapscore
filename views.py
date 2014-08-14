@@ -73,7 +73,7 @@ def authenticate(request):
     """Authenticates with either 'usertoken' or 'admintoken'."""
     is_admin = request.session.get('admintoken', False)
     is_user = request.session.get('usertoken', False)
-    admin_or_user = any(is_admin, is_user)
+    admin_or_user = any((is_admin, is_user))
     if not admin_or_user:
         raise PermissionDenied()
 
@@ -113,12 +113,12 @@ def verify_user(request):
 def main_page(request):
 
     # record a hit on the main page
-    if len(Mainhits.objects.all()) == 0:
+    if not Mainhits.objects.all():
         newhits = Mainhits()
-        newhits.setup()
         newhits.save()
+
     mainpagehit = Mainhits.objects.all()[0]
-    mainpagehit.hits = int(mainpagehit.hits) + 1
+    mainpagehit.hits += 1
     mainpagehit.save()
 
     request.session['completedtest'] = ''
@@ -140,12 +140,12 @@ def main_page(request):
 
     # copy values for leaderboard table
     for model in sorted_models:
-        num_finished = sum((not test.Active for test in model.model_tests.all()))
+        num_finished = sum((not test.Active for test in model.tests.all()))
         if num_finished >= 5:
             inputlist.append([
                 model.account_set.all()[0].institution_name,
-                model.model_nameID,
-                model.model_avgrating,
+                model.name_id,
+                model.avgrating,
                 num_finished
             ])
 
@@ -329,7 +329,7 @@ def account_access(request):
     models = account.account_models.all()
     inputdict = {
         'Name': account.institution_name,
-        'modelname_list': [model.model_nameID for model in models],
+        'modelname_list': [model.name_id for model in models],
         'profpic': account.photourl,
         'xsize': account.photosizex,
         'ysize': account.photosizey
@@ -450,7 +450,7 @@ def process_batch_tests(request):
         # First check to see if this test already exists
         # and if yes, delete existing one to prevent duplicates
         try:
-            findtest = Test.objects.get(ID2 = ID2)
+            findtest = Test.objects.get(ID2=ID2)
         except Test.DoesNotExist:
             findtest = None
 
@@ -458,28 +458,24 @@ def process_batch_tests(request):
             print >>sys.stderr, 'DEBUG: deleting previous test\n'
             print >>sys.stderr, str(findtest.id) + ":" + str(findtest.ID2)
 
-            #delete the test_model_link first
+            # delete the test_model_link first
             OldLink = TestModelLink.objects.get(test = findtest.id)
             OldLink.delete()
             findtest.delete()  # delete existing test
 
-        #create new test
+        # create new test
         newtest = Test(test_case=a_case,
             test_name=a_case.case_name,
             ID2=ID2)
 
-        newtest.save()
-
         Link = TestModelLink(test=newtest, model=a_model)
         Link.save()
-        newtest.setup()
         newtest.save()
 
         # copy grayscale from temp to media for storage
-        grayrefresh = int(newtest.grayrefresh) + 1
-        newtest.grayrefresh = grayrefresh
+        newtest.grayrefresh += 1
 
-        #not sure why we have to put this in the media directory ?
+        # not sure why we have to put this in the media directory ?
         # but the single file process does it
         new_grayfile = MEDIA_DIR
         new_grayfile += str(newtest.ID2.replace(':', '_'))
@@ -575,7 +571,7 @@ def model_created(request):
     if count == 0:
         for k in request.session['active_account'].account_models.all():
             counter = 0
-            if Model_name == str(k.model_nameID):
+            if Model_name == str(k.name_id):
                 counter += 1
 
             if counter > 0:
@@ -586,11 +582,10 @@ def model_created(request):
         return render_to_response('NewModel.html', inputdict01)
 
     #Create new model
-    new_model = Model(model_nameID = Model_name,
+    new_model = Model(name_id = Model_name,
         ID2 = str(request.session['active_account'].ID2) + ':'+ str(Model_name),
         Description = description)
 
-    new_model.setup()
     new_model.save()
 
     #Link Model to account
@@ -614,10 +609,10 @@ def model_access(request):
     # If not coming from Account
     if request.session['active_model'] != 'none':
         account_name = request.session['active_account'].institution_name
-        model_name = request.session['active_model'].model_nameID
-        AllTests = request.session['active_model'].model_tests.all()
+        model_name = request.session['active_model'].name_id
+        AllTests = request.session['active_model'].tests.all()
 
-        rating = request.session['active_model'].model_avgrating
+        rating = request.session['active_model'].avgrating
         print rating
         input_dic = {'rating':rating,'Name_act':account_name, 'Name_m':model_name}
 
@@ -647,12 +642,12 @@ def model_access(request):
             model_id = '{}:{}'.format(
                 request.session['active_account'].ID2, selection)
             request.session['active_model'] = Model.objects.get(ID2=model_id)
-            AllTests = request.session['active_model'].model_tests.all()
+            AllTests = request.session['active_model'].tests.all()
 
             input_dic = {
-                'rating': request.session['active_model'].model_avgrating,
+                'rating': request.session['active_model'].avgrating,
                 'Name_act': request.session['active_account'].institution_name,
-                'Name_m': request.session['active_model'].model_nameID
+                'Name_m': request.session['active_model'].name_id
             }
 
             # If incorrect completed test entered
@@ -757,7 +752,6 @@ def make_test(model, case):
     Link = Test_Model_Link(test=newtest, model=model)
     Link.save()
 
-    newtest.setup()
     newtest.save()
     return newtest
 
@@ -771,8 +765,7 @@ def load_image(request):
 
     # increment counter
     active_test = request.session['tmp_test']
-    grayrefresh = int(active_test.grayrefresh) + 1
-    active_test.grayrefresh = grayrefresh
+    active_test.grayrefresh += 1
 
     string = MEDIA_DIR
     string += str(active_test.ID2).replace(':', '_')
@@ -836,29 +829,27 @@ def denygrayscale_confirm(request):
 def acceptgrayscale_confirm(request):
     authenticate_user(request)
 
-    # iterate counter
-    request.session['tmp_test'].grayrefresh = (1 +
-        int(request.session['tmp_test'].grayrefresh))
-    request.session['tmp_test'].save()
+    # increment counter
+    temp_test = request.session['tmp_test']
+    temp_test.grayrefresh += 1
+    temp_test.save()
 
-    s = USER_GRAYSCALE + str(request.session['tmp_test'].ID2).replace(':','_')
-    s += '_%s.png' % str(request.session['tmp_test'].grayrefresh)
-    shutil.move(request.session['tmp_test'].grayscale_path, s)
+    s = USER_GRAYSCALE + temp_test.ID2.replace(':','_')
+    s += '_%s.png' % temp_test.grayrefresh
+    shutil.move(temp_test.grayscale_path, s)
 
     # create string for saving thumbnail 128x128
     # thumbnail is saved in USER_GRAYSCALE dir with name:
     # thumb_User_Model_Case.png
-    thumb = '{}thumb_{}.png'.format(
-        MEDIA_DIR,
-        str(request.session['tmp_test'].ID2).replace(':','_'))
+    thumb = '{}thumb_{}.png'.format(MEDIA_DIR, temp_test.ID2.replace(':','_'))
     im = Image.open(s)
     im = im.convert('RGB')
     im.thumbnail((128, 128), Image.ANTIALIAS)
     im.save(thumb, 'PNG')
 
     # set the path
-    request.session['tmp_test'].grayscale_path = s
-    request.session['tmp_test'].save()
+    temp_test.grayscale_path = s
+    temp_test.save()
     return redirect('/Rate_Test/')
 
 
@@ -896,41 +887,43 @@ def case_to_dict(case):
             print >> sys.stderr, 'Attribute "%s" not found.' % attr
 
     input_dict['URLfind'] = show_find_pt(case.URLfind)
-    input_dict['LKP'] = '(%s, %s)' % (case.lastlat, case.lastlon)
-    input_dict['find_pt'] = '(%s, %s)' % (case.findlat, case.findlon)
-    input_dict['find_grid'] = '(%s, %s)' % (case.findx, case.findy)
+    input_dict['LKP'] = COORDS.format(case.lastlat, case.lastlon)
+    input_dict['find_pt'] = COORDS.format(case.findlat, case.findlon)
+    input_dict['find_grid'] = COORDS.format(case.findx, case.findy)
     input_dict['horcells'] = input_dict['vercells'] = case.sidecellnumber
     input_dict['totalcellnumber'] = int(float(case.totalcellnumber))
     input_dict['cellwidth'] = 5.0
     input_dict['regionwidth'] = (input_dict['cellwidth'] *
-            float(case.sidecellnumber) / 1000)
+            case.sidecellnumber / 1000)
     return input_dict
 
 
 def submissionreview(request):
     authenticate_user(request)
 
-    request.session['active_model'].Completed_cases = int(request.session['active_model'].Completed_cases) + 1
-    request.session['active_model'].save()
+    active_model = request.session['active_model']
+    active_model.completed_cases += 1
+    active_model.save()
 
     active_test = request.session['tmp_test']
     active_case = active_test.test_case
     input_dict = case_to_dict(active_case)
     input_dict['account_name'] = request.session['active_account'].institution_name
-    input_dict['model_name'] = request.session['active_model'].model_nameID
-    input_dict['rating'] = str(request.session['tmp_test'].test_rating)
+    input_dict['model_name'] = active_model.name_id
+    input_dict['rating'] = active_test.test_rating
 
-    request.session['tmp_test'].save()
+    active_test.save()
     return render_to_response('Submissionreview.html', input_dict)
 
 
 def nonactive_test(request):
     authenticate(request)
 
-    intest_raw = str(request.GET['Nonactive_Testin'])
+    active_model = request.session['active_model']
+    intest_raw = request.GET['Nonactive_Testin']
     intest = intest_raw.strip()
     completed_list = [test.test_name for test in
-        request.session['active_model'].model_tests.all() if not test.Active]
+        active_model.tests.all() if not test.Active]
 
     #debugx
     print >> sys.stderr, 'DEBUG:\n'
@@ -940,7 +933,7 @@ def nonactive_test(request):
         request.session['failure'] = True
         return redirect('/model_menu/')
 
-    active_test = request.session['active_model'].model_tests.get(test_name=intest)
+    active_test = active_model.tests.get(test_name=intest)
     active_case = active_test.test_case
     input_dict = case_to_dict(active_case)
     input_dict['rating'] = str(active_test.test_rating)
@@ -950,11 +943,11 @@ def nonactive_test(request):
 
 def get_sorted_models(allmodels):
     """Return list of rated models, highest-rated first.
-    Uses model_avgrating attribute and operator.attrgetter method.
+    Uses avgrating attribute and operator.attrgetter method.
 
     """
-    rated_models = [x for x in allmodels if x.model_avgrating != 'unrated']
-    return sorted(rated_models, key=attrgetter('model_avgrating'),
+    rated_models = [x for x in allmodels if x.avgrating != 'unrated']
+    return sorted(rated_models, key=attrgetter('avgrating'),
                   reverse=True)
 
 
@@ -995,9 +988,9 @@ def Leader_model(request):
         account = model.account_set.all()[0]
         institution = account.institution_name
         username = account.username
-        name = model.model_nameID
-        rating = float(model.model_avgrating)
-        tests = model.model_tests.all()
+        name = model.name_id
+        rating = float(model.avgrating)
+        tests = model.tests.all()
         finished_tests = [test for test in tests if not test.Active]
         N = len(finished_tests)
         scores = [float(x.test_rating) for x in finished_tests]
@@ -1114,17 +1107,18 @@ def switchboard_totest(request):
     # copy values for leaderboard table
     inputlist = []
     for test in sorted_tests:
-        print >> sys.stderr, dir(test.model_set.all()[0])
+        first_model = test.model_set.all()[0]
+        print >> sys.stderr, dir(first_model)
         inputlist.append([
             # TODO: No field institution_name.  Fields are:
             # account_set, clean_fields, gridvalidated, id, model_account_link_set,
-            # model_avgrating, model_nameID, model_tests, test_model_link_set,
+            # avgrating, name_id, tests, test_model_link_set,
             # update_rating, validate_unique
-            test.model_set.all()[0].institution_name,
-            test.model_set.all()[0].model_nameID,
+            first_model.account_set.all()[0].institution_name,
+            first_model.name_id,
             test.test_name,
             test.test_rating,
-            test.model_set.all()[0].account_set.all()[0].username
+            first_model.account_set.all()[0].username
         ])
 
     inputdict = {'Scorelist': inputlist}
@@ -1174,10 +1168,10 @@ def testcaseshow(request):
     # construct a list of completed test cases
     Completed_list = []
     for i in list(Account.account_models.all()):
-        name =    'Model Name: ' + str(i.model_nameID)
+        name =    'Model Name: ' + str(i.name_id)
         lst = []
         lst.append(name)
-        for j in list(i.model_tests.all()):
+        for j in list(i.tests.all()):
             if not j.Active:
                 lst.append(str( j.test_name))
 
@@ -1216,7 +1210,7 @@ def completedtest_info(request):
     authenticate(request)
 
     completed_list = []
-    for case in list(request.session['active_model'].model_tests.all()):
+    for case in list(request.session['active_model'].tests.all()):
         if not case.Active:
             thumb = MEDIA_DIR + "thumb_" + str(case.ID2).replace(':','_') + ".png"
             completed_list.append({
@@ -1281,8 +1275,8 @@ def Account_Profile(request):
 
     # get model descriptions
     model_list = []
-    for acct in active_account.account_models.all():
-        model_list.append([acct.model_nameID, acct.Description, Account_in])
+    for model in active_account.account_models.all():
+        model_list.append([model.name_id, model.description, Account_in])
 
     inputdict['model_list'] = model_list
     return render_to_response('Account_Profile.html', inputdict)
@@ -1814,7 +1808,7 @@ def change_accountpic(request):
 def traffic(request):
     authenticate_admin(request)
 
-    mainhits = int(Mainhits.objects.all()[0].hits)
+    mainhits = Mainhits.objects.all()[0].hits
 
     input_list = []
     for i in Account.objects.all():
@@ -1839,10 +1833,11 @@ def traffic(request):
 
         deleted_list.append(tmplst)
 
-
-
-    inputdict = {'mainhits': mainhits, 'input_list': input_list, 'deleted_list': deleted_list}
-
+    inputdict = {
+        'mainhits': mainhits,
+        'input_list': input_list,
+        'deleted_list': deleted_list
+    }
     return render_to_response('traffic.html', inputdict)
 
 
@@ -1874,7 +1869,7 @@ def deleteaccount_confirm(request):
 
         # Delete Tests / models
         for i in account.account_models.all():
-            for j in i.model_tests.all():
+            for j in i.tests.all():
                 j.delete()
 
             # delete all model test links
@@ -1971,7 +1966,7 @@ def adminterminate_account(request):
 
     # Delete Tests / models
     for i in account.account_models.all():
-        for j in i.model_tests.all():
+        for j in i.tests.all():
             j.delete()
 
         # delete all model test links
@@ -1999,7 +1994,7 @@ def delete_model(request):
     account = request.session['active_account']
 
     for i in request.session['active_account'].account_models.all():
-        model_list.append(i.model_nameID)
+        model_list.append(i.name_id)
 
     inputdict = {'modelname_list': model_list}
     return render_to_response('delete_model.html', inputdict)
@@ -2018,7 +2013,7 @@ def deletemodel_confirm(request):
         account = request.session['active_account']
 
         for i in request.session['active_account'].account_models.all():
-            model_list.append(i.model_nameID)
+            model_list.append(i.name_id)
 
         inputdict = {'modelname_list': model_list, 'passfail': True}
         return render_to_response('delete_model.html', inputdict)
@@ -2028,7 +2023,7 @@ def deletemodel_confirm(request):
     model = request.session['active_model']
 
     # Delete all tests
-    for test in model.model_tests.all():
+    for test in model.tests.all():
         test.delete()
 
     # delete Test Model Links
@@ -2070,7 +2065,7 @@ def switchboard_toscenario(request):
     for i in Account.objects.all():
         for j in i.account_models.all():
             scenarioclick = 0
-            tests = j.model_tests.all()
+            tests = j.tests.all()
             finished_tests = [x for x in tests
                 if x.test_case.scenario == name and not x.Active]
             N = len(finished_tests)
@@ -2082,7 +2077,7 @@ def switchboard_toscenario(request):
             username = i.username
             scores = [float(x.test_rating) for x in finished_tests]
             avg_rating = np.mean(scores)
-            entry = [i.institution_name, j.model_nameID,
+            entry = [i.institution_name, j.name_id,
                      '%5.3f'%avg_rating, N, username]
             if N < 2:
                 entry.extend([-1, 1, True])  # std=False, sm.sample=True
@@ -2245,11 +2240,7 @@ def model_inst_sort(request):
 
     inputdict = request.session['inputdic']
     scorelist = inputdict['Scorelist']
-
-    if 'caseselection' in inputdict.keys():
-        caseselection = inputdict['caseselection']
-    else:
-        caseselection = None
+    caseselection = inputdict.get('caseselection', None)
 
     # sort depending on various circumstances
     if instname == '0':
@@ -2423,10 +2414,7 @@ def model_rtg_sort(request):
 
     inputdict = request.session['inputdic']
     scorelist = inputdict['Scorelist']
-    if 'caseselection' in inputdict.keys():
-        caseselection = inputdict['caseselection']
-    else:
-        caseselection = None
+    caseselection = inputdict.get('caseselection', None)
 
     # sort depending on various circumstances
     if avgrating == '0':
@@ -2512,10 +2500,7 @@ def model_tstscomp_sort(request):
 
     inputdict = request.session['inputdic']
     scorelist = inputdict['Scorelist']
-    if 'caseselection' in inputdict.keys():
-        caseselection = inputdict['caseselection']
-    else:
-        caseselection = None
+    caseselection = inputdict.get('caseselection', None)
 
     # sort depending on various circumstances
     if tstcomplete == '0':
@@ -2589,68 +2574,37 @@ def test_inst_sort(request):
     authenticate(request)
 
     # extract data
-    instname = str(request.GET['instname'])
-    modelname = str(request.GET['modelname'])
-    testname = str(request.GET['testname'])
-    tstrating = str(request.GET['tstrating'])
+    instname = int(request.GET['instname'])
+    modelname = int(request.GET['modelname'])
+    testname = int(request.GET['testname'])
+    tstrating = int(request.GET['tstrating'])
     page = str(request.GET['page'])
-
-    modelname = '0'
-    testname = '0'
-    tstrating = '0'
 
     inputdict = request.session['inputdic']
     scorelist = inputdict['Scorelist']
     casename = inputdict['casename']
-    if 'caseselection' in inputdict.keys():
-        caseselection = inputdict['caseselection']
+    caseselection = inputdict.get('caseselection', None)
+
+    table_values = []
+    for row in scorelist:
+        table_values.append({
+            'institution': row[0],
+            'model_name': row[1],
+            'test_name': row[2],
+            'test_rating': row[3],
+            'user': row[4]
+        })
+
+    if instname:
+        sortby= 'institution'
+    elif modelname:
+        sortby = 'model_name'
+    elif testname:
+        sortby = 'test_name'
     else:
-        caseselection = None
+        sortby = 'test_rating'
 
-    # sort depending on various circumstances
-    if instname == '0':
-        instname = '1'
-        count = 1
-        temp = ''
-
-        while count > 0:
-            count = 0
-            for i in range(len(scorelist)-1):
-                temp = ''
-                if scorelist[i][0] > scorelist[i+1][0] :
-                    temp = scorelist[i]
-                    scorelist[i] = scorelist[i+1]
-                    scorelist[i+1] = temp
-                    count += 1
-    elif instname == '1':
-        instname = '2'
-        count = 1
-        temp = ''
-
-        while count > 0:
-            count = 0
-            for i in range(len(scorelist)-1):
-                temp = ''
-                if scorelist[i][0] < scorelist[i+1][0] :
-                    temp = scorelist[i]
-                    scorelist[i] = scorelist[i+1]
-                    scorelist[i+1] = temp
-                    count += 1
-    elif instname == '2':
-        instname = '1'
-        count = 1
-        temp = ''
-
-        while count > 0:
-            count = 0
-            for i in range(len(scorelist)-1):
-                temp = ''
-                if scorelist[i][0] > scorelist[i+1][0] :
-                    temp = scorelist[i]
-                    scorelist[i] = scorelist[i+1]
-                    scorelist[i+1] = temp
-                    count += 1
-
+    score_list = sorted(table_values, key=lambda row: row[sortby])
     sortinfo = [instname, modelname, testname, tstrating]
     inputdict = {'Scorelist': scorelist, 'sortlst': sortinfo}
     inputdict['casename'] = casename
@@ -2674,72 +2628,43 @@ def test_inst_sort(request):
         return render_to_response('test_to_scenario.html', inputdict)
 
 
-def test_modelname_sort(request):
-    authenticate(request)
+def sort_table(request):
+    """Sort the leaderboard table by a chosen column."""
 
-    # extract data
-    instname = str(request.GET['instname'])
-    modelname = str(request.GET['modelname'])
-    testname = str(request.GET['testname'])
-    tstrating = str(request.GET['tstrating'])
-    page = str(request.GET['page'])
+    # extract sorting flags
+    instname = int(request.GET['instname'])
+    modelname = int(request.GET['modelname'])
+    testname = int(request.GET['testname'])
+    tstrating = int(request.GET['tstrating'])
 
-    instname = '0'
-    testname = '0'
-    tstrating = '0'
-
+    # preserve input values for return and grab table data
     inputdict = request.session['inputdic']
-    scorelist = inputdict['Scorelist']
     casename = inputdict['casename']
-    if 'caseselection' in inputdict.keys():
-        caseselection = inputdict['caseselection']
+    caseselection = inputdict.get('caseselection', None)
+    scorelist = inputdict['Scorelist']
+
+    # # put table data into a dictionary for ease of sorting
+    # table_values = []
+    # for row in scorelist:
+    #     table_values.append({
+    #         'institution': row[0],
+    #         'model_name': row[1],
+    #         'test_name': row[2],
+    #         'test_rating': row[3],
+    #         'user': row[4]
+    #     })
+    # score_list = sorted(table_values, key=lambda row: row[sortby])
+
+    if instname:
+        sortby = 0
+    elif modelname:
+        sortby = 1
+    elif testname:
+        sortby = 2
     else:
-        caseselection = None
+        sortby = 3
 
-    # sort depending on various circumstances
-    if modelname == '0':
-        modelname = '1'
-        count = 1
-        temp = ''
-
-        while count > 0:
-            count = 0
-            for i in range(len(scorelist)-1):
-                temp = ''
-                if scorelist[i][1] > scorelist[i+1][1] :
-                    temp = scorelist[i]
-                    scorelist[i] = scorelist[i+1]
-                    scorelist[i+1] = temp
-                    count += 1
-    elif modelname == '1':
-        modelname = '2'
-        count = 1
-        temp = ''
-
-        while count > 0:
-            count = 0
-            for i in range(len(scorelist)-1):
-                temp = ''
-                if scorelist[i][1] < scorelist[i+1][1] :
-                    temp = scorelist[i]
-                    scorelist[i] = scorelist[i+1]
-                    scorelist[i+1] = temp
-                    count += 1
-    elif modelname == '2':
-        modelname = '1'
-        count = 1
-        temp = ''
-
-        while count > 0:
-            count = 0
-            for i in range(len(scorelist)-1):
-                temp = ''
-                if scorelist[i][1] > scorelist[i+1][1] :
-                    temp = scorelist[i]
-                    scorelist[i] = scorelist[i+1]
-                    scorelist[i+1] = temp
-                    count += 1
-
+    scorelist = sorted(scorelist, key=lambda row: row[sortby])
     sortinfo = [instname, modelname, testname, tstrating]
     inputdict = {'Scorelist': scorelist, 'sortlst': sortinfo}
     inputdict['casename'] = casename
@@ -2747,16 +2672,24 @@ def test_modelname_sort(request):
         inputdict['caseselection'] = caseselection
 
     request.session['inputdic'] = inputdict
+    return inputdict
 
+
+def test_modelname_sort(request):
+    authenticate(request)
+
+    inputdict = sort_table(request)
+
+    page = request.GET['page']
     if page == 'test_leader':
         return render_to_response('Leaderboard_test.html', inputdict)
     elif page =='test_leader_fail':
         return render_to_response('Leaderboard_Testfail.html', inputdict)
     elif page =='TEST_TOSCENARIO_MOVE':
         scenario_list = []
-        for i in Case.objects.all():
-            if str(i.scenario) not in  scenario_list:
-                scenario_list.append(str(i.scenario))
+        for case in Case.objects.all():
+            if case.scenario not in scenario_list:
+                scenario_list.append(case.scenario)
 
         inputdict['scenario_list'] = scenario_list
         request.session['inputdic'] = inputdict
@@ -2766,76 +2699,7 @@ def test_modelname_sort(request):
 def test_name_sort(request):
     authenticate(request)
 
-    # extract data
-    instname = str(request.GET['instname'])
-    modelname = str(request.GET['modelname'])
-    testname = str(request.GET['testname'])
-    tstrating = str(request.GET['tstrating'])
-    page = str(request.GET['page'])
-
-    instname = '0'
-    modelname = '0'
-    tstrating = '0'
-
-    inputdict = request.session['inputdic']
-    scorelist = inputdict['Scorelist']
-    casename = inputdict['casename']
-    if 'caseselection' in inputdict.keys():
-        caseselection = inputdict['caseselection']
-    else:
-        caseselection = None
-
-    # sort depending on various circumstances
-    if testname == '0':
-        testname = '1'
-        count = 1
-        temp = ''
-
-        while count > 0:
-            count = 0
-            for i in range(len(scorelist)-1):
-                temp = ''
-                if scorelist[i][2] > scorelist[i+1][2] :
-                    temp = scorelist[i]
-                    scorelist[i] = scorelist[i+1]
-                    scorelist[i+1] = temp
-                    count += 1
-    elif testname == '1':
-        testname = '2'
-        count = 1
-        temp = ''
-
-        while count > 0:
-            count = 0
-            for i in range(len(scorelist)-1):
-                temp = ''
-                if scorelist[i][2] < scorelist[i+1][2] :
-                    temp = scorelist[i]
-                    scorelist[i] = scorelist[i+1]
-                    scorelist[i+1] = temp
-                    count += 1
-    elif testname == '2':
-        testname = '1'
-        count = 1
-        temp = ''
-
-        while count > 0:
-            count = 0
-            for i in range(len(scorelist)-1):
-                temp = ''
-                if scorelist[i][2] > scorelist[i+1][2] :
-                    temp = scorelist[i]
-                    scorelist[i] = scorelist[i+1]
-                    scorelist[i+1] = temp
-                    count += 1
-
-    sortinfo = [instname, modelname, testname, tstrating]
-    inputdict = {'Scorelist': scorelist, 'sortlst': sortinfo}
-    inputdict['casename'] = casename
-    if caseselection is not None:
-        inputdict['caseselection'] = caseselection
-
-    request.session['inputdic'] = inputdict
+    inputdict = sort_table(request)
 
     if page == 'test_leader':
         return render_to_response('Leaderboard_test.html', inputdict)
@@ -2855,76 +2719,7 @@ def test_name_sort(request):
 def test_rating_sort(request):
     authenticate(request)
 
-    # extract data
-    instname = str(request.GET['instname'])
-    modelname = str(request.GET['modelname'])
-    testname = str(request.GET['testname'])
-    tstrating = str(request.GET['tstrating'])
-    page = str(request.GET['page'])
-
-    instname = '0'
-    modelname = '0'
-    testname = '0'
-
-    inputdict = request.session['inputdic']
-    scorelist = inputdict['Scorelist']
-    casename = inputdict['casename']
-    if 'caseselection' in inputdict.keys():
-        caseselection = inputdict['caseselection']
-    else:
-        caseselection = None
-
-    # sort depending on various circumstances
-    if tstrating == '0':
-        tstrating = '1'
-        count = 1
-        temp = ''
-
-        while count > 0:
-            count = 0
-            for i in range(len(scorelist)-1):
-                temp = ''
-                if float(scorelist[i][3]) < float(scorelist[i+1][3] ):
-                    temp = scorelist[i]
-                    scorelist[i] = scorelist[i+1]
-                    scorelist[i+1] = temp
-                    count += 1
-    elif tstrating == '1':
-        tstrating = '2'
-        count = 1
-        temp = ''
-
-        while count > 0:
-            count = 0
-            for i in range(len(scorelist)-1):
-                temp = ''
-                if float(scorelist[i][3]) > float(scorelist[i+1][3]) :
-                    temp = scorelist[i]
-                    scorelist[i] = scorelist[i+1]
-                    scorelist[i+1] = temp
-                    count += 1
-    elif tstrating == '2':
-        tstrating = '1'
-        count = 1
-        temp = ''
-
-        while count > 0:
-            count = 0
-            for i in range(len(scorelist)-1):
-                temp = ''
-                if float(scorelist[i][3]) < float(scorelist[i+1][3]) :
-                    temp = scorelist[i]
-                    scorelist[i] = scorelist[i+1]
-                    scorelist[i+1] = temp
-                    count += 1
-
-    sortinfo = [instname, modelname, testname, tstrating]
-    inputdict = {'Scorelist': scorelist, 'sortlst': sortinfo}
-    inputdict['casename'] = casename
-    if caseselection is not None:
-        inputdict['caseselection'] = caseselection
-
-    request.session['inputdic'] = inputdict
+    inputdict = sort_table(request)
 
     if page == 'test_leader':
         return render_to_response('Leaderboard_test.html', inputdict)
@@ -2958,10 +2753,7 @@ def cat_inst_sort(request):
     inputdict = request.session['inputdic']
     scorelist = inputdict['input_list']
     name = inputdict['scenario']
-    if 'caseselection' in inputdict.keys():
-        caseselection = inputdict['caseselection']
-    else:
-        caseselection = None
+    caseselection = inputdict.get('caseselection', None)
 
     # sort depending on various circumstances
     if instname == '0':
@@ -3053,10 +2845,7 @@ def cat_modelname_sort(request):
     inputdict = request.session['inputdic']
     scorelist = inputdict['input_list']
     name = inputdict['scenario']
-    if 'caseselection' in inputdict.keys():
-        caseselection = inputdict['caseselection']
-    else:
-        caseselection = None
+    caseselection = inputdict.get('caseselection', None)
 
     # sort depending on various circumstances
     if modelname == '0':
@@ -3148,10 +2937,7 @@ def catrating_sort(request):
     inputdict = request.session['inputdic']
     scorelist = inputdict['input_list']
     name = inputdict['scenario']
-    if 'caseselection' in inputdict.keys():
-        caseselection = inputdict['caseselection']
-    else:
-        caseselection = None
+    caseselection = inputdict.get('caseselection', None)
 
     # sort depending on various circumstances
     if catrating == '0':
@@ -3240,10 +3026,7 @@ def catcompleted_sort(request):
     inputdict = request.session['inputdic']
     scorelist = inputdict['input_list']
     name = inputdict['scenario']
-    if 'caseselection' in inputdict.keys():
-        caseselection = inputdict['caseselection']
-    else:
-        caseselection = None
+    caseselection = inputdict.get('caseselection', None)
 
     # sort depending on various circumstances
     if catcompleted == '0':
@@ -3322,8 +3105,8 @@ def model_edit_info(request):
     authenticate_user(request)
 
     inputdict = {
-        'description': str(request.session['active_model'].Description),
-        'model_name': request.session['active_model'].model_nameID
+        'description': str(request.session['active_model'].description),
+        'model_name': request.session['active_model'].name_id
     }
     return render_to_response('edit_model_info.html', inputdict)
 
@@ -3333,7 +3116,7 @@ def model_change_info(request):
 
     pw = str(request.GET['Password'])
     des = str(request.GET['description'])
-    name = request.session['active_model'].model_nameID
+    name = request.session['active_model'].name_id
     account = request.session['active_account']
     model = request.session['active_model']
     password = str(account.password)
@@ -3358,7 +3141,7 @@ def model_change_info(request):
         return render_to_response('edit_model_info.html', inputdict)
 
     # If everything works out
-    model.Description = des
+    model.description = des
     model.save()
     return render_to_response('model_info_updated.html')
 
@@ -3366,21 +3149,25 @@ def model_change_info(request):
 def model_Profile(request):
     authenticate(request)
 
-    Account_in = str(request.GET['Account'])
-    Model = str(request.GET['Model'])
-    Active_account = Account.objects.get(username = Account_in)
-    Active_model = Active_account.account_models.get(model_nameID = Model)
+    try:
+        active_account = Account.objects.get(
+            username=request.GET['Account'])
+    except Account.DoesNotExist:
+        # TODO: redirect somewhere better
+        return redirect('/main/')
 
-    Name = str(Active_model.model_nameID)
-    Accountname = str(Active_account.institution_name)
-    description = str(Active_model.Description)
-    username = str(Active_account.username)
+    try:
+        active_model = active_account.account_models.get(
+            name_id=request.GET['Model'])
+    except Model.DoesNotExist:
+        # TODO: redirect somewhere better
+        return redirect('/main/')
 
     model_dict = {
-        'Name': Name,
-        'Accountname': Accountname,
-        'Description': description,
-        'username': username
+        'Name': active_model.name_id,
+        'Accountname': active_account.institution_name,
+        'Description': active_model.description,
+        'username': active_account.username
     }
     return render_to_response('model_Profile.html', model_dict)
 
@@ -3590,7 +3377,7 @@ def TesttypeSwitch(request):
 
     for case in Case.objects.all():
         if (case.subject_category == selection
-            and case not in request.session['active_model'].model_tests.all()):
+            and case not in request.session['active_model'].tests.all()):
             request.session['active_case'] = case
             return redirect('/test/')
     return render_to_response('nomorecases.html', {'selection' : selection})
@@ -3617,8 +3404,8 @@ def TestNameSwitch(request):
 def next_sequential_test_switch(request):
     authenticate_user(request)
 
-    model_tests = request.session['active_model'].model_tests.all()
-    tested_cases = [test.test_case for test in model_tests]
+    tests = request.session['active_model'].tests.all()
+    tested_cases = [test.test_case for test in tests]
     for case in Case.objects.all():
         if case not in tested_cases:
             request.session['active_case'] = case
@@ -3637,3 +3424,22 @@ def test(request):
     input_dict = case_to_dict(active_case)
     input_dict.update(csrf(request))
     return render_to_response('file_up.html', input_dict)
+
+
+def test_tablesorter(request):
+    sorted_models = get_sorted_models(Model.objects.all())
+    inputlist = []
+
+    # copy values for leaderboard table
+    for model in sorted_models:
+        num_finished = sum((not test.Active for test in model.tests.all()))
+        if num_finished >= 5:
+            inputlist.append([
+                model.account_set.all()[0].institution_name,
+                model.name_id,
+                model.avgrating,
+                num_finished
+            ])
+
+    inputdict = {'Scorelist': inputlist}
+    return render_to_response('model_to_scenario.html', inputdict)

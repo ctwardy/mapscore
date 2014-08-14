@@ -217,37 +217,26 @@ class Case(models.Model):
 class Test(models.Model):
     test_case = models.ForeignKey(Case)
     test_name = models.CharField(max_length=30)
-    test_rating = models.CharField(max_length=10)
-    Active = models.BooleanField()
+    test_rating = models.CharField(max_length=10, default='unrated')
+    Active = models.BooleanField(default=False)
     ID2 = models.CharField(max_length=100)
-    nav = models.CharField(max_length=2)
-    show_instructions = models.BooleanField()
+    nav = models.CharField(max_length=2, default=0)
+    show_instructions = models.BooleanField(default=True)
 
     Validated = models.BooleanField()
     test_url = models.CharField(max_length=300)
     test_url2 = models.CharField(max_length=300)
     grayscale_path = models.CharField(max_length=300)
-    grayrefresh =  models.CharField(max_length=10)
+    grayrefresh = models.IntegerField(max_length=10, default=0)
 
     class Meta:
         db_table = 'test'
 
-    # TODO: This looks like a HUGE hack. Why return str type?
+    # TODO: This is either a bad hack or unnecessary. Why return str type?
     # when this is obviously supposed to return unicode?
     def __unicode__(self):
         return str(self.test_name)
 
-    def setup(self):
-        self.grayrefresh = 0
-        self.test_rating = 'unrated'
-        self.Active = False
-        self.nav = 0
-        self.show_instructions = True
-        self.save()
-
-    #--------------------------------------------------------------------------
-    # Rating scripts
-    #--------------------------------------------------------------------------
     def getmap(self):
         """Load the image and force it to be grayscale.
         Return a values as a (5001,5001) numpy array.  This should be faster than
@@ -260,10 +249,10 @@ class Test(models.Model):
             *   What if Image throws and exception?
 
         """
-        Path = self.grayscale_path
-        Im = Image.open(Path).convert(mode="L")
-        values = np.array(Im.getdata())
-        return values.reshape((5001,5001))
+        path = self.grayscale_path
+        img = Image.open(path).convert(mode="L")
+        values = np.array(img.getdata())
+        return values.reshape((5001, 5001))
 
     def rate(self):
         """Scores the image using Rossmo's metric: r = (n+.5m)/N; R = (.5-r)/.5
@@ -297,20 +286,20 @@ class Test(models.Model):
         assert(N == 5001 * 5001)
 
         if (0 <= x <= 5000) and (0 <= y <= 5000):
-            prob = values[x,y]             # prob at find location
+            prob = values[x, y]            # prob at find location
             n = np.sum(values > prob)      # num pixels > p
             m = np.sum(values == prob)     # num pixels == p
-            r = (n + m/2.)/N               # force float division with decimal
+            r = (n + m / 2.) / N           # force float division with decimal
         else:
             prob = 1. - np.sum(values)     # prob for ROW
             if prob < 0 or p > 1:          # model didn't consider ROW
                 prob = .05                 # assume 5% for ROW
-            r = 1-prob                     # Assume we search bbox before ROW
+            r = 1 - prob                   # Assume we search bbox before ROW
 
-        R = (.5-r)/.5                      # Rescale to -1..1
+        R = (.5 - r) / .5                  # Rescale to -1..1
 
         # Store result and update model
-        self.test_rating = round(R,6)
+        self.test_rating = round(R, 6)
         self.save()
         self.model_set.all()[0].update_rating()
         return 0                           # could return r, R
@@ -319,21 +308,15 @@ class Test(models.Model):
 class Model(models.Model):
     """A Model has a name, description, and scores on its test cases."""
 
-    Completed_cases = models.CharField(max_length=30)
-    model_nameID = models.CharField(max_length=30)
-    model_tests = models.ManyToManyField(Test, through='TestModelLink')
-    model_avgrating = models.CharField(max_length=10)
+    completed_cases = models.IntegerField(max_length=30, default=0)
+    name_id = models.CharField(max_length=30)
+    tests = models.ManyToManyField(Test, through='TestModelLink')
+    avgrating = models.CharField(max_length=10, default='unrated')
     ID2 = models.CharField(max_length=100)
-    Description = models.TextField()
+    description = models.TextField()
 
     class Meta:
         db_table = 'model'
-
-    def setup(self):
-        """Models start out unrated."""
-        self.model_avgrating = 'unrated'
-        self.Completed_cases = 0
-        self.save()
 
     def update_rating(self):
         """Recalculate the model's ratings, ignoring any Active tests.
@@ -362,18 +345,18 @@ class Account(models.Model):
     Email = models.EmailField()
     Website = models.URLField()
 
-    photosizex = models.SmallIntegerField(default=0)
-    photosizey = models.SmallIntegerField(default=0)
+    photosizex = models.IntegerField(default=0)
+    photosizey = models.IntegerField(default=0)
     photolocation = models.CharField(max_length=30)
     photourl = models.CharField(max_length=30)
 
     account_models = models.ManyToManyField(Model, through='ModelAccountLink')
     ID2 = models.CharField(max_length=100)
 
-    sessionticker = models.SmallIntegerField(default=0)
-    completedtests = models.SmallIntegerField(default=0)
-    deleted_models = models.SmallIntegerField(default=0)
-    profpicrefresh = models.SmallIntegerField(default=0)
+    sessionticker = models.IntegerField(default=0)
+    completedtests = models.IntegerField(default=0)
+    deleted_models = models.IntegerField(default=0)
+    profpicrefresh = models.IntegerField(default=0)
 
     class Meta:
         db_table = 'account'
@@ -400,10 +383,7 @@ class TestModelLink(models.Model):
 
 
 class Mainhits(models.Model):
-    hits = models.CharField(max_length=10)
-
-    def setup(self):
-        self.hits = 0
+    hits = models.IntegerField(max_length=10, default=0)
 
     class Meta:
         db_table = 'mainhits'
@@ -411,11 +391,12 @@ class Mainhits(models.Model):
 
 class TerminatedAccounts(models.Model):
     username = models.CharField(max_length=30)
-    sessionticker = models.CharField(max_length=30)
-    completedtests = models.CharField(max_length=30)
     institution_name = models.CharField(max_length=30)
     modelsi = models.CharField(max_length=30)
-    deleted_models = models.CharField(max_length=10)
+
+    sessionticker = models.IntegerField(max_length=30)
+    completedtests = models.IntegerField(max_length=30)
+    deleted_models = models.IntegerField(max_length=10)
 
     class Meta:
         db_table = 'terminated_accounts'
