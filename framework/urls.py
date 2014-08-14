@@ -95,7 +95,7 @@ urlpatterns = patterns(
     ('^deletemodel_confirm/$', deletemodel_confirm),
     ('^help/$', help),
     ('^help_how_alter_account/$', help_how_alter_account),
-    ('^model_to_Scenario_switch/$', model_to_Scenario_switch),
+    ('^model_to_Scenario_switch/$', model_to_scenario_switch),
     ('^switchboard_toscenario/$', switchboard_toscenario),
     ('^test_to_Scenario_switch/$', test_to_Scenario_switch),
     ('^test_to_test_switch/$', test_to_test_switch),

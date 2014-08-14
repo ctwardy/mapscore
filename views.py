@@ -1137,18 +1137,36 @@ def switchboard_totest(request):
     return render_to_response('Leaderboard_test.html', inputdict)
 
 
-def model_to_Scenario_switch(request):
+def model_to_scenario_switch(request):
     authenticate(request)
+    sorted_models = get_sorted_models(Model.objects.all())
+    score_list = []
 
-    scenario_list = []
-    for i in Case.objects.all():
-        if str(i.scenario) not in  scenario_list:
-            scenario_list.append(str(i.scenario))
+    # copy values for leaderboard table
+    header_list = [
+        'Institution Name',
+        'Model Name',
+        'Average Rating*',
+        'Tests Completed'
+    ]
+    notes = ['* Average Ratings of multiple tests are reported with 95% confidence intervals']
+    for model in sorted_models:
+        num_finished = sum(not test.Active for test in model.tests.all())
+        if num_finished >= 5:
+            score_list.append([
+                model.account_set.all()[0].institution_name,
+                model.name_id,
+                model.avgrating,
+                num_finished
+            ])
 
-    inputdict =  request.session['inputdic']
+    scenario_list = set([case.scenario for case in Case.objects.all()])
+    inputdict = request.session.get('inputdic', None)
+    inputdict = {} if inputdict is None else inputdict
     inputdict['scenario_list'] = scenario_list
-    request.session['nav'] = '6'
-    request.session['inputdic']  = inputdict
+    inputdict['score_list'] = score_list
+    inputdict['header_list'] = header_list
+    inputdict['notes'] = notes
     return render_to_response('model_to_scenario.html', inputdict)
 
 
@@ -3428,18 +3446,27 @@ def test(request):
 
 def test_tablesorter(request):
     sorted_models = get_sorted_models(Model.objects.all())
-    inputlist = []
+    score_list = []
 
     # copy values for leaderboard table
+    header_list = ['Institution Name', 'Model Name', 'Average Rating*',
+        'Tests Completed']
+    notes = ['* Average Ratings of multiple tests are reported with 95% confidence intervals']
     for model in sorted_models:
         num_finished = sum((not test.Active for test in model.tests.all()))
         if num_finished >= 5:
-            inputlist.append([
+            score_list.append([
                 model.account_set.all()[0].institution_name,
                 model.name_id,
                 model.avgrating,
                 num_finished
             ])
 
-    inputdict = {'Scorelist': inputlist}
+    scenario_list = set([case.scenario for case in Case.objects.all()])
+    inputdict = request.session.get('inputdic', None)
+    inputdict = {} if inputdict is None else inputdict
+    inputdict['scenario_list'] = scenario_list
+    inputdict['score_list'] = score_list
+    inputdict['header_list'] = header_list
+    inputdict['notes'] = notes
     return render_to_response('model_to_scenario.html', inputdict)
