@@ -71,7 +71,7 @@ for k = 1:length(categories)
     hold on
         
     title(categories(k))
-    plot(test_set(test_non_ipp_ind), log_norm, test_set, log_cauchy,'r')%plots the last test set of each category
+    plot(test_set, exp(lognorm_loglikelihood), test_set, log_cauchy,'r')%plots the last test set of each category
     lognorm_result(k) = mean(avg_avg_lognorm_like(:,k));
     str = strcat(categories{k} , '_crossvalid_lognormal');
     save(str,'lognorm_result');
@@ -101,16 +101,25 @@ categories(unused_ind) = [];%getting rid of unused indeces.
 sort_norm = zeros(size(avg_avg_lognorm_like));
 sort_cauchy = zeros(size(avg_avg_logcauchy_like));
 cat_sort_norm = categories(norm_ind);
-cat_sort_cauchy = categories(cauchy_ind);
+cat_sort_cauchy = categories(norm_ind);
 sort_norm = avg_avg_lognorm_like(:,norm_ind);
-sort_cauchy = avg_avg_logcauchy_like(:,cauchy_ind);%don't need for loop to do this
-
+sort_cauchy = avg_avg_logcauchy_like(:,norm_ind);%don't need for loop to do this
+D = sort_norm - sort_cauchy;
+subplot(3,1,1);%attempting to put them on same plot, seems to cut off titles
+boxplot(sort_norm);
+title('Log Likelihood -log normal');
+subplot(3,1,2);
+boxplot(sort_cauchy);
+title('Log Likelihood-log cauchy');
+subplot(3,1,3);
+boxplot(D, 'labels', cat_sort_norm, 'labelorientation','inline');
+title('Difference');
 figure();
-hold on;
-boxplot(sort_cauchy,'labels',cat_sort_cauchy,'labelorientation','inline');
-title('Log Likelihood -log cauchy');
-
+boxplot(sort_norm,'labels',cat_sort_norm, 'labelorientation','inline');
+title('Log Likelihood -log normal');
 figure();
-hold on;
-boxplot(sort_norm,'labels', cat_sort_norm,'labelorientation','inline');
-title('Log Likelihood-lognormal distribution');
+boxplot(sort_cauchy,'labels',cat_sort_norm, 'labelorientation','inline');
+title('Log Likelihood-log cauchy');
+figure();
+boxplot(D, 'labels', cat_sort_norm, 'labelorientation','inline');
+title('Difference');
