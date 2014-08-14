@@ -1,87 +1,79 @@
-{% include "header.html" %}
+{% extends "base.html" %}
 
+{% block content %}
 
+<div class="container text-center">
+  <div class="row">
+    <h1 class="text-center">
+      <br><br>
+      <b>Account Name:</b> {{ name }}
+      <br><br>
+    </h1>
+  </div><!-- /.row -->
 
-<div style =' margin-left: 0% ; margin-top: 130px; margin-right: 0%; margin-bottom: 0px; color:black; overflow-y:hidden; overflow-x:hidden;'  >
+  <div class="row">
+    <div class="col-md-10 col-centered">
 
-<center><div>
-<br><br>
+      <div class="profpic-frame col-centered">
+        <br><br>
+        <image src='{{ profpic }}'
+          style='border:solid;border-width:5px;border-color:black'
+          width='{{ xsize }}' height='{{ ysize }}'>
+        <br><br><br>
+      </div><!-- /profpic -->
 
-    <h1>    <b>Account Name:</b> {{ Name}}<br><br> </h1>
-        
-
-    
-    <div style = 'width:500px;height:auto;border:double;border-color:black;border-width:5px;background-image:url("/media/blueframe.jpg")'>
-
-    
-    <br><br>
-    
-    <image src = '{{profpic}}' style = 'border:solid; border-width:5px;border-color:black' width = '{{xsize}}'  height = '{{ysize}}'>
-    
-    <br><br><br>
-    
-    </div>
-    
-    <br><br><br>
-    
-<form action = "/Leader_model/" method = "get" name = "go to Leaderboard">
-        
-        
-        <button name = "Go to Leaderboard" type = "submit" value = "HTML" style =' color:white; background-color:#000099'>
-        <p style ='font-size:20px'> View Leaderboard </p>
+      <br><br><br>
+      <form action="/Leader_model/" method="get" name="view_leaderboard">
+        <button name="Go to Leaderboard" type="submit" value="HTML"
+          style='color:white; background-color:#000099'>
+          <p style='font-size:20px'> View Leaderboard </p>
         </button>
-        
-    </form> 
-    <br>
-    <br>
-    <div style ='border:solid;width:500px;background : url("/media/wood.gif")'>
-    <br><br>
-    <p>
-      <form action = "/model_menu/" method = "get">
-        <select name = 'model_in'>
-          <option value= '0' >-- Select model to test --</option>           
-          {% for i in modelname_list %}
-          <option> {{i}} </option>
+      </form>
+      <br><br>
+      <div class="col-centered" style='border:solid;width:500px;background : url("/media/wood.gif")'>
+      <br><br>
+      <form action="/model_menu/" method="get">
+        <select name='model_in'>
+          <option value= '0' >-- Select model to test --</option>
+          {% for model in modelname_list %}
+          <option>{{ model }}</option>
           {% endfor %}
-
-          <input type ='submit' value = 'Submit'/>
-        </select> 
+          <input type='submit' value='Submit'/>
+        </select>
       </form>
-    <br><br>
-    <p>
-      <form action = "/batch_test_upload/" method = "get" name = "Batch Test Upload">
-        <button name = "batch_test_upload" type = "submit" value = "HTML" style = 'width:200px;height:25px '>
-          Batch Test Upload
-        </button>   
-      </form>
-    <p>
-    <p>
-      <form action = "/new_model/" method = "get" name = "New Model">
-        <button name = "New_Model" type = "submit" value = "HTML" style = 'width:200px;height:25px '>
-          Add New Model
-        </button>   
-      </form>
-    <p>
-      <form action = "/Manage_Account/" method = "get" name = "Manage Account">
-        <button name = "Manage Account" type = "submit" value = "HTML" style = 'width:200px;height:25px'>
-        Manage Account
-        </button>   
-      </form>
-    <br><br>
-    </div>
-
-    <br>
-    <br>
-    
-    <form action = "/log_out/" method = "get" name = "Log Out" >
-        <button name = "Log Out" type = "submit" value = "HTML" style = 'width:125px;background-color:red;color:white;border-color:black' >
+      <br><br>
+      <p>
+        <form action="/batch_test_upload/" method="get" name="Batch Test Upload">
+          <button name="batch_test_upload" type="submit" value="HTML" style='width:200px;height:25px '>
+            Batch Test Upload
+          </button>
+        </form>
+      <p>
+      <p>
+        <form action="/new_model/" method="get" name="New Model">
+          <button name="New_Model" type="submit" value="HTML" style='width:200px;height:25px '>
+            Add New Model
+          </button>
+        </form>
+      <p>
+        <form action="/Manage_Account/" method="get" name="Manage Account">
+          <button name="Manage Account" type="submit" value="HTML" style='width:200px;height:25px'>
+          Manage Account
+          </button>
+        </form>
+      <br><br>
+      </div>
+      <br>
+      <br>
+      <form action="/log_out/" method="get" name="Log Out">
+        <button name="Log Out" type="submit" value="HTML"
+          style='width:125px;background-color:red;color:white;border-color:black'>
           Log Out
-        </button>       
-    </form>
-    
-    <br>    
-    
-</div>  </center>
+        </button>
+      </form>
+      <br>
+    </div><!-- /.col -->
+  </div><!-- /.row -->
+</div><!-- /.container -->
 
-    
-{% include "footer.html" %}
+{% endblock content %}

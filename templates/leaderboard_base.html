@@ -1,0 +1,151 @@
+  <div class="container">
+    <div class="row">
+      <h1 class="text-center">Leaderboard</h1>
+    </div>
+    <div class="row top-buffer">
+      <div class="col-md-8 col-md-offset-4">
+        <div class="col-md-4">
+          <label for="switchboard">Select Table:</label>
+          <form class="form-inline" id="switchboard" action="/switchboard/" method="get">
+            <select class="form-control" name='table' onchange="this.form.submit();">
+              <option {% if table == 'model_avg' %} SELECTED {% endif %} value='0'>
+              Model Average
+              </option>
+              <option {% if table == 'test_case' %} SELECTED {% endif %} value='1'>
+              Test Case
+              </option>
+              <option {% if table == 'scenario' %} SELECTED {% endif %} value='2'>
+              Scenario
+              </option>
+            </select>
+          </form>
+        </div><!-- /.col -->
+
+        <div class="col-md-4">
+          {% if table == 'test_case' %}
+
+            <label for="case_select">Select a Case:</label>
+            <form id="case_select" class="form-inline" action="/leaderboard_test_case">
+              <div class="input-group">
+                <span class="input-group-btn">
+                  <a class="btn btn-default" href="/case_info">
+                    <span class="glyphicon glyphicon-question-sign"></span>
+                  </a>
+                </span>
+                <input maxlength='30' type='text' class="form-control" name='case_name'
+                  {% if case_name %} value='{{ case_name }}' {% endif %}>
+                <span class="input-group-btn">
+                  <button class="btn btn-default" type="submit">Submit</button>
+                </span>
+              </div><!-- /.input-group -->
+            </form>
+
+          {% elif table == 'scenario' %}
+
+          <label for="scenario-select-form">Select Scenario:</label>
+          <form id="scenario-select-form" action='/leaderboard_scenario'>
+            <select name="scenario_sort" class="form-control" onchange="this.form.submit();">
+              {% if scenario %}
+              <option SELECTED value='{{ scenario }}'>{{ scenario }}</option>
+              {% else %}
+              <option SELECTED value=''>None</option>
+              {% endif %}
+              {% for s in scenario_list %}
+                {% if s != scenario %}
+                <option value='{{ s }}'>{{ s }}</option>
+                {% endif %}
+              {% endfor %}
+            </select>
+          </form>
+
+          {% endif %}
+        </div><!-- /.col -->
+      </div><!-- /.col -->
+    </div><!-- /.row -->
+  </div><!-- /.container -->
+
+  <div class="container">
+    <div class="row top-buffer">
+      <div class="col-md-10 col-centered">
+        <table id="leaderboard" class="tablesorter">
+          <thead>
+            <tr>
+              {% for header in header_list %}
+              <th class="text-center">{{ header }}</th>
+              {% endfor %}
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in score_list %}
+            <tr>
+              <td>
+                <form action="/Account_Profile/" name="inputform1">
+                  <input type="hidden" name="Account" value="{{ row.4 }}">
+                  <button class="link-button" type="submit">{{ row.0 }}</button>
+                </form>
+              </td>
+              <td>
+                <form action="/model_Profile/" name="inputform2">
+                  <input type="hidden" name="Account" value="{{ row.4 }}">
+                  <input type="hidden" name="Model" value="{{ row.1 }}">
+                  <button class="link-button" type="submit">{{ row.1 }}</button>
+                </form>
+              </td>
+              <td>
+                <p><b>
+                  {{ row.2 }}
+                </b></p>
+              </td>
+              {% if row.5 %}
+              <td>
+                <p><b>
+                ({{ row.5 }}, &nbsp; {{ row.6 }})
+                </p></b>
+              </td>
+              {% endif %}
+              {% if table == 'test_case' %}
+              <td>
+                <p><b>
+                  {{ row.3 }}
+                </p></b>
+              </td>
+              <td>
+                {{ row.4 }}
+              </td>
+              {% else %}
+              <td>
+                <p>
+                {% if row.7 %}
+                  <b style="color:red">{{ row.3 }}</b>
+                {% else %}
+                  <b>{{ row.3 }}</b>
+                {% endif %}
+                </p>
+              </td>
+              {% endif %}
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div><!-- /.col -->
+    </div><!-- /.row -->
+    <div class="row">
+      <div class="col-md-8 col-centered">
+        {% for note in notes %}
+        <p class="text-center">{{ note }}</p>
+        {% endfor %}
+      </div>
+    </div>
+  </div><!-- /.container -->
+  <div class="container text-center top-buffer">
+    {% if superuser %}
+    <form action="/admin_account/" method="get" name="Return to Account Menu">
+    {% else %}
+    <form action="/account/" method="get" name="Return to Account Menu">
+    {% endif %}
+      <button name="Return To Account Menu" type="submit" value="HTML">
+      Return To Admin Menu
+      </button>
+    </form>
+  </div><!-- /.container -->
+  <br>

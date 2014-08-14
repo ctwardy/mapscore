@@ -3,17 +3,5 @@
   {% block content %}
   {% include "leaderboard.html" %}
 
-  <center>
-    {% if superuser %}
-    <form action="/admin_account/" method="get" name="Return to Account Menu">
-    {% else %}
-    <form action="/account/" method="get" name="Return to Account Menu">
-    {% endif %}
-      <button name="Return To Account Menu" type="submit" value="HTML">
-      Return To Admin Menu
-      </button>
-    </form>
-  </center>
-  <br>
 
   {% endblock content %}
