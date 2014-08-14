@@ -362,7 +362,7 @@ class Account(models.Model):
         db_table = 'account'
 
     @property
-    def user_fullname(self):
+    def fullname(self):
         return '{} {}'.format(self.firstname_user, self.lastname_user).strip()
 
 

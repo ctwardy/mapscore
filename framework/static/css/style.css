@@ -45,6 +45,14 @@ div.main-frame {
     font-weight: bold;
     color: #0000FF;
 }
+.profpic-frame {
+    width: 500px;
+    height: auto;
+    border: double;
+    border-color: black;
+    border-width: 5px;
+    background: navy;
+}
 
 /* tables */
 tbody tr:nth-child(even) {
