@@ -17,11 +17,11 @@ SESSION_SAVE_EVERY_REQUEST = True
 DATABASES = {
     'default': {
         # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-        # 'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'ENGINE': 'django.db.backends.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        # 'ENGINE': 'django.db.backends.sqlite3',
         # db name, or path to database file if using sqlite3
-        # 'NAME': 'probmap',
-        'NAME': 'database/website_data.db',
+        'NAME': 'probmap',
+        # 'NAME': 'database/website_data.db',
         'USER': 'probmap',  # Not used with sqlite3.
         'PASSWORD': 'probmap',  # Not used with sqlite3.
         'HOST': 'localhost',  # Set to empty string for localhost. Not used with sqlite3.
@@ -111,13 +111,15 @@ MIDDLEWARE_CLASSES = (
 )
 
 # Root URL configuration file: routes for HTTP requests
-ROOT_URLCONF = 'mapscore.urls'
+ROOT_URLCONF = 'mapscore.framework.urls'
+
+PROJECT_DIR = os.path.dirname(__file__)
 
 TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
-    os.path.join(os.path.dirname(__file__),'templates').replace('\\','/'),
+    os.path.join(PROJECT_DIR, 'templates').replace('\\','/'),
 )
 
 INSTALLED_APPS = (
