@@ -42,6 +42,10 @@ from mapscore.forms import ZipUploadForm
 
 COORDS = '({},{})'
 PHOTO_URL_TEMPLATE = '/media/profpic_{}_{}.png'
+HEADERS = ['Institution Name', 'Model Name', 'Avg Scenario Rating*',
+           'Interval', 'Scenario Tests Completed**']
+NOTES = ['*Ranges for N>1 are 95% confidence intervals of the mean.',
+         '**Red numbers indicate N<11.']
 
 ##################### Media File Locations ################################
 MEDIA_DIR = 'media/'  # for the server
@@ -328,7 +332,7 @@ def account_access(request):
 
     models = account.account_models.all()
     inputdict = {
-        'Name': account.institution_name,
+        'name': account.fullname,
         'modelname_list': [model.name_id for model in models],
         'profpic': account.photourl,
         'xsize': account.photosizex,
@@ -1010,81 +1014,205 @@ def Leader_model(request):
         inputlist.append(case)
 
     # Prepare variables to send to HTML template
-    inputdict = {'Scorelist': inputlist}
+    inputdict = {'score_list': inputlist}
     if request.session['active_account'] =='superuser':
         inputdict['superuser'] = True
-    request.session['nav']    = '1'
 
-    # Sort flags
-    instname = '0'
-    modelname ='0'
-    avgrating ='1'
-    tstcomplete ='0'
+    inputdict['notes'] = NOTES
+    inputdict['header_list'] = HEADERS
+    inputdict['table'] = 'model_avg'
 
-    inputdict['sortlst'] = [instname, modelname, avgrating, tstcomplete]
+    request.session['nav'] = '1'
     request.session['inputdic'] = inputdict
-    return render_to_response('Leader_Model.html', inputdict)
+    return render_to_response('leaderboard.html', inputdict)
 
 
 def switchboard(request):
     """
-    Switchboard Nav values::
+    Switchboard table values::
 
-        1. Model
-        2. model -> test
-        3. test
-        4. scenario
-        5. test -> scenario
-        6. model -> scenario
-        7. scenario -> test
+        0: model average table
+        1: test case table
+        2: scenario table
+
     """
     authenticate(request)
+    sortby = int(request.GET.get('table', 0))
+    inputdict = request.session.get('inputdic', {})
 
-    # anything to model
-    if request.GET['Sort_by'] == '0':
-        return redirect('/Leader_model/')
+    if sortby == 1:
+        return redirect('/leaderboard_test_case')
+        inputdict['table'] = 'test_case'
+        return render_to_response('leaderboard.html', inputdict)
+    elif sortby == 2:
+        scenario_list = set([case.scenario for case in Case.objects.all()])
+        inputdict['scenario_list'] = scenario_list
+        inputdict['table'] = 'scenario'
+        return render_to_response('leaderboard.html', inputdict)
+    else:
+        return redirect('/leaderboard_model')
 
-    #Model to test
-    elif request.GET['Sort_by'] == '1' and (request.session['nav'] == '1' or request.session['nav'] == '6'):
-        return redirect('/model_to_test_switch/')
 
-    # model to scenario
-    elif request.GET['Sort_by'] == '2' and (request.session['nav'] == '1' or request.session['nav'] == '2'):
-        return redirect('/model_to_Scenario_switch/')
+def leaderboard_model(request):
+    """Create the leaderboard."""
+    authenticate(request)
 
-    #test to scenario
-    elif request.GET['Sort_by'] == '2' and request.session['nav'] == '3':
-        return redirect('/test_to_Scenario_switch/')
+    inputlist = []
+    sorted_models = get_sorted_models(Model.objects.all())
+    for model in sorted_models:
+        account = model.account_set.all()[0]
+        rating = float(model.avgrating)
+        tests = model.tests.all()
+        finished_tests = [test for test in tests if not test.Active]
+        N = len(finished_tests)
+        scores = [float(x.test_rating) for x in finished_tests]
 
-    #test bottom to test
-    elif request.GET['Sort_by'] == '1' and request.session['nav'] == '5':
-        return redirect('/test_to_test_switch/')
+        # Build case, depending on sample size
+        case = [account.institution_name, model.name_id,
+                '%5.3f' % rating, N, account.username]
 
-    # scenario to test
-    elif request.GET['Sort_by'] == '1' and request.session['nav'] == '4':
-        return redirect('/scenario_to_test_switch/')
+        if N <= 1:
+            case.extend([-1, 1, True])  # std=False, sm.sample=True
+        else:
+            lowerbound, upperbound = confidence_interval(scores)
+            if N < 10:  # small sample=True
+                case.extend([lowerbound, upperbound, True])
+            else: # small sample = False
+                case.extend([lowerbound, upperbound, False])
 
-    # scenario to scenario
-    elif request.GET['Sort_by'] == '2' and request.session['nav'] == '7':
-        return redirect('/scenario_to_scenario_switch/')
+        inputlist.append(case)
+
+    # Prepare variables to send to HTML template
+    inputdict = {
+        'score_list': inputlist,
+        'table': 'model_avg',
+        'header_list': HEADERS,
+        'notes': NOTES
+    }
+    if request.session['active_account'] =='superuser':
+        inputdict['superuser'] = True
+
+    request.session['inputdic'] = inputdict
+    return render_to_response('leaderboard.html', inputdict)
+
+
+def leaderboard_test_case(request):
+    authenticate(request)
+
+    # check if the given casename is in the database
+    raw_casename = request.GET.get('case_name', None)
+    if raw_casename is not None:
+        casename = raw_casename.replace(' ', '')
+        active_cases = Case.objects.filter(case_name=casename)
+
+        if not active_cases:  # entry is invalid
+            inputdict = request.session.get('inputdic', {})
+            return render_to_response('Leaderboard_Testfail.html', inputdict)
+
+        matched_tests = Test.objects.filter(test_name=casename, Active=False)
+    else:
+        matched_tests = Test.objects.filter(Active=False)
+
+    # copy values for leaderboard table
+    inputlist = []
+    sorted_tests = matched_tests.order_by('test_rating').reverse()
+    for test in sorted_tests:
+        first_model = test.model_set.all()[0]
+        first_account = first_model.account_set.all()[0]
+        inputlist.append([
+            first_account.institution_name,
+            first_model.name_id,
+            test.test_name,
+            test.test_rating,
+            first_account.username
+        ])
+
+    headers = ['Institution Name', 'Model Name', 'Test Name',
+               'Avg Test Rating', 'Test Owner']
+    inputdict = {
+        'score_list': inputlist,
+        'case_name': raw_casename,
+        'table': 'test_case',
+        'header_list': headers,
+        'notes': NOTES
+    }
+    if request.session['active_account'] == 'superuser':
+        inputdict['superuser'] = True
+
+    request.session['inputdic'] = inputdict
+    return render_to_response('leaderboard.html', inputdict)
+
+
+def leaderboard_scenario(request):
+    authenticate(request)
+    scenario_name = request.GET.get('scenario_sort', None)
+    if scenario_name is None:
+        return redirect('/leaderboard_model')
+
+    # TODO: replace with custom SQL quer(y|ies) attached to appropriate models
+    # Gather data
+    input_list = []
+    for acct in Account.objects.all():
+        for model in acct.account_models.all():
+            tests = model.tests.all()
+            finished_tests = [x for x in tests
+                if x.test_case.scenario == scenario_name and not x.Active]
+            N = len(finished_tests)
+            if N <= 0:
+                # No finished cases
+                continue
+
+            # Build case dep. on sample size
+            scores = [float(test.test_rating) for test in finished_tests]
+            avg_rating = np.mean(scores)
+            entry = [acct.institution_name, model.name_id,
+                     '%5.3f' % avg_rating, N, acct.username]
+
+            if N < 2:
+                entry.extend([-1, 1, True])  # std=False, sm.sample=True
+            else:
+                lowerbound, upperbound = confidence_interval(scores)
+                if N < 10:  # small sample = True
+                    entry.extend([lowerbound, upperbound, True])
+                else: # small sample = False
+                    entry.extend([lowerbound, upperbound, False])
+
+            input_list.append(entry)
+
+    scenario_list = set([case.scenario for case in Case.objects.all()])
+    scenario_list.remove(scenario_name)
+    inputdict = {
+        'scenario': scenario_name,
+        'score_list': input_list,
+        'table': 'scenario',
+        'header_list': HEADERS,
+        'notes': NOTES,
+        'scenario_list': scenario_list
+    }
+
+    if request.session['active_account'] =='superuser':
+        inputdict['superuser'] = True
+
+    request.session['inputdic'] = inputdict
+    return render_to_response('leaderboard.html', inputdict)
 
 
 def model_to_test_switch(request):
     authenticate(request)
-    request.session['nav']    = '2'
+    request.session['nav'] = '2'
     inputdict = request.session['inputdic']
-    return render_to_response('Leaderboard_testname.html', inputdict)
+    inputdict['table'] = 'test_case'
+    return render_to_response('leaderboard.html', inputdict)
 
 
 def switchboard_totest(request):
     authenticate(request)
 
-    casename_raw = str(request.GET['casename'])
-    casename = casename_raw.replace(' ', '')
-    cases = Case.objects.all()
-
     # check if the given casename is in the database
-    active_cases = [x for x in cases if x.case_name == casename]
+    raw_casename = request.GET['casename']
+    casename = raw_casename.replace(' ', '')
+    cases = Case.objects.all()
+    active_cases = [case for case in cases if case.case_name == casename]
 
     if not active_cases:  # entry is invalid
         inputdict = request.session['inputdic']
@@ -1100,20 +1228,14 @@ def switchboard_totest(request):
     # If entry is valid
     all_tests = Test.objects.all()
     matched_tests = [test for test in all_tests if test.test_name == casename and not test.Active]
-    sorted_tests = sorted(matched_tests,
-                          key=attrgetter('test_rating'),
-                          reverse=True)
+    sorted_tests = sorted(matched_tests, key=attrgetter('test_rating'),
+        reverse=True)
 
     # copy values for leaderboard table
     inputlist = []
     for test in sorted_tests:
         first_model = test.model_set.all()[0]
-        print >> sys.stderr, dir(first_model)
         inputlist.append([
-            # TODO: No field institution_name.  Fields are:
-            # account_set, clean_fields, gridvalidated, id, model_account_link_set,
-            # avgrating, name_id, tests, test_model_link_set,
-            # update_rating, validate_unique
             first_model.account_set.all()[0].institution_name,
             first_model.name_id,
             test.test_name,
@@ -1121,20 +1243,20 @@ def switchboard_totest(request):
             first_model.account_set.all()[0].username
         ])
 
-    inputdict = {'Scorelist': inputlist}
-    inputdict['casename'] = casename_raw
-    if request.session['active_account'] =='superuser':
+    inputdict = {
+        'score_list': inputlist,
+        'case_name': raw_casename,
+        'table': 'test_case'
+    }
+    if request.session['active_account'] == 'superuser':
         inputdict['superuser'] = True
+    inputdict['header_list'] = ['Institution Name', 'Model Name',
+                                'Test Name', 'Test Rating']
 
-    instname = '0'
-    modelname ='0'
-    tstname ='0'
-    tstrtg ='1'
-
-    inputdict['sortlst'] = [instname, modelname, tstname, tstrtg]
     request.session['inputdic'] = inputdict
     request.session['nav'] = '3'
-    return render_to_response('Leaderboard_test.html', inputdict)
+    return render_to_response('leaderboard.html', inputdict)
+    # return render_to_response('Leaderboard_test.html', inputdict)
 
 
 def model_to_scenario_switch(request):
@@ -1167,39 +1289,34 @@ def model_to_scenario_switch(request):
     inputdict['score_list'] = score_list
     inputdict['header_list'] = header_list
     inputdict['notes'] = notes
-    return render_to_response('model_to_scenario.html', inputdict)
+    inputdict['table'] = 'scenario'
+    return render_to_response('leaderboard.html', inputdict)
 
 
 def testcaseshow(request):
     authenticate(request)
 
-    if request.session['active_account'] =='superuser':
-        AllCases = []
-        for i in list(Case.objects.all()):
-            AllCases.append(str(i.case_name))
-
-        inputdict = { 'all_lst': AllCases}
+    if request.session['active_account'] == 'superuser':
+        all_cases = [case.case_name for case in Case.objects.all()]
+        inputdict = {'all_lst': all_cases}
         return render_to_response('case_info_admin.html', inputdict)
 
     Account = request.session['active_account']
 
     # construct a list of completed test cases
-    Completed_list = []
+    completed_list = []
     for i in list(Account.account_models.all()):
-        name =    'Model Name: ' + str(i.name_id)
+        name = 'Model Name: ' + str(i.name_id)
         lst = []
         lst.append(name)
         for j in list(i.tests.all()):
             if not j.Active:
                 lst.append(str( j.test_name))
 
-        Completed_list.append(lst)
+        completed_list.append(lst)
 
-    AllCases = []
-    for i in list(Case.objects.all()):
-        AllCases.append(str(i.case_name))
-
-    inputdict = {'completed_list': Completed_list, 'all_lst': AllCases}
+    all_cases = [case.case_name for case in Case.objects.all()]
+    inputdict = {'completed_list': completed_list, 'all_lst': all_cases}
     return render_to_response('case_info.html', inputdict)
 
 
@@ -1207,20 +1324,21 @@ def return_leader(request):
     authenticate(request)
 
     inputdict = request.session['inputdic']
+    nav_selection = request.session['nav']
 
-    if request.session['nav'] == '3':
-        return render_to_response('Leaderboard_test.html', inputdict)
-    elif request.session['nav'] == '2':
-        return render_to_response('Leaderboard_testname.html', inputdict)
-    elif request.session['nav'] == '1':
+    if nav_selection == '1':
         return render_to_response('Leader_Model.html', inputdict)
-    elif request.session['nav'] == '4':
+    elif nav_selection == '2':
+        return render_to_response('Leaderboard_testname.html', inputdict)
+    elif nav_selection == '3':
+        return render_to_response('Leaderboard_test.html', inputdict)
+    elif nav_selection == '4':
         return render_to_response('Leaderboard_scenario.html', inputdict)
-    elif request.session['nav'] == '5':
+    elif nav_selection == '5':
         return render_to_response('test_to_scenario.html', inputdict)
-    elif request.session['nav'] == '6':
-        return render_to_response('model_to_Scenario.html', inputdict)
-    elif request.session['nav'] == '7':
+    elif nav_selection == '6':
+        return render_to_response('leaderboard.html', inputdict)
+    elif nav_selection == '7':
         return render_to_response('scenario_to_test.html', inputdict)
 
 
@@ -1267,7 +1385,7 @@ def caseref_return(request):
     elif nav_choice == '5':
         return render_to_response('test_to_scenario.html', inputdict)
     elif nav_choice == '6':
-        return render_to_response('model_to_Scenario.html', inputdict)
+        return render_to_response('leaderboard.html', inputdict)
     elif nav_choice == '7':
         return render_to_response('scenario_to_test.html', inputdict)
 
@@ -1281,7 +1399,7 @@ def Account_Profile(request):
     inputdict = {
         'Name': active_account.institution_name,
         'Email': active_account.Email,
-        'RegisteredUser': active_account.user_fullname,
+        'RegisteredUser': active_account.fullname,
         'website': active_account.Website,
         'profpic': active_account.photourl,
         'xsize': active_account.photosizex,
@@ -1317,7 +1435,7 @@ def returnfrom_profile(request):
     elif nav_choice == '5':
         return render_to_response('test_to_scenario.html', inputdict)
     elif nav_choice == '6':
-        return render_to_response('model_to_Scenario.html', inputdict)
+        return render_to_response('leaderboard.html', inputdict)
     elif nav_choice == '7':
         return render_to_response('scenario_to_test.html', inputdict)
 
@@ -2076,80 +2194,62 @@ def help_how_alter_account(request):
 def switchboard_toscenario(request):
     """Scenario-specific leaderboard"""
     authenticate(request)
-    name = str(request.GET['Scenario_sort'])
+    scenario_name = request.GET.get('scenario_sort', None)
+    if scenario_name is None:
+        return redirect('/hyper_leaderboard')
 
+    # TODO: replace with custom SQL quer(y|ies) attached to appropriate models
     # Gather data
     input_list = []
-    for i in Account.objects.all():
-        for j in i.account_models.all():
-            scenarioclick = 0
-            tests = j.tests.all()
+    for acct in Account.objects.all():
+        for model in acct.account_models.all():
+            tests = model.tests.all()
             finished_tests = [x for x in tests
-                if x.test_case.scenario == name and not x.Active]
+                if x.test_case.scenario == scenario_name and not x.Active]
             N = len(finished_tests)
             if N <= 0:
                 # No finished cases
                 continue
 
             # Build case dep. on sample size
-            username = i.username
-            scores = [float(x.test_rating) for x in finished_tests]
+            scores = [float(test.test_rating) for test in finished_tests]
             avg_rating = np.mean(scores)
-            entry = [i.institution_name, j.name_id,
-                     '%5.3f'%avg_rating, N, username]
+            entry = [acct.institution_name, model.name_id,
+                     '%5.3f' % avg_rating, N, acct.username]
+
             if N < 2:
                 entry.extend([-1, 1, True])  # std=False, sm.sample=True
             else:
                 lowerbound, upperbound = confidence_interval(scores)
-                if N < 10:  # small sample=True
+                if N < 10:  # small sample = True
                     entry.extend([lowerbound, upperbound, True])
                 else: # small sample = False
                     entry.extend([lowerbound, upperbound, False])
+
             input_list.append(entry)
 
-    # Sort Data
-    # TODO Replace with Simple call!
-    tempterm = ''
+    scenario_list = set([case.scenario for case in Case.objects.all()])
+    scenario_list.remove(scenario_name)
+    headers = ['Institution Name', 'Model Name', 'Avg Scenario Rating*',
+               'Interval', 'Scenario Tests Completed**']
+    notes = ['*Ranges for N>1 are 95% confidence intervals of the mean.',
+             '**Red numbers indicate N<11.']
+    inputdict = {
+        'scenario': scenario_name,
+        'score_list': input_list,
+        'table': 'scenario',
+        'header_list': headers,
+        'notes': notes,
+        'scenario_list': scenario_list
+    }
 
-    count = 1
-    while count > 0:
-        count = 0
-        if len(input_list) < 2:
-            break
-        for s in range(len(input_list)-1):
-            if input_list[s][2] < input_list[s+1][2]:
-                tempterm = input_list[s]
-                input_list[s] = input_list[s+1]
-                input_list[s+1] = tempterm
-                tempterm = ''
-                count += 1
-
-    inputdict = {'scenario': name, 'input_list': input_list}
-    request.session['nav'] = '4'
-
-    scenario_list = []
-    for i in Case.objects.all():
-        if str(i.scenario) not in  scenario_list:
-            scenario_list.append(str(i.scenario))
-
-    inputdict['scenario_list'] = scenario_list
     if request.session['active_account'] =='superuser':
         inputdict['superuser'] = True
 
-    instname = '0'
-    modelname ='0'
-    catrating ='1'
-    catcompleted ='0'
-
-    sortinfo = []
-    sortinfo.append(instname)
-    sortinfo.append(modelname)
-    sortinfo.append(catrating)
-    sortinfo.append(catcompleted)
-
-    inputdict['sortlst'] = sortinfo
+    request.session['nav'] = '4'
     request.session['inputdic'] = inputdict
-    return render_to_response('Leaderboard_scenario.html', inputdict)
+    return render_to_response('leaderboard.html', inputdict)
+    # return render_to_response('Leaderboard_scenario.html', inputdict)
 
 
 def test_to_Scenario_switch(request):
@@ -2202,7 +2302,6 @@ def scenario_to_scenario_switch(request):
 
 def hyper_leaderboard(request):
     authenticate(request)
-    request.session['inputdic'] = ''
     return redirect('/Leader_model/')
 
 
@@ -2323,7 +2422,7 @@ def model_inst_sort(request):
 
         inputdict['scenario_list'] = scenario_list
         request.session['inputdic'] = inputdict
-        return render_to_response('model_to_scenario.html', inputdict)
+        return render_to_response('leaderboard.html', inputdict)
     elif page == 'model_to_test':
         return render_to_response('Leaderboard_testname.html', inputdict)
     elif page == 'model_to_test_fail':
@@ -2409,7 +2508,7 @@ def model_name_sort(request):
 
         inputdict['scenario_list'] = scenario_list
         request.session['inputdic'] = inputdict
-        return render_to_response('model_to_scenario.html', inputdict)
+        return render_to_response('leaderboard.html', inputdict)
     elif page == 'model_to_test':
         return render_to_response('Leaderboard_testname.html', inputdict)
     elif page == 'model_to_test_fail':
@@ -2495,7 +2594,7 @@ def model_rtg_sort(request):
 
         inputdict['scenario_list'] = scenario_list
         request.session['inputdic'] = inputdict
-        return render_to_response('model_to_scenario.html', inputdict)
+        return render_to_response('leaderboard.html', inputdict)
     elif page == 'model_to_test':
         return render_to_response('Leaderboard_testname.html', inputdict)
     elif page == 'model_to_test_fail':
@@ -2581,7 +2680,7 @@ def model_tstscomp_sort(request):
 
         inputdict['scenario_list'] = scenario_list
         request.session['inputdic'] = inputdict
-        return render_to_response('model_to_scenario.html', inputdict)
+        return render_to_response('leaderboard.html', inputdict)
     elif page == 'model_to_test':
         return render_to_response('Leaderboard_testname.html', inputdict)
     elif page == 'model_to_test_fail':
@@ -3442,31 +3541,3 @@ def test(request):
     input_dict = case_to_dict(active_case)
     input_dict.update(csrf(request))
     return render_to_response('file_up.html', input_dict)
-
-
-def test_tablesorter(request):
-    sorted_models = get_sorted_models(Model.objects.all())
-    score_list = []
-
-    # copy values for leaderboard table
-    header_list = ['Institution Name', 'Model Name', 'Average Rating*',
-        'Tests Completed']
-    notes = ['* Average Ratings of multiple tests are reported with 95% confidence intervals']
-    for model in sorted_models:
-        num_finished = sum((not test.Active for test in model.tests.all()))
-        if num_finished >= 5:
-            score_list.append([
-                model.account_set.all()[0].institution_name,
-                model.name_id,
-                model.avgrating,
-                num_finished
-            ])
-
-    scenario_list = set([case.scenario for case in Case.objects.all()])
-    inputdict = request.session.get('inputdic', None)
-    inputdict = {} if inputdict is None else inputdict
-    inputdict['scenario_list'] = scenario_list
-    inputdict['score_list'] = score_list
-    inputdict['header_list'] = header_list
-    inputdict['notes'] = notes
-    return render_to_response('model_to_scenario.html', inputdict)
