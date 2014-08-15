@@ -118,13 +118,10 @@ def verify_user(request):
 def main_page(request):
 
     # record a hit on the main page
-    if not Mainhits.objects.all():
-        newhits = Mainhits()
-        newhits.save()
-
-    mainpagehit = Mainhits.objects.all()[0]
-    mainpagehit.hits += 1
-    mainpagehit.save()
+    hit_recorders = Mainhits.objects.all()
+    hit_recorder = hit_recorders[0] if hit_recorders else Mainhits()
+    hit_recorder.hits += 1
+    hit_recorder.save()
 
     request.session['completedtest'] = ''
     request.session['completedtest_lookup'] = False
@@ -140,12 +137,15 @@ def main_page(request):
     request.session['createcheck'] = False
     request.session['ActiveAdminCase'] = 'none'
 
-    sorted_models = get_sorted_models(Model.objects.all())
-    score_list = []
+    sorted_models = (Model.objects
+                     .exclude(avgrating='unrated')
+                     .order_by('avgrating')
+                     .reverse())
 
     # copy values for leaderboard table
+    score_list = []
     for model in sorted_models:
-        num_finished = sum((not test.Active for test in model.tests.all()))
+        num_finished = sum(not test.Active for test in model.tests.all())
         if num_finished >= 5:
             score_list.append([
                 model.account_set.all()[0].institution_name,
@@ -153,9 +153,13 @@ def main_page(request):
                 model.avgrating,
                 num_finished
             ])
+            if len(score_list) >= 10:
+              break
 
     # Limit to Top-10
-    inputdict = {'Scorelist': score_list[:9]}
+    headers = ['Institution Name', 'Model Name', 'Model Avg Rating',
+        'Tests Completed']
+    inputdict = {'score_list': score_list, 'header_list': headers}
     inputdict.update(csrf(request))
     return render_to_response('Main.html', inputdict)
 
@@ -946,14 +950,19 @@ def nonactive_test(request):
     return render_to_response('nonactive_test.html', input_dict)
 
 
-def get_sorted_models(allmodels):
+def top_rated_models(limit=None):
     """Return list of rated models, highest-rated first.
     Uses avgrating attribute and operator.attrgetter method.
 
     """
-    rated_models = [x for x in allmodels if x.avgrating != 'unrated']
-    return sorted(rated_models, key=attrgetter('avgrating'),
-                  reverse=True)
+    models = (Model.objects
+             .exclude(avgrating='unrated')
+             .order_by('avgrating')
+             .reverse())
+    if limit is None:
+        models = models[:limit]
+
+    return models
 
 
 def confidence_interval(scores):
@@ -981,56 +990,9 @@ def confidence_interval(scores):
         return (0, 0)
 
 
-def Leader_model(request):
-    """Create the leaderboard."""
-    authenticate(request)
-
-    # Build Leaderboard
-    score_list = []
-    sorted_models = get_sorted_models(Model.objects.all())
-    for model in sorted_models:
-        # Read info
-        account = model.account_set.all()[0]
-        institution = account.institution_name
-        username = account.username
-        name = model.name_id
-        rating = float(model.avgrating)
-        tests = model.tests.all()
-        finished_tests = [test for test in tests if not test.Active]
-        N = len(finished_tests)
-        scores = [float(x.test_rating) for x in finished_tests]
-
-        # Build case, depending on sample size
-        case = [institution, name, '%5.3f'%rating, N, username]
-        if N <= 1:
-            case.extend([-1, 1, True])  # std=False, sm.sample=True
-        else:
-            lowerbound, upperbound = confidence_interval(scores)
-            if N < 10:  # small sample=True
-                case.extend([lowerbound, upperbound, True])
-            else: # small sample = False
-                case.extend([lowerbound, upperbound, False])
-
-        #print >> sys.stderr, case
-        score_list.append(case)
-
-    # Prepare variables to send to HTML template
-    inputdict = {'score_list': score_list}
-    if request.session['active_account'] =='superuser':
-        inputdict['superuser'] = True
-
-    inputdict['notes'] = NOTES
-    inputdict['header_list'] = HEADERS
-    inputdict['table'] = 'model_avg'
-
-    request.session['nav'] = '1'
-    request.session['inputdic'] = inputdict
-    return render_to_response('leaderboard.html', inputdict)
-
-
 def fetch_model_scores():
     score_list = []
-    sorted_models = get_sorted_models(Model.objects.all())
+    sorted_models = top_rated_models()
     for model in sorted_models:
         account = model.account_set.all()[0]
         rating = float(model.avgrating)
@@ -1078,7 +1040,7 @@ def switchboard(request):
         inputdict['table'] = 'scenario'
         inputdict['score_list'] = fetch_model_scores()
         inputdict['header_list'] = HEADERS
-        return render_to_response('leaderboard.html', inputdict)
+        return render_to_response('leaderboard_base.html', inputdict)
     else:
         return redirect('/leaderboard_model')
 
@@ -1098,7 +1060,7 @@ def leaderboard_model(request):
         inputdict['superuser'] = True
 
     request.session['inputdic'] = inputdict
-    return render_to_response('leaderboard.html', inputdict)
+    return render_to_response('leaderboard_base.html', inputdict)
 
 
 def leaderboard_test_case(request):
@@ -1145,7 +1107,7 @@ def leaderboard_test_case(request):
         inputdict['superuser'] = True
 
     request.session['inputdic'] = inputdict
-    return render_to_response('leaderboard.html', inputdict)
+    return render_to_response('leaderboard_base.html', inputdict)
 
 
 def leaderboard_scenario(request):
@@ -1197,7 +1159,7 @@ def leaderboard_scenario(request):
         inputdict['superuser'] = True
 
     request.session['inputdic'] = inputdict
-    return render_to_response('leaderboard.html', inputdict)
+    return render_to_response('leaderboard_base.html', inputdict)
 
 
 def testcaseshow(request):
@@ -1244,7 +1206,7 @@ def return_leader(request):
     elif nav_selection == '5':
         return render_to_response('test_to_scenario.html', inputdict)
     elif nav_selection == '6':
-        return render_to_response('leaderboard.html', inputdict)
+        return render_to_response('leaderboard_base.html', inputdict)
     elif nav_selection == '7':
         return render_to_response('scenario_to_test.html', inputdict)
 
@@ -1292,7 +1254,7 @@ def caseref_return(request):
     elif nav_choice == '5':
         return render_to_response('test_to_scenario.html', inputdict)
     elif nav_choice == '6':
-        return render_to_response('leaderboard.html', inputdict)
+        return render_to_response('leaderboard_base.html', inputdict)
     elif nav_choice == '7':
         return render_to_response('scenario_to_test.html', inputdict)
 
@@ -1342,7 +1304,7 @@ def returnfrom_profile(request):
     elif nav_choice == '5':
         return render_to_response('test_to_scenario.html', inputdict)
     elif nav_choice == '6':
-        return render_to_response('leaderboard.html', inputdict)
+        return render_to_response('leaderboard_base.html', inputdict)
     elif nav_choice == '7':
         return render_to_response('scenario_to_test.html', inputdict)
 
@@ -2128,883 +2090,6 @@ def password_email(request):
 
 def collecting_data(request):
     return render_to_response('collecting_data.html')
-
-
-def model_inst_sort(request):
-    authenticate(request)
-
-    # extract data
-    instname = str(request.GET['instname'])
-    modelname = str(request.GET['modelname'])
-    avgrating = str(request.GET['avgrating'])
-    tstcomplete = str(request.GET['tstcomplete'])
-    page = str(request.GET['page'])
-
-    modelname = '0'
-    avgrating = '0'
-    tstcomplete = '0'
-
-    inputdict = request.session['inputdic']
-    scorelist = inputdict['Scorelist']
-    caseselection = inputdict.get('caseselection', None)
-
-    # sort depending on various circumstances
-    if instname == '0':
-        instname = '1'
-        count = 1
-        temp = ''
-
-        while count > 0:
-            count = 0
-            for i in range(len(scorelist)-1):
-                temp = ''
-                if scorelist[i][0] > scorelist[i+1][0] :
-                    temp = scorelist[i]
-                    scorelist[i] = scorelist[i+1]
-                    scorelist[i+1] = temp
-                    count += 1
-
-    elif instname == '1':
-        instname = '2'
-        count = 1
-        temp = ''
-
-        while count > 0:
-            count = 0
-            for i in range(len(scorelist)-1):
-                temp = ''
-                if scorelist[i][0] < scorelist[i+1][0] :
-                    temp = scorelist[i]
-                    scorelist[i] = scorelist[i+1]
-                    scorelist[i+1] = temp
-                    count += 1
-
-    elif instname == '2':
-        instname = '1'
-        count = 1
-        temp = ''
-
-        while count > 0:
-            count = 0
-            for i in range(len(scorelist)-1):
-                temp = ''
-                if scorelist[i][0] > scorelist[i+1][0] :
-                    temp = scorelist[i]
-                    scorelist[i] = scorelist[i+1]
-                    scorelist[i+1] = temp
-                    count += 1
-
-    sortinfo = [instname, modelname, avgrating, tstcomplete]
-    inputdict = {'Scorelist': scorelist, 'sortlst': sortinfo}
-    if caseselection is not None:
-        inputdict['caseselection'] = caseselection
-
-    request.session['inputdic'] = inputdict
-
-    if page == 'model_leader':
-        return render_to_response('Leader_Model.html', inputdict)
-    elif page == 'model_to_scenario_move':
-        scenario_list = []
-        for i in Case.objects.all():
-            if str(i.scenario) not in  scenario_list:
-                scenario_list.append(str(i.scenario))
-
-        inputdict['scenario_list'] = scenario_list
-        request.session['inputdic'] = inputdict
-        return render_to_response('leaderboard.html', inputdict)
-    elif page == 'model_to_test':
-        return render_to_response('Leaderboard_testname.html', inputdict)
-    elif page == 'model_to_test_fail':
-        return render_to_response('Leaderboard_testname_fail.html', inputdict)
-
-
-def model_name_sort(request):
-    authenticate(request)
-
-    # extract data
-    instname = str(request.GET['instname'])
-    modelname = str(request.GET['modelname'])
-    avgrating = str(request.GET['avgrating'])
-    tstcomplete = str(request.GET['tstcomplete'])
-    page = str(request.GET['page'])
-
-    instname = '0'
-    avgrating = '0'
-    tstcomplete = '0'
-
-    inputdict = request.session['inputdic']
-    scorelist = inputdict['Scorelist']
-    caseselection = inputdict.get('caseselection', None)
-
-    # sort depending on various circumstances
-    if modelname == '0':
-        modelname = '1'
-        count = 1
-        temp = ''
-
-        while count > 0:
-            count = 0
-            for i in range(len(scorelist)-1):
-                temp = ''
-                if scorelist[i][1] > scorelist[i+1][1] :
-                    temp = scorelist[i]
-                    scorelist[i] = scorelist[i+1]
-                    scorelist[i+1] = temp
-                    count += 1
-    elif modelname == '1':
-        modelname = '2'
-        count = 1
-        temp = ''
-
-        while count > 0:
-            count = 0
-            for i in range(len(scorelist)-1):
-                temp = ''
-                if scorelist[i][1] < scorelist[i+1][1] :
-                    temp = scorelist[i]
-                    scorelist[i] = scorelist[i+1]
-                    scorelist[i+1] = temp
-                    count += 1
-    elif modelname == '2':
-        modelname = '1'
-        count = 1
-        temp = ''
-
-        while count > 0:
-            count = 0
-            for i in range(len(scorelist)-1):
-                temp = ''
-                if scorelist[i][1] > scorelist[i+1][1] :
-                    temp = scorelist[i]
-                    scorelist[i] = scorelist[i+1]
-                    scorelist[i+1] = temp
-                    count += 1
-
-    sortinfo = [instname, modelname, avgrating, tstcomplete]
-    inputdict = {'Scorelist': scorelist, 'sortlst': sortinfo}
-    if caseselection is not None:
-        inputdict['caseselection'] = caseselection
-
-    request.session['inputdic'] = inputdict
-
-    if page == 'model_leader':
-        return render_to_response('Leader_Model.html', inputdict)
-    elif page == 'model_to_scenario_move':
-        scenario_list = []
-        for i in Case.objects.all():
-            if str(i.scenario) not in  scenario_list:
-                scenario_list.append(str(i.scenario))
-
-        inputdict['scenario_list'] = scenario_list
-        request.session['inputdic'] = inputdict
-        return render_to_response('leaderboard.html', inputdict)
-    elif page == 'model_to_test':
-        return render_to_response('Leaderboard_testname.html', inputdict)
-    elif page == 'model_to_test_fail':
-        return render_to_response('Leaderboard_testname_fail.html', inputdict)
-
-
-def model_rtg_sort(request):
-    authenticate(request)
-
-    # extract data
-    instname = str(request.GET['instname'])
-    modelname = str(request.GET['modelname'])
-    avgrating = str(request.GET['avgrating'])
-    tstcomplete = str(request.GET['tstcomplete'])
-    page = str(request.GET['page'])
-
-    modelname = '0'
-    instname = '0'
-    tstcomplete = '0'
-
-    inputdict = request.session['inputdic']
-    scorelist = inputdict['Scorelist']
-    caseselection = inputdict.get('caseselection', None)
-
-    # sort depending on various circumstances
-    if avgrating == '0':
-        avgrating = '1'
-        count = 1
-        temp = ''
-
-        while count > 0:
-            count = 0
-            for i in range(len(scorelist)-1):
-                temp = ''
-                if float(scorelist[i][2]) < float(scorelist[i+1][2]) :
-                    temp = scorelist[i]
-                    scorelist[i] = scorelist[i+1]
-                    scorelist[i+1] = temp
-                    count += 1
-    elif avgrating == '1':
-        avgrating = '2'
-        count = 1
-        temp = ''
-
-        while count > 0:
-            count = 0
-            for i in range(len(scorelist)-1):
-                temp = ''
-                if float(scorelist[i][2]) > float(scorelist[i+1][2]) :
-                    temp = scorelist[i]
-                    scorelist[i] = scorelist[i+1]
-                    scorelist[i+1] = temp
-                    count += 1
-    elif avgrating == '2':
-        avgrating = '1'
-        count = 1
-        temp = ''
-
-        while count > 0:
-            count = 0
-            for i in range(len(scorelist)-1):
-                temp = ''
-                if float(scorelist[i][2]) < float(scorelist[i+1][2]) :
-                    temp = scorelist[i]
-                    scorelist[i] = scorelist[i+1]
-                    scorelist[i+1] = temp
-                    count += 1
-
-    sortinfo = [instname, modelname, avgrating, tstcomplete]
-    inputdict = {'Scorelist': scorelist, 'sortlst': sortinfo}
-    if caseselection is not None:
-        inputdict['caseselection'] = caseselection
-
-    request.session['inputdic'] = inputdict
-
-    if page == 'model_leader':
-        return render_to_response('Leader_Model.html', inputdict)
-    elif page == 'model_to_scenario_move':
-        scenario_list = []
-        for i in Case.objects.all():
-            if str(i.scenario) not in  scenario_list:
-                scenario_list.append(str(i.scenario))
-
-        inputdict['scenario_list'] = scenario_list
-        request.session['inputdic'] = inputdict
-        return render_to_response('leaderboard.html', inputdict)
-    elif page == 'model_to_test':
-        return render_to_response('Leaderboard_testname.html', inputdict)
-    elif page == 'model_to_test_fail':
-        return render_to_response('Leaderboard_testname_fail.html', inputdict)
-
-
-def model_tstscomp_sort(request):
-    authenticate(request)
-
-    # extract data
-    instname = str(request.GET['instname'])
-    modelname = str(request.GET['modelname'])
-    avgrating = str(request.GET['avgrating'])
-    tstcomplete = str(request.GET['tstcomplete'])
-    page = str(request.GET['page'])
-
-    modelname = '0'
-    instname = '0'
-    avgrating = '0'
-
-    inputdict = request.session['inputdic']
-    scorelist = inputdict['Scorelist']
-    caseselection = inputdict.get('caseselection', None)
-
-    # sort depending on various circumstances
-    if tstcomplete == '0':
-        tstcomplete = '1'
-        count = 1
-        temp = ''
-
-        while count > 0:
-            count = 0
-            for i in range(len(scorelist)-1):
-                temp = ''
-                if float(scorelist[i][3]) < float(scorelist[i+1][3]) :
-                    temp = scorelist[i]
-                    scorelist[i] = scorelist[i+1]
-                    scorelist[i+1] = temp
-                    count += 1
-    elif tstcomplete == '1':
-        tstcomplete = '2'
-        count = 1
-        temp = ''
-
-        while count > 0:
-            count = 0
-            for i in range(len(scorelist)-1):
-                temp = ''
-                if float(scorelist[i][3]) > float(scorelist[i+1][3]) :
-                    temp = scorelist[i]
-                    scorelist[i] = scorelist[i+1]
-                    scorelist[i+1] = temp
-                    count += 1
-    elif tstcomplete == '2':
-        tstcomplete = '1'
-        count = 1
-        temp = ''
-
-        while count > 0:
-            count = 0
-            for i in range(len(scorelist)-1):
-                temp = ''
-                if float(scorelist[i][3]) < float(scorelist[i+1][3]) :
-                    temp = scorelist[i]
-                    scorelist[i] = scorelist[i+1]
-                    scorelist[i+1] = temp
-                    count += 1
-
-    sortinfo = [instname, modelname, avgrating, tstcomplete]
-    inputdict = {'Scorelist': scorelist, 'sortlst': sortinfo}
-    if caseselection is not None:
-        inputdict['caseselection'] = caseselection
-
-    request.session['inputdic'] = inputdict
-
-    if page == 'model_leader':
-        return render_to_response('Leader_Model.html', inputdict)
-    elif page == 'model_to_scenario_move':
-        scenario_list = []
-        for i in Case.objects.all():
-            if str(i.scenario) not in  scenario_list:
-                scenario_list.append(str(i.scenario))
-
-        inputdict['scenario_list'] = scenario_list
-        request.session['inputdic'] = inputdict
-        return render_to_response('leaderboard.html', inputdict)
-    elif page == 'model_to_test':
-        return render_to_response('Leaderboard_testname.html', inputdict)
-    elif page == 'model_to_test_fail':
-        return render_to_response('Leaderboard_testname_fail.html', inputdict)
-
-
-def test_inst_sort(request):
-    authenticate(request)
-
-    # extract data
-    instname = int(request.GET['instname'])
-    modelname = int(request.GET['modelname'])
-    testname = int(request.GET['testname'])
-    tstrating = int(request.GET['tstrating'])
-    page = str(request.GET['page'])
-
-    inputdict = request.session['inputdic']
-    scorelist = inputdict['Scorelist']
-    casename = inputdict['casename']
-    caseselection = inputdict.get('caseselection', None)
-
-    table_values = []
-    for row in scorelist:
-        table_values.append({
-            'institution': row[0],
-            'model_name': row[1],
-            'test_name': row[2],
-            'test_rating': row[3],
-            'user': row[4]
-        })
-
-    if instname:
-        sortby= 'institution'
-    elif modelname:
-        sortby = 'model_name'
-    elif testname:
-        sortby = 'test_name'
-    else:
-        sortby = 'test_rating'
-
-    score_list = sorted(table_values, key=lambda row: row[sortby])
-    sortinfo = [instname, modelname, testname, tstrating]
-    inputdict = {'Scorelist': scorelist, 'sortlst': sortinfo}
-    inputdict['casename'] = casename
-    if caseselection is not None:
-        inputdict['caseselection'] = caseselection
-
-    request.session['inputdic'] = inputdict
-
-    if page == 'test_leader':
-        return render_to_response('Leaderboard_test.html', inputdict)
-    elif page =='test_leader_fail':
-        return render_to_response('Leaderboard_Testfail.html', inputdict)
-    elif page =='TEST_TOSCENARIO_MOVE':
-        scenario_list = []
-        for i in Case.objects.all():
-            if str(i.scenario) not in  scenario_list:
-                scenario_list.append(str(i.scenario))
-
-        inputdict['scenario_list'] = scenario_list
-        request.session['inputdic'] = inputdict
-        return render_to_response('test_to_scenario.html', inputdict)
-
-
-def sort_table(request):
-    """Sort the leaderboard table by a chosen column."""
-
-    # extract sorting flags
-    instname = int(request.GET['instname'])
-    modelname = int(request.GET['modelname'])
-    testname = int(request.GET['testname'])
-    tstrating = int(request.GET['tstrating'])
-
-    # preserve input values for return and grab table data
-    inputdict = request.session['inputdic']
-    casename = inputdict['casename']
-    caseselection = inputdict.get('caseselection', None)
-    scorelist = inputdict['Scorelist']
-
-    # # put table data into a dictionary for ease of sorting
-    # table_values = []
-    # for row in scorelist:
-    #     table_values.append({
-    #         'institution': row[0],
-    #         'model_name': row[1],
-    #         'test_name': row[2],
-    #         'test_rating': row[3],
-    #         'user': row[4]
-    #     })
-    # score_list = sorted(table_values, key=lambda row: row[sortby])
-
-    if instname:
-        sortby = 0
-    elif modelname:
-        sortby = 1
-    elif testname:
-        sortby = 2
-    else:
-        sortby = 3
-
-    scorelist = sorted(scorelist, key=lambda row: row[sortby])
-    sortinfo = [instname, modelname, testname, tstrating]
-    inputdict = {'Scorelist': scorelist, 'sortlst': sortinfo}
-    inputdict['casename'] = casename
-    if caseselection is not None:
-        inputdict['caseselection'] = caseselection
-
-    request.session['inputdic'] = inputdict
-    return inputdict
-
-
-def test_modelname_sort(request):
-    authenticate(request)
-
-    inputdict = sort_table(request)
-
-    page = request.GET['page']
-    if page == 'test_leader':
-        return render_to_response('Leaderboard_test.html', inputdict)
-    elif page =='test_leader_fail':
-        return render_to_response('Leaderboard_Testfail.html', inputdict)
-    elif page =='TEST_TOSCENARIO_MOVE':
-        scenario_list = []
-        for case in Case.objects.all():
-            if case.scenario not in scenario_list:
-                scenario_list.append(case.scenario)
-
-        inputdict['scenario_list'] = scenario_list
-        request.session['inputdic'] = inputdict
-        return render_to_response('test_to_scenario.html', inputdict)
-
-
-def test_name_sort(request):
-    authenticate(request)
-
-    inputdict = sort_table(request)
-
-    if page == 'test_leader':
-        return render_to_response('Leaderboard_test.html', inputdict)
-    elif page =='test_leader_fail':
-        return render_to_response('Leaderboard_Testfail.html', inputdict)
-    elif page =='TEST_TOSCENARIO_MOVE':
-        scenario_list = []
-        for i in Case.objects.all():
-            if str(i.scenario) not in  scenario_list:
-                scenario_list.append(str(i.scenario))
-
-        inputdict['scenario_list'] = scenario_list
-        request.session['inputdic'] = inputdict
-        return render_to_response('test_to_scenario.html', inputdict)
-
-
-def test_rating_sort(request):
-    authenticate(request)
-
-    inputdict = sort_table(request)
-
-    if page == 'test_leader':
-        return render_to_response('Leaderboard_test.html', inputdict)
-    elif page =='test_leader_fail':
-        return render_to_response('Leaderboard_Testfail.html', inputdict)
-    elif page =='TEST_TOSCENARIO_MOVE':
-        scenario_list = []
-        for i in Case.objects.all():
-            if str(i.scenario) not in  scenario_list:
-                scenario_list.append(str(i.scenario))
-
-        inputdict['scenario_list'] = scenario_list
-        request.session['inputdic'] = inputdict
-        return render_to_response('test_to_scenario.html', inputdict)
-
-
-def cat_inst_sort(request):
-    authenticate(request)
-
-    # extract data
-    instname = str(request.GET['instname'])
-    modelname = str(request.GET['modelname'])
-    catrating = str(request.GET['catrating'])
-    catcompleted = str(request.GET['catcompleted'])
-    page = str(request.GET['page'])
-
-    modelname = '0'
-    catrating = '0'
-    catcompleted = '0'
-
-    inputdict = request.session['inputdic']
-    scorelist = inputdict['input_list']
-    name = inputdict['scenario']
-    caseselection = inputdict.get('caseselection', None)
-
-    # sort depending on various circumstances
-    if instname == '0':
-        instname = '1'
-        count = 1
-        temp = ''
-
-        while count > 0:
-            count = 0
-            for i in range(len(scorelist)-1):
-                temp = ''
-                if scorelist[i][0] > scorelist[i+1][0] :
-                    temp = scorelist[i]
-                    scorelist[i] = scorelist[i+1]
-                    scorelist[i+1] = temp
-                    count += 1
-    elif instname == '1':
-        instname = '2'
-        count = 1
-        temp = ''
-
-        while count > 0:
-            count = 0
-            for i in range(len(scorelist)-1):
-                temp = ''
-                if scorelist[i][0] < scorelist[i+1][0] :
-                    temp = scorelist[i]
-                    scorelist[i] = scorelist[i+1]
-                    scorelist[i+1] = temp
-                    count += 1
-    elif instname == '2':
-        instname = '1'
-        count = 1
-        temp = ''
-
-        while count > 0:
-            count = 0
-            for i in range(len(scorelist)-1):
-                temp = ''
-                if scorelist[i][0] > scorelist[i+1][0] :
-                    temp = scorelist[i]
-                    scorelist[i] = scorelist[i+1]
-                    scorelist[i+1] = temp
-                    count += 1
-
-    sortinfo = [instname, modelname, catrating, catcompleted]
-    inputdict = {'input_list': scorelist, 'sortlst': sortinfo}
-    if caseselection is not None:
-        inputdict['caseselection'] = caseselection
-
-    request.session['inputdic'] = inputdict
-
-    if page == 'category_leader':
-        scenario_list = []
-        for i in Case.objects.all():
-            if str(i.scenario) not in  scenario_list:
-                scenario_list.append(str(i.scenario))
-
-        inputdict['scenario_list'] = scenario_list
-        inputdict['scenario'] = name
-        request.session['inputdic'] = inputdict
-        return render_to_response('Leaderboard_scenario.html', inputdict)
-
-    elif page == 'scenario_to_test':
-        inputdict['scenario'] = name
-        request.session['inputdic'] = inputdict
-        return render_to_response('scenario_to_test.html', inputdict)
-
-    elif page =='scenario_to_test_fail':
-        inputdict['scenario'] = name
-        request.session['inputdic'] = inputdict
-        return render_to_response('scenario_to_testfail.html', inputdict)
-
-
-def cat_modelname_sort(request):
-    authenticate(request)
-
-    # extract data
-    instname = str(request.GET['instname'])
-    modelname = str(request.GET['modelname'])
-    catrating = str(request.GET['catrating'])
-    catcompleted = str(request.GET['catcompleted'])
-    page = str(request.GET['page'])
-
-    instname = '0'
-    catrating = '0'
-    catcompleted = '0'
-
-    inputdict = request.session['inputdic']
-    scorelist = inputdict['input_list']
-    name = inputdict['scenario']
-    caseselection = inputdict.get('caseselection', None)
-
-    # sort depending on various circumstances
-    if modelname == '0':
-        modelname = '1'
-        count = 1
-        temp = ''
-
-        while count > 0:
-            count = 0
-            for i in range(len(scorelist)-1):
-                temp = ''
-                if scorelist[i][1] > scorelist[i+1][1] :
-                    temp = scorelist[i]
-                    scorelist[i] = scorelist[i+1]
-                    scorelist[i+1] = temp
-                    count += 1
-    elif modelname == '1':
-        modelname = '2'
-        count = 1
-        temp = ''
-
-        while count > 0:
-            count = 0
-            for i in range(len(scorelist)-1):
-                temp = ''
-                if scorelist[i][1] < scorelist[i+1][1] :
-                    temp = scorelist[i]
-                    scorelist[i] = scorelist[i+1]
-                    scorelist[i+1] = temp
-                    count += 1
-    elif modelname == '2':
-        modelname = '1'
-        count = 1
-        temp = ''
-
-        while count > 0:
-            count = 0
-            for i in range(len(scorelist)-1):
-                temp = ''
-                if scorelist[i][1] > scorelist[i+1][1] :
-                    temp = scorelist[i]
-                    scorelist[i] = scorelist[i+1]
-                    scorelist[i+1] = temp
-                    count += 1
-
-    sortinfo = [instname, modelname, catrating, catcompleted]
-    inputdict = {'input_list': scorelist, 'sortlst': sortinfo}
-    if caseselection is not None:
-        inputdict['caseselection'] = caseselection
-
-    request.session['inputdic'] = inputdict
-
-    if page == 'category_leader':
-        scenario_list = []
-        for i in Case.objects.all():
-            if str(i.scenario) not in  scenario_list:
-                scenario_list.append(str(i.scenario))
-
-        inputdict['scenario_list'] = scenario_list
-        inputdict['scenario'] = name
-        request.session['inputdic'] = inputdict
-        return render_to_response('Leaderboard_scenario.html', inputdict)
-
-    elif page == 'scenario_to_test':
-        inputdict['scenario'] = name
-        request.session['inputdic'] = inputdict
-        return render_to_response('scenario_to_test.html', inputdict)
-
-    elif page =='scenario_to_test_fail':
-        inputdict['scenario'] = name
-        request.session['inputdic'] = inputdict
-        return render_to_response('scenario_to_testfail.html', inputdict)
-
-
-def catrating_sort(request):
-    authenticate(request)
-
-    # extract data
-    instname = str(request.GET['instname'])
-    modelname = str(request.GET['modelname'])
-    catrating = str(request.GET['catrating'])
-    catcompleted = str(request.GET['catcompleted'])
-    page = str(request.GET['page'])
-
-    instname = '0'
-    modelname = '0'
-    catcompleted = '0'
-
-    inputdict = request.session['inputdic']
-    scorelist = inputdict['input_list']
-    name = inputdict['scenario']
-    caseselection = inputdict.get('caseselection', None)
-
-    # sort depending on various circumstances
-    if catrating == '0':
-        catrating = '1'
-        count = 1
-        temp = ''
-
-        while count > 0:
-            count = 0
-            for i in range(len(scorelist)-1):
-                temp = ''
-                if float(scorelist[i][2]) < float(scorelist[i+1][2]) :
-                    temp = scorelist[i]
-                    scorelist[i] = scorelist[i+1]
-                    scorelist[i+1] = temp
-                    count += 1
-    elif catrating == '1':
-        catrating = '2'
-        count = 1
-        temp = ''
-
-        while count > 0:
-            count = 0
-            for i in range(len(scorelist)-1):
-                temp = ''
-                if float(scorelist[i][2]) > float(scorelist[i+1][2]) :
-                    temp = scorelist[i]
-                    scorelist[i] = scorelist[i+1]
-                    scorelist[i+1] = temp
-                    count += 1
-    elif catrating == '2':
-        catrating = '1'
-        count = 1
-        temp = ''
-
-        while count > 0:
-            count = 0
-            for i in range(len(scorelist)-1):
-                temp = ''
-                if float(scorelist[i][2]) < float(scorelist[i+1][2]) :
-                    temp = scorelist[i]
-                    scorelist[i] = scorelist[i+1]
-                    scorelist[i+1] = temp
-                    count += 1
-
-    sortinfo = [instname, modelname, catrating, catcompleted]
-    inputdict = {'input_list': scorelist, 'sortlst': sortinfo}
-    if caseselection is not None:
-        inputdict['caseselection'] = caseselection
-
-    request.session['inputdic'] = inputdict
-
-    if page == 'category_leader':
-        scenario_list = []
-        for i in Case.objects.all():
-            if str(i.scenario) not in  scenario_list:
-                scenario_list.append(str(i.scenario))
-
-        inputdict['scenario_list'] = scenario_list
-        inputdict['scenario'] = name
-        request.session['inputdic'] = inputdict
-        return render_to_response('Leaderboard_scenario.html', inputdict)
-
-    elif page == 'scenario_to_test':
-        inputdict['scenario'] = name
-        request.session['inputdic'] = inputdict
-        return render_to_response('scenario_to_test.html', inputdict)
-
-    elif page =='scenario_to_test_fail':
-        inputdict['scenario'] = name
-        request.session['inputdic'] = inputdict
-        return render_to_response('scenario_to_testfail.html', inputdict)
-
-
-def catcompleted_sort(request):
-    authenticate(request)
-
-    # extract data
-    instname = str(request.GET['instname'])
-    modelname = str(request.GET['modelname'])
-    catrating = str(request.GET['catrating'])
-    catcompleted = str(request.GET['catcompleted'])
-    page = str(request.GET['page'])
-
-    instname = catrating = modelname = '0'
-    inputdict = request.session['inputdic']
-    scorelist = inputdict['input_list']
-    name = inputdict['scenario']
-    caseselection = inputdict.get('caseselection', None)
-
-    # sort depending on various circumstances
-    if catcompleted == '0':
-        catcompleted = '1'
-        count = 1
-        temp = ''
-
-        while count > 0:
-            count = 0
-            for i in range(len(scorelist)-1):
-                temp = ''
-                if float(scorelist[i][3]) < float(scorelist[i+1][3]):
-                    temp = scorelist[i]
-                    scorelist[i] = scorelist[i+1]
-                    scorelist[i+1] = temp
-                    count += 1
-    elif catcompleted == '1':
-        catcompleted = '2'
-        count = 1
-        temp = ''
-
-        while count > 0:
-            count = 0
-            for i in range(len(scorelist)-1):
-                temp = ''
-                if float(scorelist[i][3]) > float(scorelist[i+1][3]) :
-                    temp = scorelist[i]
-                    scorelist[i] = scorelist[i+1]
-                    scorelist[i+1] = temp
-                    count += 1
-    elif catcompleted == '2':
-        catcompleted = '1'
-        count = 1
-        temp = ''
-
-        while count > 0:
-            count = 0
-            for i in range(len(scorelist)-1):
-                temp = ''
-                if float(scorelist[i][3]) < float(scorelist[i+1][3]) :
-                    temp = scorelist[i]
-                    scorelist[i] = scorelist[i+1]
-                    scorelist[i+1] = temp
-                    count += 1
-
-    sortinfo = [instname, modelname, catrating, catcompleted]
-    inputdict = {'input_list': scorelist, 'sortlst': sortinfo}
-    if caseselection is not None:
-        inputdict['caseselection'] = caseselection
-
-    request.session['inputdic'] = inputdict
-
-    if page == 'category_leader':
-        scenario_list = []
-        for i in Case.objects.all():
-            if str(i.scenario) not in  scenario_list:
-                scenario_list.append(str(i.scenario))
-
-        inputdict['scenario_list'] = scenario_list
-        inputdict['scenario'] = name
-        request.session['inputdic'] = inputdict
-        return render_to_response('Leaderboard_scenario.html', inputdict)
-
-    elif page == 'scenario_to_test':
-        inputdict['scenario'] = name
-        request.session['inputdic'] = inputdict
-        return render_to_response('scenario_to_test.html', inputdict)
-
-    elif page =='scenario_to_test_fail':
-        inputdict['scenario'] = name
-        request.session['inputdic'] = inputdict
-        return render_to_response('scenario_to_testfail.html', inputdict)
 
 
 def model_edit_info(request):
