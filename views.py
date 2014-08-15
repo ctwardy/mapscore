@@ -141,13 +141,13 @@ def main_page(request):
     request.session['ActiveAdminCase'] = 'none'
 
     sorted_models = get_sorted_models(Model.objects.all())
-    inputlist = []
+    score_list = []
 
     # copy values for leaderboard table
     for model in sorted_models:
         num_finished = sum((not test.Active for test in model.tests.all()))
         if num_finished >= 5:
-            inputlist.append([
+            score_list.append([
                 model.account_set.all()[0].institution_name,
                 model.name_id,
                 model.avgrating,
@@ -155,7 +155,7 @@ def main_page(request):
             ])
 
     # Limit to Top-10
-    inputdict = {'Scorelist': inputlist[:9]}
+    inputdict = {'Scorelist': score_list[:9]}
     inputdict.update(csrf(request))
     return render_to_response('Main.html', inputdict)
 
@@ -714,7 +714,7 @@ def testcase_admin(request):
             COORDS.format(case.upleft_lat, case.upleft_lon),
             COORDS.format(case.downleft_lat, case.downleft_lon)
         ))
-        inputlist = [
+        score_list = [
             case.id,
             case.case_name,
             case.Age,
@@ -722,7 +722,7 @@ def testcase_admin(request):
             latlon_box,
             COORDS.format(case.findx, case.findy)
         ]
-        caselist.append(inputlist)
+        caselist.append(score_list)
 
     return render_to_response('TestCaseMenu.html', {'case_list': caselist})
 
@@ -986,7 +986,7 @@ def Leader_model(request):
     authenticate(request)
 
     # Build Leaderboard
-    inputlist = []
+    score_list = []
     sorted_models = get_sorted_models(Model.objects.all())
     for model in sorted_models:
         # Read info
@@ -1012,10 +1012,10 @@ def Leader_model(request):
                 case.extend([lowerbound, upperbound, False])
 
         #print >> sys.stderr, case
-        inputlist.append(case)
+        score_list.append(case)
 
     # Prepare variables to send to HTML template
-    inputdict = {'score_list': inputlist}
+    inputdict = {'score_list': score_list}
     if request.session['active_account'] =='superuser':
         inputdict['superuser'] = True
 
@@ -1029,7 +1029,7 @@ def Leader_model(request):
 
 
 def fetch_model_scores():
-    inputlist = []
+    score_list = []
     sorted_models = get_sorted_models(Model.objects.all())
     for model in sorted_models:
         account = model.account_set.all()[0]
@@ -1052,9 +1052,9 @@ def fetch_model_scores():
             else: # small sample = False
                 case.extend([lowerbound, upperbound, False])
 
-        inputlist.append(case)
+        score_list.append(case)
 
-    return inputlist
+    return score_list
 
 
 def switchboard(request):
@@ -1076,8 +1076,8 @@ def switchboard(request):
         scenario_list = [c.scenario for c in Case.objects.distinct('scenario')]
         inputdict['scenario_list'] = scenario_list
         inputdict['table'] = 'scenario'
-        if inputdict.get('score_list', None) is None:
-            inputdict['score_list'] = fetch_model_scores()
+        inputdict['score_list'] = fetch_model_scores()
+        inputdict['header_list'] = HEADERS
         return render_to_response('leaderboard.html', inputdict)
     else:
         return redirect('/leaderboard_model')
@@ -1119,12 +1119,12 @@ def leaderboard_test_case(request):
         matched_tests = Test.objects.filter(Active=False)
 
     # copy values for leaderboard table
-    inputlist = []
+    score_list = []
     sorted_tests = matched_tests.order_by('test_rating').reverse()
     for test in sorted_tests[:40]:
         first_model = test.model_set.all()[0]
         first_account = first_model.account_set.all()[0]
-        inputlist.append([
+        score_list.append([
             first_account.institution_name,
             first_model.name_id,
             test.test_name,
@@ -1135,7 +1135,7 @@ def leaderboard_test_case(request):
     headers = ['Institution Name', 'Model Name', 'Test Name',
                'Avg Test Rating', 'Test Owner']
     inputdict = {
-        'score_list': inputlist,
+        'score_list': score_list,
         'case_name': raw_casename,
         'table': 'test_case',
         'header_list': headers,
@@ -1949,21 +1949,17 @@ def terminate_accounts(request):
 def view_username_admin(request):
     authenticate_admin(request)
 
-    inputlist = []
-    for i in Account.objects.all():
-        tmplst = []
-        tmplst.append(i.username)
-        tmplst.append(i.institution_name)
-        inputlist.append(tmplst)
+    score_list = []
+    for account in Account.objects.all():
+        score_list.append((account.username, account.institution_name))
 
-    inputdict = {'inputlist': inputlist}
+    inputdict = {'score_list': score_list}
     return render_to_response('account_admin_terminfo.html', inputdict)
 
 
 def delaccountlink(request):
     authenticate_admin(request)
-
-    user = str(request.GET['username'])
+    user = request.GET['username']
     request.session['userdel'] = user
     return redirect('/terminate_accounts/')
 
@@ -1977,16 +1973,16 @@ def adminterminate_account(request):
     failcount = 0
     inputdict = {'accountin': username}
     if auth.authenticate(username=request.session['admin_name'], password=password_in) is None:
-        failcount = failcount +1
+        failcount += 1
         inputdict['invalidpw'] = True
 
     truecount = 0
-    for i in Account.objects.all():
-        if str(username) == i.username:
-            truecount = truecount + 1
+    for account in Account.objects.all():
+        if username == account.username:
+            truecount += 1
 
     if truecount == 0:
-        failcount = failcount +1
+        failcount += 1
         inputdict['invalidaccount'] = True
 
     if  failcount > 0:
@@ -1995,7 +1991,7 @@ def adminterminate_account(request):
 
 
     # If pass -- proceed with delete
-    account = Account.objects.get(username = username)
+    account = Account.objects.get(username=username)
 
     # create new deleted object
     t = TerminatedAccounts()
