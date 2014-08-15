@@ -18,7 +18,6 @@ import cStringIO
 from operator import itemgetter, attrgetter
 
 # Django Imports
-from django.db.models import Avg
 from django.http import HttpResponse
 from django.shortcuts import render_to_response, redirect
 from django.contrib.auth.models import User
@@ -447,7 +446,7 @@ def process_batch_tests(request):
         # get active case, already verified it exists so skip error check for now
         a_case = Case.objects.get(case_name=str(case))
 
-        # note similar code to below also exists in create_test()
+        # TODO: note similar code to below also exists in create_test()
 
         # set ID2 for this test case "User:Model:Case"
         ID2 = str(a_model.ID2) + ':' + str(a_case.case_name)
@@ -672,7 +671,7 @@ def admin_login(request):
 
 def admin_account(request):
     request.session['userdel'] = ''
-    request.session['inputdic'] = 'none'
+    request.session['inputdic'] = {}
 
     if not request.session['Superlogin']:
         username = request.GET['Username']
@@ -692,7 +691,7 @@ def admin_account(request):
         else:
             return render_to_response('IncorrectLogin.html', {})
 
-    elif request.session['Superlogin']:
+    else:  # superuser
         authenticate_admin(request)
         request.session['active_account'] = 'superuser'
         return render_to_response('AdminScreen.html', {})

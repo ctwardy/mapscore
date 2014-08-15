@@ -157,11 +157,11 @@
   {% block footer %}
   <div class="container text-center top-buffer">
     {% if superuser %}
-    <form action="/admin_account/" method="get" name="Return to Account Menu">
+    <form action="/admin_account/" method="get" name="return-to-admin-account-menu">
     {% else %}
-    <form action="/account/" method="get" name="Return to Account Menu">
+    <form action="/account/" method="get" name="return-to-account-menu">
     {% endif %}
-      <button name="Return To Account Menu" type="submit" value="HTML">
+      <button type="submit">
       Return To Admin Menu
       </button>
     </form>
