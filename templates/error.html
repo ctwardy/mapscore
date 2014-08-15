@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Error{{ block.super }}
+{% endblock %}
+
+{% block content %}
+    <!-- Generic error page -->
+    <div class='description panel error'>
+        <h3>Error</h3>
+        {{ message | linebreaks }}
+    </div>
+    <a href='{{ href }}'>Return to {{ to }}</a>
+{% endblock %}

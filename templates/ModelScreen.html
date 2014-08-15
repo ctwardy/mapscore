@@ -1,115 +1,35 @@
-{% include "header.html" %}
+{% extends 'base.html' %}
 
+{% block title %}
+{{ Name_m }} Model{{ block.super }}
+{% endblock %}
 
-<div style =' margin-left: 0% ; margin-top: 130px; margin-right: 0%; margin-bottom: 0px; color:black; overflow-y:hidden; overflow-x:hidden;'  >
-
-
-
-<p style = " font-size:18px" >
-    
-<div style ='padding-left:350px; font-size:20px'>
-
-        <br><br>
-         <b>Account Name:</b> {{ Name_act}} <br>
-        <b>Model Name:</b>   {{Name_m}} 
-        <p style ='color:red'> <b> Average Model Rating: {{rating}}</b> </p>
-        
-        {% if rating != 'unrated' %}
-            <i style ='font-size:15px; color:Navy'> Metric from -1 (Worst Possible) to 1 (Perfect)</i> <br>
-            <i style ='font-size:15px; color:Navy'> On average, a random submission produces a rating of 0</i>
-            <br><br>
-            <a href="/metric_description/"  style ='font-size:14px; padding-left:85px'>Decription of Metric</a>
-        {% endif %}
-        
-        
-    </p>
-
-</div>
-
-<br>    
-<center><div>
-
-
-    <form action = "/model_edit_info/" method = "get" name = "New Test">        
-        <button name = "model_edit_info" type = "submit" value = "HTML" style ='width:200px;height:25px'>
-        Edit Model Information
-        </button>
-        
-    </form>
-    
-
-    
-    
-    <br>
-    
-    <p>
-        <i>
-        To run a new test, please create a new test case:</i> <br>
-    </p>
-    
-    
-    <form action = "/casetypeselect/" method = "get" name = "New Test">
-        
-        
-        <button name = "New_Test" type = "submit" value = "HTML" style ='width:200px;height:25px'>
-        Select a Test Case
-        </button>
-        
-    </form>
-    
-    
-    
-
-    <br>
-    
-
-    
-    
-    <br>
-    
-    <div style = "border:double 6px; color: #B00000; background-color:#FFFF99  ;width:500px  ">
-    
-    
-    <p style = "color :black">
-        <i>
-        To access a completed test, click the button below to get a list:</i> <br>
-    </p>
-    
-    
-    <form action = "/completedtest_info/" method = "get" name = "show completed test info">
-        
-        
-        <button name = "completed test info" type = "submit" value = "HTML">
-        Show List of Completed Tests
-        </button>
-        
-    </form>
-    
-    <br>
-    <br>
+{% block content %}
+    {{ block.super }}
+    {% if info %}
+        <p class='info'><strong>{{ info }}</strong></p>
+    {% endif %}
+    {% if error %}
+        <p class='error'><strong>{{ error }}</strong></p>
+    {% endif %}
+    <h3>Account Name: {{ Name_act }}</h3>
+    <h3>Model Name: {{ Name_m }}</h3>
+    {% if rating %}
+        <h3>Average Model Rating: {{ rating }}</h3>
+    {% endif %}
+    {% if rating and rating != 'unrated' %}
+        <p>
+            Metric from -1 (worst possible) to 1 (perfect).
+            On average, a random submission produces a rating of 0.
+        </p>
+    {% endif %}
+    <div class='panel'>
+        <a href='/metric_description/'>Metric description</a><br />
+        <a href='/model_edit_info/'>Edit model information</a><br />
+        <em>To run a new test, please select a new test case: </em><br />
+        <a href='/casetypeselect/'>Select a test case</a><br />
+        <em>To access a completed test, click the link below to get a list: </em><br />
+        <a href='/completedtest_info/'>Show list of completed tests</a><br />
+        <a href='/account/'>Return to account menu</a>
     </div>
-
-    <br>
-    
-    
-    <br>
-    
-    
-    
-    
-    <form action = "/account/" method = "get" name = "Return to Account Menu">
-        
-        
-        <button name = "Return To Account Menu" type = "submit" value = "HTML">
-        Return To Account Menu
-        </button>
-        
-    </form>
-    
-<br>
-</div>
-
-</div>
-
-{% include "footer.html" %}
-
+{% endblock %}

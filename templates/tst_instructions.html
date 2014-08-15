@@ -1,132 +1,69 @@
-{% include "header.html" %}
+{% extends 'base.html' %}
 
+{% block title %}
+Test Instructions{{ block.super }}
+{% endblock %}
 
-<div style =' margin-left: 0% ; margin-top: 130px; margin-right: 0%; margin-bottom: 0px; color:black; overflow-y:hidden; overflow-x:hidden;'  >
-
-
-
-
-<br>
-<div style = 'padding-left:10%;' >
-<br><br>
-<div style = 'border:double; width:700px; background-color:#FFFF99'>
-<div style = 'padding-left:10%; padding-right:10%' >
-<br>
-
-<div style = 'padding-left:100px'><h1>Map Image Instructions </h1></div><br> <b>
-
-<center>
-<table>
-  <tr>
-    <td>
-      <form action = "/test/" method = "get" name = "Continue">
-      <button name = "Continue" type = "submit"
-      value = "HTML" title='I know this. Continue with test.'>
-      Skip Instructions
-      </button>
-      </form>
-    </td>
-    <td>
-      <form action = "/model_menu/" method = "get" name = "Return to Model Menu">
-      <button name = "Return To Model Menu" type = "submit" value = "HTML">
-      Return To Model Menu
-      </button> 
-      </form>
-    </td>
-  </table>
-</center>       
-
-<p>Given the (lat, lon) boundary points for the region, you must
-create a regular grid of 5001 x 5001 rectangular cells with the IPP at
-the center. In screen coordinates:
-<ul>
-  <li>The upper left corner is (0,0).</li>
-  <li>The upper right corner is (0,5000).</li>
-  <li>The bottom left corner is (5000, 0).</li>
-  <li>The bottom right corner is (5000, 5000).</li>
-  <li>The IPP is (2500,2500).</li>
-</ul>
-<b style = "color:#780000">
-Note: We use a Great Sphere approximation of the Earth.</b>
-</p>
-  
-    <p style='bold'> Each case supplies the 4 (lat,lon) points
-    defining the corners of the search region, and the number of
-    cells.  Each cell must have the same height and width.</p>
-    
-    <p style='bold'> Your model should rate each cell based on the
-    probability that the lost person will be located in that
-    cell. This process is left to you and your individual
-    model. You are encouraged to use all provided test case
-    information as well as all layers needed as input to your
-    model.</p>
-
-    <p style='bold'>Ideally, your model works with probabilities. If
-    so, the following will be true:
-        <ul>
-      <li><i>P</i> + <i>Q</i> = 100%, where</li>
-      <li><i>P</i> = sum of probabilities for cells in the search region</li>
-      <li><i>Q</i> = probability subject is outside the search region</li>
-    </ul>
-    For now you must project these to <i>an 8-bit grayscale
-    image</i> for display and scoring purposes. Pixel values range
-    from 0 to 255, with 255 (white) being the highest relative value. (The
-    scoring metric only considers rank order.) Our native format
-    is grayscale PNG (color bands 'P' or 'L').</p>
-
-    <p style='bold'>If you work in probabilities, your numbers will
-    span several orders of magnitude. There are 25 million pixels
-    in the image, so a uniform map assigns each cell a probability
-    of about 4x10<sup>-8</sup> (0.00000004). An actual map may
-    have cell probabilities ranging several orders of magnitude
-    above and below 10<sup>-8</sup>.The following suggested transform
-    allows 17 distinctions at each order of magnitude from 1.0
-    down to 10<sup>-15</sup> and even a few at
-    10<sup>-16</sup>:
-
-    <center>V = 5 * log<sub>2</sub>(P) + 255</math></center>
-
-    In Python using numpy this would be:<br/>
-
-    <center><code>V = 5 * int(numpy.log2(P)) + 255</code></center>
-
-    If P were the matrix of probabilities, then V is now the
-    matrix of grayscale values, though they may require converting
-    to integers with <code>P.astype(int)</code> before saving.</p>
-
-    <p style='bold'>Lastly, you will be prompted to submit your
-    grayscale image for analysis.  Once submitted, we will rate
-    your image and "close" the test case for now. The new rating
-    will be used to update your model's overall rating and your
-    leaderboard status will be updated.</p>
-
-    <br>
-
-    <center>
-    <table>
-      <tr>
-        <td>
-          <form action = "/test/" method = "get" name = "Continue">
-          <button name = "Continue" type = "submit"
-          value = "HTML" title='Continue with test.'>
-          Continue with Test
-          </button>
-          </form>
-        </td>
-        <td>
-          <form action = "/model_menu/" method = "get" name = "Return to Model Menu">
-          <button name = "Return To Model Menu" type = "submit" value = "HTML">
-          Return To Model Menu
-          </button> 
-          </form>
-        </td>
-      </table>
-      </center>     
-      
-    </div>  
+{% block content %}
+    {{ block.super }}
+    <div class='description'>
+        <div class='panel'>
+            <h3>Test Instructions</h3>
+            <p>Given the (lat, lon) boundary points for the region, you must
+                create a regular grid of 5001 x 5001 rectangular cells with the IPP at
+                the center. In screen coordinates:
+                <ul>
+                    <li>The upper left corner is (0,0).</li>
+                    <li>The upper right corner is (0,5000).</li>
+                    <li>The bottom left corner is (5000, 0).</li>
+                    <li>The bottom right corner is (5000, 5000).</li>
+                    <li>The IPP is (2500,2500).</li>
+                </ul>
+                <strong class='error'>Note: We use a Great Sphere approximation of the Earth.</strong>
+            </p>
+            <p><strong>Each case supplies the 4 (lat,lon) points
+                defining the corners of the search region, and the number of
+                cells. Each cell must have the same height and width.</strong></p>
+            <p><strong>Your model should rate each cell based on the
+                probability that the lost person will be located in that
+                cell. This process is left to you and your individual
+                model. You are encouraged to use all provided test case
+                information as well as all layers needed as input to your
+                model.</strong></p>
+            <p><strong>Ideally, your model works with probabilities. If
+                so, the following will be true:
+                <ul>
+                    <li><i>P</i> + <i>Q</i> = 100%, where</li>
+                    <li><i>P</i> = sum of probabilities for cells in the search region</li>
+                    <li><i>Q</i> = probability subject is outside the search region</li>
+                </ul>
+                For now you must project these to <i>an 8-bit grayscale
+                image</i> for display and scoring purposes. Pixel values range
+                from 0 to 255, with 255 (white) being the highest relative value. (The
+                scoring metric only considers rank order.) Our native format
+                is grayscale PNG (color bands 'P' or 'L').</strong></p>
+            <p><strong>If you work in probabilities, your numbers will
+                span several orders of magnitude. There are 25 million pixels
+                in the image, so a uniform map assigns each cell a probability
+                of about 4x10<sup>-8</sup> (0.00000004). An actual map may
+                have cell probabilities ranging several orders of magnitude
+                above and below 10<sup>-8</sup>.The following suggested transform
+                allows 17 distinctions at each order of magnitude from 1.0
+                down to 10<sup>-15</sup> and even a few at
+                10<sup>-16</sup>:
+                <center>V = 5 * log<sub>2</sub>(P) + 255</center>
+                In Python using numpy this would be:<br/>
+                <center><code>V = 5 * int(numpy.log2(P)) + 255</code></center>
+                If P were the matrix of probabilities, then V is now the
+                matrix of grayscale values, though they may require converting
+                to integers with <code>P.astype(int)</code> before saving.</strong></p>
+            <p><strong>Lastly, you will be prompted to submit your
+                grayscale image for analysis.  Once submitted, we will rate
+                your image and "close" the test case for now. The new rating
+                will be used to update your model's overall rating and your
+                leaderboard status will be updated.</strong></p>
+        </div>
     </div>
-    </div>
-    <br>
-
-
-{% include "footer.html" %}
+    <a href='/test/'>Return to test</a>&nbsp;|&nbsp;
+    <a href='/model_menu/'>Return to model menu</a>
+{% endblock %}

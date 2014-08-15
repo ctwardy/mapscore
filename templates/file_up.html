@@ -1,89 +1,41 @@
-{% include "header.html" %}
+{% extends 'base.html' %}
 
+{% block title %}
+Case {{ case_name }}{{ block.super }}
+{% endblock %}
 
-<div style =' margin-left: 0% ; margin-top: 130px; margin-right: 0%; margin-bottom: 0px; color:black; overflow-y:hidden; overflow-x:hidden;'  >
-
-<br>
-<center>
-
-    <h1> You may now run your model based on the information provided <br>
-        and upload the results<h1>
-<form action = "/test_instructions/" method = "get" name = "Instructions">
-        <button name = "Instructions" type = "submit" value = "HTML">
-        Instructions
-        </button>
-</form>
-
-<form action = "/DownloadParam/" method = "get" name = "DWNLDPTS">
-        <button name = "DWNLD_PTS" type = "submit" value = "HTML">
-        Download Parameters
-        </button>
-</form>
-
-
-
-{% if layer %}
-<br>
-
-<form action = "/DownloadLayers/" method = "get" name = "DWNLDPTS">
-
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-        &nbsp;
-
-        <button name = "DWNLD_PTS" type = "submit" value = "HTML">
-        Download Layers
-        </button></form>
-
-{% endif %}
-</center>
-{% include "case.html" %}
-
-<br>
-<hr color = 'Navy'>
-<br>
-<div style ='padding-left: 300px;padding-right: 300px'>
-Please select the grayscale image representing your model's output
-and upload it below. Once uploaded, the image will be rated in our
-system. <b>New!</b> You may revise your test later on.
-<br><br>
-<i style ='color:red'>Note: The uploaded image must be in grayscale (.png) format. </i>
-</div>
-
-<br><br>
-
-<div style ='padding-left:300px;'>
-<div style = ' border:double; width:300px; padding-left:50px;background-color:#FFFF99'>
-<br><br><br>
-<form action = "/upload_file/" method="post" enctype="multipart/form-data" name = "Upload File">
-
-        {% csrf_token %}
-
-        <input type = 'file' name ='grayscale'><br><br>
-        <button name = "Upload File" type = "submit" value = "HTML">
-        Submit File
-        </button>
-</form>
-<br><br><br>
-</div>
-</div>
-
-
-
-
-<br><br>
-
-<center>
-
-<form action = "/model_menu/" method = "get" name = "Return to Model Menu">
-
-        <button name = "Return To Model Menu" type = "submit" value = "HTML">
-        Return To Model Menu
-        </button>
-</form>
-</center>
-
-
-<br><br>
-
-
-{% include "footer.html" %}
+{% block content %}
+    {{ block.super }}
+    {% if info %}
+        <p class='info'>{{ info }}</p>
+    {% endif %}
+    {% if error %}
+        <p class='error'>{{ error }}</p>
+    {% endif %}
+    <h4 class='info'>You may now run your model based on the information provided and upload the results.</h4>
+    <p>
+        <a href='/test_instructions/'>Instructions</a>&nbsp;|&nbsp;
+        <a href='/DownloadParam/'>Download parameters</a>
+    </p>
+    {% if layer %}
+        &nbsp;|&nbsp;
+        <a href='/DownloadLayers/'>Download layers</a>
+    {% endif %}
+    {% include 'case.html' %}
+    <div id='upload'>
+        <hr />
+        <div class='description panel'>
+            Please select the grayscale image representing your model's output 
+            and upload it below. Once uploaded, the image will be rated in our system.
+            The uploaded image must be in grayscale PNG format.
+            You may revise your test later on.
+            <form action='/evaluate/' method='post' enctype='multipart/form-data' name='Upload File'>
+                {% csrf_token %}
+                <input type='file' name='grayscale'>
+                    <button name='Upload File'>Submit File</button>
+                </input>
+            </form>
+        </div>
+        <a href='/model_menu/'>Return to model menu</a>
+    </div>
+{% endblock %}

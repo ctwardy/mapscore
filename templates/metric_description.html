@@ -1,65 +1,43 @@
-{% include "header.html" %}
+{% extends 'base.html' %}
 
-<div style =' margin-left: 0% ; margin-top: 130px; margin-right: 0%; margin-bottom: 0px; color:black; overflow-y:hidden; overflow-x:hidden;'  >
+{% block title %}
+Metric Description{{ block.super }}
+{% endblock %}
 
-<center><div>
-<br>
-
-<h1><b>
-		Metric Description
-		
-</b></h1>
-	
-<br><br>
-
-</div>
-</center>
-
-<div style = 'margin-left:200px;padding-left:50px;background-color:#FFFF99;width:600px;border:solid'>	
-<br><br>
-
-In order to evaluate the submitted probability maps against the actual find <br>
-location, a rating metric developed by Rossmo [1] has been implemented.<br>
-<br>
-The Rossmo metric has gained favor in crime mapping literature. Let p be the <br>
-probability assigned to the actual find location. Rossmo's r is the proportion of  <br>
-pixels whose probability is greater than p plus one half the proportion of pixels <br>
-whose probability is equal to p . Chance performance would be 50%, so r can be <br>
-converted to a -1 to 1 scale using R =(.5 - r)/ 5, with 1 being perfect and <br>
-negative scores denoting worse-than-chance performance. (a)<br>
-<br>
-The Rossmo r has an operational interpretation. Assume:<br>
-1. All searchers have perfect detection P(D) = 1 in all cells.<br>
-2. All searchers travel the same speed in all cells.<br>
-3. Resources are allocated optimally (so that each additional hour of effort makes<br>
- the largest possible change in overall probability of success).<br>
-<br>
-Then, r is (nearly) the expected proportion of cells one would have to search <br>
-before finding the subject. Similarly, R is the proportional gain over random <br>
-searching. These could easily be converted into expected time to find. <br>
-<br>
-In our presentation of the model rating results, the model rating corresponds to <br>
-the Rossmo R metric. <br>
-<br>
-(a)The number of pixels should be large enough that there is no substantial<br>
-difference in R between <i>proportion of pixels</i> and <i>proportion of other pixels</i>.<br>
-With only two pixels and a perfect model, one yields R = 1, and the other R = 0.<br>
-<br>
-References<br>
-<br>
- [1] D. Kim Rossmo. Geographic Pro_ling. CRC Press, 1 edition, December 1999.
-<br><br>
-</div>
-</div>
-<br><br>
-
-<center>
-<form action = "/model_menu/" method = "get" name = "Return to Model Menu">
-		
-		<button name = "Return To Model Menu" type = "submit" value = "HTML">
-		Return To Model Menu
-		</button>	
-</center>		
-<br><br>
-	
-{% include "footer.html" %}
+{% block content %}
+    {{ block.super }}
+    <div class='description'>
+        <div class='panel'>
+            <h3>Metric Description</h3>
+            <p>In order to evaluate the submitted probability maps against the actual find 
+                location, a rating metric developed by Rossmo [1] has been implemented.</p>
+            <p>The Rossmo metric has gained favor in crime mapping literature. Let p be the 
+                probability assigned to the actual find location. Rossmo's r is the proportion of 
+                pixels whose probability is greater than p plus one half the proportion of pixels 
+                whose probability is equal to p . Chance performance would be 50%, so r can be 
+                converted to a -1 to 1 scale using R =(.5 - r)/ 5, with 1 being perfect and 
+                negative scores denoting worse-than-chance performance. (a)</p>
+            <p>The Rossmo r has an operational interpretation. Assume: 
+                <ol>
+                    <li>All searchers have perfect detection P(D) = 1 in all cells.</li>
+                    <li>All searchers travel the same speed in all cells.</li>
+                    <li>Resources are allocated optimally (so that each additional hour of effort makes 
+                        the largest possible change in overall probability of success).</li>
+                </ol>
+            </p>
+            <p>Then, r is (nearly) the expected proportion of cells one would have to search 
+                before finding the subject. Similarly, R is the proportional gain over random 
+                searching. These could easily be converted into expected time to find.</p>
+            <p>In our presentation of the model rating results, the model rating corresponds to 
+                the Rossmo R metric. </p>
+            <p>(a) The number of pixels should be large enough that there is no substantial
+                difference in R between <em>proportion of pixels</em> and <em>proportion of 
+                other pixels</em>. With only two pixels and a perfect model, one yields R = 1, 
+                and the other R = 0.</p>
+            <p>References<br>
+                [1] D. Kim Rossmo. Geographic Pro_ling. CRC Press, 1 edition, December 1999.
+            </p>
+        </div>
+    </div>
+    <a href='{{ HTTP_REFERER }}'>Return to the previous page</a>
+{% endblock %}
