@@ -1,20 +1,30 @@
+{% extends "base.html" %}
+
+  {% block content %}
   <div class="container">
     <div class="row">
+
+      {% block board_title %}
       <h1 class="text-center">Leaderboard</h1>
+      {% endblock board_title %}
+
     </div>
+
+    {% block options %}
+
     <div class="row top-buffer">
       <div class="col-md-8 col-md-offset-4">
         <div class="col-md-4">
           <label for="switchboard">Select Table:</label>
           <form class="form-inline" id="switchboard" action="/switchboard/" method="get">
             <select class="form-control" name='table' onchange="this.form.submit();">
-              <option {% if table == 'model_avg' %} SELECTED {% endif %} value='0'>
+              <option {% if table == 'model_avg' %} selected {% endif %} value='0'>
               Model Average
               </option>
-              <option {% if table == 'test_case' %} SELECTED {% endif %} value='1'>
+              <option {% if table == 'test_case' %} selected {% endif %} value='1'>
               Test Case
               </option>
-              <option {% if table == 'scenario' %} SELECTED {% endif %} value='2'>
+              <option {% if table == 'scenario' %} selected {% endif %} value='2'>
               Scenario
               </option>
             </select>
@@ -46,9 +56,9 @@
           <form id="scenario-select-form" action='/leaderboard_scenario'>
             <select name="scenario_sort" class="form-control" onchange="this.form.submit();">
               {% if scenario %}
-              <option SELECTED value='{{ scenario }}'>{{ scenario }}</option>
+              <option selected value='{{ scenario }}'>{{ scenario }}</option>
               {% else %}
-              <option SELECTED value=''>None</option>
+              <option selected value=''>None</option>
               {% endif %}
               {% for s in scenario_list %}
                 {% if s != scenario %}
@@ -62,6 +72,9 @@
         </div><!-- /.col -->
       </div><!-- /.col -->
     </div><!-- /.row -->
+
+    {% endblock options %}
+
   </div><!-- /.container -->
 
   <div class="container">
@@ -129,14 +142,19 @@
         </table>
       </div><!-- /.col -->
     </div><!-- /.row -->
+
+    {% block notes %}
     <div class="row">
       <div class="col-md-8 col-centered">
         {% for note in notes %}
         <p class="text-center">{{ note }}</p>
         {% endfor %}
-      </div>
-    </div>
+      </div><!-- /.col -->
+    </div><!-- /.row -->
   </div><!-- /.container -->
+  {% endblock notes %}
+
+  {% block footer %}
   <div class="container text-center top-buffer">
     {% if superuser %}
     <form action="/admin_account/" method="get" name="Return to Account Menu">
@@ -149,3 +167,6 @@
     </form>
   </div><!-- /.container -->
   <br>
+  {% endblock footer %}
+
+  {% endblock content %}
