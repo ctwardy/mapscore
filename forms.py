@@ -22,9 +22,7 @@ import tempfile
 from django import forms
 from PIL import Image, ImageOps
 
-from mapscore.framework.models import Test
-from mapscore.framework.models import Case
-from mapscore.framework.models import Model
+from mapscore.framework.models import Test, Case, Model
 
 
 DIR_BIT = 16
