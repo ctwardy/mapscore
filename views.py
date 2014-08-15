@@ -18,6 +18,7 @@ import cStringIO
 from operator import itemgetter, attrgetter
 
 # Django Imports
+from django.db.models import Avg
 from django.http import HttpResponse
 from django.shortcuts import render_to_response, redirect
 from django.contrib.auth.models import User
@@ -1042,9 +1043,8 @@ def switchboard(request):
 
     if sortby == 1:
         return redirect('/leaderboard_test_case')
-        inputdict['table'] = 'test_case'
-        return render_to_response('leaderboard.html', inputdict)
     elif sortby == 2:
+        return redirect('/leaderboard_scenario')
         scenario_list = set([case.scenario for case in Case.objects.all()])
         inputdict['scenario_list'] = scenario_list
         inputdict['table'] = 'scenario'
@@ -1116,7 +1116,7 @@ def leaderboard_test_case(request):
     # copy values for leaderboard table
     inputlist = []
     sorted_tests = matched_tests.order_by('test_rating').reverse()
-    for test in sorted_tests:
+    for test in sorted_tests[:40]:
         first_model = test.model_set.all()[0]
         first_account = first_model.account_set.all()[0]
         inputlist.append([
@@ -1144,29 +1144,27 @@ def leaderboard_test_case(request):
 
 
 def leaderboard_scenario(request):
+    """Return models with best avg ratings on scenarios of a particular type.
+
+    """
     authenticate(request)
-    scenario_name = request.GET.get('scenario_sort', None)
-    if scenario_name is None:
-        return redirect('/leaderboard_model')
 
-    # TODO: replace with custom SQL quer(y|ies) attached to appropriate models
-    # Gather data
+    scenario = request.GET.get('scenario_sort', None)
+    if scenario is None:
+        scenario = 'Unknown'
+
     input_list = []
-    for acct in Account.objects.all():
-        for model in acct.account_models.all():
-            tests = model.tests.all()
-            finished_tests = [x for x in tests
-                if x.test_case.scenario == scenario_name and not x.Active]
-            N = len(finished_tests)
-            if N <= 0:
-                # No finished cases
-                continue
-
-            # Build case dep. on sample size
-            scores = [float(test.test_rating) for test in finished_tests]
+    for model in Model.objects.all():
+        tests = model.tests.filter(Active=False)
+        relevant_tests = [t for t in tests if t.test_case.scenario == scenario]
+        is_relevant = any(relevant_tests)
+        if is_relevant:
+            scores = [float(test.test_rating) for test in tests]
             avg_rating = np.mean(scores)
-            entry = [acct.institution_name, model.name_id,
-                     '%5.3f' % avg_rating, N, acct.username]
+            account = model.account_set.all()[0]
+            N = len(relevant_tests)
+            entry = [account.institution_name, model.name_id,
+                     '%5.3f' % avg_rating, N, account.username]
 
             if N < 2:
                 entry.extend([-1, 1, True])  # std=False, sm.sample=True
@@ -1179,10 +1177,10 @@ def leaderboard_scenario(request):
 
             input_list.append(entry)
 
-    scenario_list = set([case.scenario for case in Case.objects.all()])
-    scenario_list.remove(scenario_name)
+    scenario_list = [c.scenario for c in Case.objects.distinct('scenario')]
+    scenario_list.remove(scenario)
     inputdict = {
-        'scenario': scenario_name,
+        'scenario': scenario,
         'score_list': input_list,
         'table': 'scenario',
         'header_list': HEADERS,
