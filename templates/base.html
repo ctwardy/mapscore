@@ -19,34 +19,39 @@
 
 <body>
   <div class="container main-frame">
-    <nav class="mason-border navbar navbar-default" role="navigation">
-      <div class="container-fluid">
-        <span class="mason-logo pull-left"></span>
-        <span class="mason-logo pull-right"></span>
+    <div class="row">
+      <div class="col-md-11 col-centered">
+        <nav class="mason-border navbar navbar-default" role="navigation">
+          <div class="container-fluid">
+            <span class="mason-logo pull-left"></span>
+            <span class="mason-logo pull-right"></span>
+            <center style="color:white;font-size:28px;font-weight:bold;">
+                MapScore: Lost Person Model Rating System
+            </center>
 
-        <center style="color:white">
-          <h1>
-            MapScore<br>
-            Lost Person Model Rating System
-          </h1>
-        </center>
+            <div class="row">
+              <center class="nav-options">
+                [<a href="/main"> Log Out </a>
+                |<a href="/leaderboard"> Leaderboard </a>
+                |<a href="https://github.com/ctwardy/Pmap-Score/issues?sort=created&direction=desc&state=open"
+                  target="_blank"> Issue Tracker </a>
+                |<a href="/help" target="_blank"> Help </a>]
+              </center>
+            </div><!-- /.row -->
+          </div><!-- /.container-fluid -->
+        </nav><!-- /.navbar-default -->
+      </div><!-- /.col -->
+    </div><!-- /.row -->
+    <div class="row">
+      <div class="col-md-12">
 
-        <div class="row">
-          <center class="nav-options">
-            [<a href="/main/"> Log Out </a>
-            |<a href="/leaderboard/"> Leaderboard </a>
-            |<a href="https://github.com/ctwardy/Pmap-Score/issues?sort=created&direction=desc&state=open"
-              target="_blank"> Issue Tracker </a>
-            |<a href="/help/" target="_blank"> Help </a>]
-          </center>
-        </div><!-- row -->
-      </div><!-- /.container-fluid -->
-    </nav><!-- /.navbar-default -->
+      {% block content %}
+      {% endblock content %}
 
-    {% block content %}
-    {% endblock content %}
-
+      </div><!-- /.col -->
+    </div><!-- /.row -->
   </div><!-- /.container.main-frame -->
+
   <div class="container">
     <div class="row">
       <hr color="white">
