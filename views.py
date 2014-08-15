@@ -127,7 +127,7 @@ def main_page(request):
     request.session['completedtest_lookup'] = False
     request.session['failure'] = False
     request.session['active_case'] = 'none'
-    request.session['active_account'] = 'none'
+    request.session['active_account'] = None
     request.session['active_model'] = 'none'
     request.session['Superlogin'] = False
     request.session['userdel'] = ''
@@ -158,14 +158,14 @@ def main_page(request):
 
     # Limit to Top-10
     headers = ['Institution Name', 'Model Name', 'Model Avg Rating',
-        'Tests Completed']
+               'Tests Completed']
     inputdict = {'score_list': score_list, 'header_list': headers}
     inputdict.update(csrf(request))
     return render_to_response('Main.html', inputdict)
 
 
 def log_out(request):
-    request.session['active_account'] = 'none'
+    request.session['active_account'] = None
     return redirect('/main/')
 
 
@@ -174,8 +174,6 @@ def account_reg(request):
 
 
 def create_account(request):
-
-    # Extract form Data
     Firstname = request.GET['FirstName']
     Lastname = request.GET['LastName']
     Email_in = request.GET['Email']
@@ -187,9 +185,7 @@ def create_account(request):
     captchain = request.GET['captcha']
 
     # Verify Input
-
-    # Beta Key ************
-    actualbetakey = 'sarbayes334$$beta%Test'
+    actualbetakey = 'sarbayes334$$beta%Test'  # beta key
     betakey = actualbetakey  # Disable betakey
 
     Firstname_r = r'^.+$'
@@ -327,7 +323,7 @@ def account_access(request):
     request.session['active_case'] = 'none'
     request.session['active_model'] = 'none'
 
-    if request.session.get('active_account', 'none') != 'none':
+    if request.session.get('active_account', None) is not None:
         authenticate_user(request)
 
     try:
@@ -437,7 +433,7 @@ def batch_test_upload_final(request):
 def process_batch_tests(request):
 
     # we need to know what the active account is, store simplify
-    act_account = str(request.session['active_account'].ID2)
+    act_account = request.session['active_account'].ID2
 
     tests_list = request.session.get("batch_list")
     result_data = []
@@ -591,9 +587,11 @@ def model_created(request):
         return render_to_response('NewModel.html', inputdict01)
 
     #Create new model
-    new_model = Model(name_id = Model_name,
-        ID2 = str(request.session['active_account'].ID2) + ':'+ str(Model_name),
-        Description = description)
+    new_model = Model(
+        name_id=Model_name,
+        ID2=request.session['active_account'].ID2 + ':' + str(Model_name),
+        description=description
+    )
 
     new_model.save()
 
@@ -688,7 +686,7 @@ def admin_account(request):
         if user.is_superuser:
             request.session['admintoken'] = True
             request.session['admin_name'] = username
-            request.session['active_account'] ='superuser'
+            request.session['active_account'] = 'superuser'
             request.session['Superlogin'] = True
             return render_to_response('AdminScreen.html', {})
         else:
@@ -887,6 +885,7 @@ def show_find_pt(URL2):
     return (URL2[:marker_red] + URL2[marker_yellow:end] +
             URL2[marker_red:marker_yellow] + URL2[end:])
 
+
 def case_to_dict(case):
     input_dict = {}
     for attr in dir(case):
@@ -1056,7 +1055,7 @@ def leaderboard_model(request):
         'header_list': HEADERS,
         'notes': NOTES
     }
-    if request.session['active_account'] =='superuser':
+    if request.session['active_account'] == 'superuser':
         inputdict['superuser'] = True
 
     request.session['inputdic'] = inputdict
@@ -1155,7 +1154,7 @@ def leaderboard_scenario(request):
         'scenario_list': scenario_list
     }
 
-    if request.session['active_account'] =='superuser':
+    if request.session['active_account'] == 'superuser':
         inputdict['superuser'] = True
 
     request.session['inputdic'] = inputdict
@@ -1262,8 +1261,8 @@ def caseref_return(request):
 def Account_Profile(request):
     authenticate(request)
 
-    Account_in = request.GET['Account']
-    active_account = Account.objects.get(username=Account_in)
+    account_in = request.GET['Account']
+    active_account = Account.objects.get(username=account_in)
 
     inputdict = {
         'Name': active_account.institution_name,
@@ -1281,7 +1280,7 @@ def Account_Profile(request):
     # get model descriptions
     model_list = []
     for model in active_account.account_models.all():
-        model_list.append([model.name_id, model.description, Account_in])
+        model_list.append([model.name_id, model.description, account_in])
 
     inputdict['model_list'] = model_list
     return render_to_response('Account_Profile.html', inputdict)
@@ -1449,10 +1448,10 @@ def edit_user_run(request):
 
     # read in information
     Account = request.session['active_account']
-    Firstname = str(request.GET['FirstName'])
-    Lastname = str(request.GET['LastName'])
-    Email_in = str(request.GET['Email'])
-    Password = str(request.GET['Password'])
+    Firstname = request.GET['FirstName']
+    Lastname = request.GET['LastName']
+    Email_in = request.GET['Email']
+    Password = request.GET['Password']
 
     # identify regular expressions
     Firstname_r = r'^.+$'
@@ -1566,9 +1565,9 @@ def edit_pw_run(request):
 
     # read in information
     Account = request.session['active_account']
-    Password1 = str(request.GET['Password1'])
-    Password2 = str(request.GET['Password2'])
-    Password = str(request.GET['Password'])
+    Password1 = request.GET['Password1']
+    Password2 = request.GET['Password2']
+    Password = request.GET['Password']
 
     # identify regular expressions
     Password1_r ='^.+$'
@@ -2009,7 +2008,7 @@ def deletemodel_confirm(request):
         return redirect('/delete_model/')
 
     pw = request.GET['Password']
-    if pw != str(request.session['active_account'].password):
+    if pw != request.session['active_account'].password:
         model_list = []
         account = request.session['active_account']
 
@@ -2020,7 +2019,8 @@ def deletemodel_confirm(request):
         return render_to_response('delete_model.html', inputdict)
 
     # Retrieve active model
-    request.session['active_model'] = Model.objects.get(ID2 = str(request.session['active_account'].ID2) + ':' + str(selection))
+    request.session['active_model'] = Model.objects.get(
+        ID2=request.session['active_account'].ID2 + ':' + str(selection))
     model = request.session['active_model']
 
     # Delete all tests

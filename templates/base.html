@@ -31,11 +31,11 @@
 
             <div class="row">
               <center class="nav-options">
-                [<a href="/main"> Log Out </a>
-                |<a href="/leaderboard"> Leaderboard </a>
-                |<a href="https://github.com/ctwardy/Pmap-Score/issues?sort=created&direction=desc&state=open"
-                  target="_blank"> Issue Tracker </a>
-                |<a href="/help" target="_blank"> Help </a>]
+                [{% if request.session.active_account != None %} <a href="/main"> Log Out </a>| {% endif %}
+                <a href="/leaderboard"> Leaderboard </a>|
+                <a href="https://github.com/ctwardy/Pmap-Score/issues?sort=created&direction=desc&state=open"
+                  target="_blank"> Issue Tracker </a>|
+                <a href="/help" target="_blank"> Help </a>]
               </center>
             </div><!-- /.row -->
           </div><!-- /.container-fluid -->
