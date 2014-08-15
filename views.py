@@ -109,7 +109,7 @@ def verify_user(request):
     request.session['active_account'] = account
 
     # record session login
-    account.sessionticker = 1 + int(account.sessionticker)
+    account.sessionticker += 1
     account.save()
     return account
 
@@ -280,7 +280,7 @@ def create_account(request):
     user.is_active = True
     user.save()
 
-    #Create Account
+    # Create Account
     if Websitein == '':
         Websitein = 'none'
 
