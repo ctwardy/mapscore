@@ -1028,35 +1028,7 @@ def Leader_model(request):
     return render_to_response('leaderboard.html', inputdict)
 
 
-def switchboard(request):
-    """
-    Switchboard table values::
-
-        0: model average table
-        1: test case table
-        2: scenario table
-
-    """
-    authenticate(request)
-    sortby = int(request.GET.get('table', 0))
-    inputdict = request.session.get('inputdic', {})
-
-    if sortby == 1:
-        return redirect('/leaderboard_test_case')
-    elif sortby == 2:
-        return redirect('/leaderboard_scenario')
-        scenario_list = set([case.scenario for case in Case.objects.all()])
-        inputdict['scenario_list'] = scenario_list
-        inputdict['table'] = 'scenario'
-        return render_to_response('leaderboard.html', inputdict)
-    else:
-        return redirect('/leaderboard_model')
-
-
-def leaderboard_model(request):
-    """Create the leaderboard."""
-    authenticate(request)
-
+def fetch_model_scores():
     inputlist = []
     sorted_models = get_sorted_models(Model.objects.all())
     for model in sorted_models:
@@ -1082,9 +1054,42 @@ def leaderboard_model(request):
 
         inputlist.append(case)
 
+    return inputlist
+
+
+def switchboard(request):
+    """
+    Switchboard table values::
+
+        0: model average table
+        1: test case table
+        2: scenario table
+
+    """
+    authenticate(request)
+    sortby = int(request.GET.get('table', 0))
+    inputdict = request.session.get('inputdic', {})
+
+    if sortby == 1:
+        return redirect('/leaderboard_test_case')
+    elif sortby == 2:
+        scenario_list = [c.scenario for c in Case.objects.distinct('scenario')]
+        inputdict['scenario_list'] = scenario_list
+        inputdict['table'] = 'scenario'
+        if inputdict.get('score_list', None) is None:
+            inputdict['score_list'] = fetch_model_scores()
+        return render_to_response('leaderboard.html', inputdict)
+    else:
+        return redirect('/leaderboard_model')
+
+
+def leaderboard_model(request):
+    """Create the leaderboard."""
+    authenticate(request)
+
     # Prepare variables to send to HTML template
     inputdict = {
-        'score_list': inputlist,
+        'score_list': fetch_model_scores(),
         'table': 'model_avg',
         'header_list': HEADERS,
         'notes': NOTES
@@ -1151,7 +1156,7 @@ def leaderboard_scenario(request):
 
     scenario = request.GET.get('scenario_sort', None)
     if scenario is None:
-        scenario = 'Unknown'
+        return redirect('/switchboard/?table=2')
 
     input_list = []
     for model in Model.objects.all():
