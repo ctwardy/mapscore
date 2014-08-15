@@ -218,7 +218,7 @@ class Test(models.Model):
     test_case = models.ForeignKey(Case)
     test_name = models.CharField(max_length=30)
     test_rating = models.CharField(max_length=10, default='unrated')
-    Active = models.BooleanField(default=False)
+    active = models.BooleanField(default=False)
     ID2 = models.CharField(max_length=100)
     nav = models.CharField(max_length=2, default=0)
     show_instructions = models.BooleanField(default=True)

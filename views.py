@@ -144,7 +144,7 @@ def main_page(request):
     # copy values for leaderboard table
     score_list = []
     for model in sorted_models:
-        num_finished = sum(not test.Active for test in model.tests.all())
+        num_finished = sum(not test.active for test in model.tests.all())
         if num_finished >= 5:
             score_list.append([
                 model.account_set.all()[0].institution_name,
@@ -930,7 +930,7 @@ def nonactive_test(request):
     intest_raw = request.GET['Nonactive_Testin']
     intest = intest_raw.strip()
     completed_list = [test.test_name for test in
-        active_model.tests.all() if not test.Active]
+        active_model.tests.all() if not test.active]
 
     #debugx
     print >> sys.stderr, 'DEBUG:\n'
@@ -995,7 +995,7 @@ def fetch_model_scores():
         account = model.account_set.all()[0]
         rating = float(model.avgrating)
         tests = model.tests.all()
-        finished_tests = [test for test in tests if not test.Active]
+        finished_tests = [test for test in tests if not test.active]
         N = len(finished_tests)
         scores = [float(x.test_rating) for x in finished_tests]
 
@@ -1177,7 +1177,7 @@ def testcaseshow(request):
         lst = []
         lst.append(name)
         for j in list(i.tests.all()):
-            if not j.Active:
+            if not j.active:
                 lst.append(str( j.test_name))
 
         completed_list.append(lst)
@@ -1214,7 +1214,7 @@ def completedtest_info(request):
 
     completed_list = []
     for case in list(request.session['active_model'].tests.all()):
-        if not case.Active:
+        if not case.active:
             thumb = MEDIA_DIR + "thumb_" + str(case.ID2).replace(':','_') + ".png"
             completed_list.append({
                 'test_name': case.test_name,
