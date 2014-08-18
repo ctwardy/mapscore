@@ -6,12 +6,8 @@ Case {{ case_name }}{{ block.super }}
 
 {% block content %}
     {{ block.super }}
-    {% if info %}
-        <p class='info'>{{ info }}</p>
-    {% endif %}
-    {% if error %}
-        <p class='error'>{{ error }}</p>
-    {% endif %}
+    <p class='info'>{{ info }}</p>
+    <p class='error'>{{ error }}</p>
     <h4 class='info'>You may now run your model based on the information provided and upload the results.</h4>
     <p>
         <a href='/test_instructions/'>Instructions</a>&nbsp;|&nbsp;

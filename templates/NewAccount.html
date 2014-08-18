@@ -21,9 +21,7 @@ Register Account{{ block.super }}
             <p>
                 (*) Required Field
             </p>
-            {% if error %}
-                <p class='error'>{{ error | safe }}</p>
-            {% endif %}
+            <p class='error'>{{ error | safe }}</p>
         </div>
         <form action='/create_account/' method='post'>
             {% csrf_token %}

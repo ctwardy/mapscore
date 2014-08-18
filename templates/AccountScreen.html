@@ -6,9 +6,7 @@ Account{{ block.super }}
 
 {% block content %}
     {{ block.super }}
-    {% if info %}
-        <p class='info'>{{ info }}</p>
-    {% endif %}
+    <p class='info'>{{ info }}</p>
     <h3>Account Name: {{ Name }}</h3>
     <div id='profpic'>
         <img src='{{ profpic }}' width='{{ xsize }}' height='{{ ysize }}'/>
@@ -26,7 +24,7 @@ Account{{ block.super }}
         <br />
         <a href='/batch_test_upload/'>Upload batch test</a>&nbsp;|&nbsp;
         <a href='/Leader_model/'>View leaderboard</a>&nbsp;|&nbsp;
-        <a href='/new_model/'>Add new model</a><br />
+        <a href='/edit_model/'>Add new model</a><br />
         <a href='/Manage_Account/'>Manage account</a>&nbsp;|&nbsp;
         <a href='/log_out/'>Log out</a>
     </div>

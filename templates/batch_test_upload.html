@@ -1,55 +1,41 @@
-{% include "header.html" %}
+{% extends 'base.html' %}
 
+{% block title %}
+Batch Test{{ block.super }}
+{% endblock %}
 
-<div style =' margin-left: 0% ; margin-top: 130px; margin-right: 0%; margin-bottom: 0px; color:black; overflow-y:hidden; overflow-x:hidden;'  >
-
-<br>
-<center>
-
-	<h1> Batch Test Upload </h1>
-
-<div style = ' border:double; width:600px; padding-left:50px;padding-right:50px; background-color:#FFFF99'>
-<br>
-<p style='font-size:18px;text-align:left;'>You may upload a ZIP file with these specifications</p>
-<ul style='text-align:left;'>
-    <li>Contains grayscale PNG images of dimension 5001x5001 pixels</li>
-    <li>Each PNG should be named as <span style='font-style:italic;'>modelname</span>_<span style='font-style:italic;'>testcasename</span>.png</li>
-    <li>Model names and test case names must already exist in the database</li>
-    <li>All other files are ignored</li>
-    <li>Directory structure is ignored</li>
-</ul>
-
-<p style='font-size:18px;text-align:left;'>A confirmation screen will be displayed with warnings if a model or test case name cannot be found.</p>
-<form action = "{% url "batch_test_upload" %}" method="post" enctype="multipart/form-data">
-		{% csrf_token %}
-        <p>{{ form.non_field_errors }}</p>
-		<p>{{ form.zipfile.label_tag }} {{ form.zipfile.help_text }}</p>
-		<p>
-			{{ form.zipfile.errors }}
-			{{ form.zipfile }}
-		</p>
-		<p><input type="submit" value="Upload" /></p>
-	</form>
-
-
-</div>
-
-
-
-
-<br><br>
-
-<center>
-
-<form action = "/account/" method = "get" name = "Return to Account Menu">
-		<button name = "Return To Account Menu" type = "submit" value = "HTML">
-		Return To Model Menu
-		</button>
-</form>
-</center>
-
-
-<br><br>
-</div>
-
-{% include "footer.html" %}
+{% block content %}
+    {{ block.super }}
+    <div class='panel'>
+        <h3>Batch Test</h4>
+        <div class='description'>
+            <p>
+                You may upload a ZIP file with these specifications: 
+            </p>
+            <ul>
+                <li>Contains grayscale PNG images with 5001x5001 pixel dimensions</li>
+                <li>Each PNG should be named as <em>modelname</em>_<em>casename</em>.png</li>
+                <li>Model names and case names should already exist in the database</li>
+                <li>All other files will be ignored</li>
+                <li>Directory structure will be ignored</li>
+            </ul>
+            <p>
+                A confirmation screen will be displayed with warnings if a model or test case name cannot be found.
+            </p>
+        </div>
+        <form action='{% url 'batch_test_upload' %}' method='post' enctype='multipart/form-data'>
+            <p class='error'>
+                {{ form.zipfile.errors }}
+                {{ form.non_field_errors }}
+            </p>
+            <p class='info'>
+                {{ form.zipfile.help_text }}
+                {{ form.zipfile.label_tag }}
+            </p>
+            {% csrf_token %}
+            {{ form.zipfile }}
+            <button>Upload</button>
+        </form>
+    </div>
+    <a href='/account/'>Return to account menu</a>
+{% endblock %}

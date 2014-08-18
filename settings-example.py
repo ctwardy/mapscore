@@ -10,6 +10,8 @@ ADMINS = (
     # ('Your Name', 'your_email@example.com'),
 )
 
+BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+
 SESSION_SAVE_EVERY_REQUEST =True
 
 MANAGERS = ADMINS
@@ -154,3 +156,4 @@ LOGGING = {
     }
 }
 
+LOGIN_URL = '/permission_denied/'

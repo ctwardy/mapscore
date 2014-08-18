@@ -7,9 +7,7 @@ Delete Account{{ block.super }}
 {% block content %}
     {{ block.super }}
     <div class='panel'>
-        {% if error %}
-            <p class='error'>{{ error }}</p>
-        {% endif %}
+        <p class='error'>{{ error }}</p>
         <p>
             <span class='error'><strong><em>Warning</em></strong></span>: 
             You are about to permanently delete your account.<br />

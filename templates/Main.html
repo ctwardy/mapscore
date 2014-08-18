@@ -6,12 +6,8 @@ Log In{{ block.super }}
 
 {% block content %}
     {{ block.super }}
-    {% if info %}
-        <p class='info'>{{ info }}</p>
-    {% endif %}
-    {% if error %}
-        <p class='error'>{{ error }}</p>
-    {% endif %}
+    <p class='info'>{{ info }}</p>
+    <p class='error'>{{ error }}</p>
     <fieldset id='login'>
         <legend><strong>Log in with existing account</strong></legend>
         <form action='/log_in/' method='post' name='login'>

@@ -6,12 +6,8 @@ Case {{ case_name }}{{ block.super }}
 
 {% block content %}
     {{ block.super }}
-    {% if info %}
-        <p class='info'>{{ info }}</p>
-    {% endif %}
-    {% if error %}
-        <p class='error'>{{ error }}</p>
-    {% endif %}
+    <p class='info'>{{ info }}</p>
+    <p class='error'>{{ error }}</p>
     <h3>Model Rating: {{ rating }}</h3>
     {% if rating and rating != 'unrated' %}
         <p>

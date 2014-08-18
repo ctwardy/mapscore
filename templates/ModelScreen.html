@@ -6,12 +6,8 @@
 
 {% block content %}
     {{ block.super }}
-    {% if info %}
-        <p class='info'><strong>{{ info }}</strong></p>
-    {% endif %}
-    {% if error %}
-        <p class='error'><strong>{{ error }}</strong></p>
-    {% endif %}
+    <p class='info'><strong>{{ info }}</strong></p>
+    <p class='error'><strong>{{ error }}</strong></p>
     <h3>Account Name: {{ Name_act }}</h3>
     <h3>Model Name: {{ Name_m }}</h3>
     {% if rating %}
@@ -25,7 +21,7 @@
     {% endif %}
     <div class='panel'>
         <a href='/metric_description/'>Metric description</a><br />
-        <a href='/model_edit_info/'>Edit model information</a><br />
+        <a href='/edit_model/?overwrite={{ Name_m }}'>Edit model information</a><br />
         <em>To run a new test, please select a new test case: </em><br />
         <a href='/casetypeselect/'>Select a test case</a><br />
         <em>To access a completed test, click the link below to get a list: </em><br />

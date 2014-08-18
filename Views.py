@@ -52,7 +52,7 @@ MEDIA_DIR = 'media/'         # for the server
 USER_GRAYSCALE = 'media/'
 
 # console print e.g.:
-#print >>sys.stderr, 'Goodbye, cruel world!'
+#print >> sys.stderr, 'Goodbye, cruel world!'
 
 
 #--------------------------------------------------------------
@@ -61,12 +61,13 @@ def base_redirect(response):
 
 #-------------------------------------------------------------------
 def main_page(request):
+    # Users shouldn't see the log in page if they are already logged in
     if request.user.is_authenticated():
         if 'admintoken' in request.session.keys() and request.session['admintoken']:
             return redirect('/admin_account/')
         else:
             return redirect('/account/')
-    
+
     # record a hit on the main page
     if len(Mainhits.objects.all()) == 0:
         newhits = Mainhits()
@@ -90,7 +91,7 @@ def main_page(request):
     request.session['admintoken'] = False
     request.session['createcheck'] = False
     request.session['ActiveAdminCase'] = 'none'
-    
+
     sorted_models = get_sorted_models(Model.objects.all())
     inputlist = []
     # copy values for leaderboard table
@@ -102,11 +103,11 @@ def main_page(request):
                  model.model_nameID,
                  model.model_avgrating,
                  num_finished])
-    
+
     # Limit to Top-10
     inputdic = {'scorelist': inputlist[:9]}
     inputdic.update(csrf(request))
-    session_to_input(request.session, inputdic, 'info', 'error')
+    request_to_input(request.session, inputdic, 'info', 'error')
     return render_to_response('Main.html', inputdic)
 
 def log_in(request):
@@ -115,15 +116,16 @@ def log_in(request):
         Pass_in = str(request.POST['Password'])
     except:
         return permission_denied(request)
-    
+
     for term_account in terminated_accounts.objects.all():
         if term_account.username == User_in:
             return error('This account was deleted.')
-    
+
     user = auth.authenticate(username=User_in, password=Pass_in)
+    print >> sys.stderr, user
     if user is not None:
         request.session['usertoken'] = True
-        
+
         model_list = []
         request.session['active_account'] = Account.objects.get(ID2 = User_in)
 
@@ -159,50 +161,50 @@ def account_reg(request):
 #-------------------------------------------------------------
 def create_account(request):
     regexes = {
-        'FirstName' : r'^.+$', 
-        'LastName' : r'^.+$', 
-        'Email' : r'^[a-zA-z0-9\.\-]+@[a-zA-z0-9\-]+[\.a-zA-z0-9\-]+$', 
-        'Institution' : r'^[a-zA-z\s:0-9\']+$', 
-        'Username' : r'^[a-zA-z0-9_]+$', 
-        'Password1' : r'^.+$', 
-        'Password2' : r'^.+$', 
-        'Website' : r'.*$', 
+        'FirstName' : r'^.+$',
+        'LastName' : r'^.+$',
+        'Email' : r'^[a-zA-z0-9\.\-]+@[a-zA-z0-9\-]+[\.a-zA-z0-9\-]+$',
+        'Institution' : r'^[a-zA-z\s:0-9\']+$',
+        'Username' : r'^[a-zA-z0-9_]+$',
+        'Password1' : r'^.+$',
+        'Password2' : r'^.+$',
+        'Website' : r'.*$',
         'Captcha' : 'H4bN'
     }
-    
+
     Username, Password1, Password2 = \
         request.POST['Username'], request.POST['Password1'], request.POST['Password2']
     # Get a dictionary of all fields that match the regexes
-    good_fields = dict((key, val) for key, val in request.POST.items() if key in regexes.keys() 
+    good_fields = dict((key, val) for key, val in request.POST.items() if key in regexes.keys()
         and re.match(regexes[key], val))
     # Checks to see if the passwords are the same
     if Password1 != Password2 and 'Password2' in good_fields.keys():
         del(good_fields['Password2'])
     # Checks if a User with the same username exists as an account
-    if ((Username in [account.username for account in Account.objects.all()] or 
-        Username in [account.username for account in terminated_accounts.objects.all()] or 
-        Username in [user.username for user in User.objects.all()]) and 
+    if ((Username in [account.username for account in Account.objects.all()] or
+        Username in [account.username for account in terminated_accounts.objects.all()] or
+        Username in [user.username for user in User.objects.all()]) and
         Username in good_fields.keys()):
         del(good_fields['Username'])
     # Check to see if some fields are invalid
     if len(good_fields.keys()) != len(regexes.keys()):
         request.session['good_fields'] = good_fields
         return redirect('/account_reg/')
-    
+
     FirstName, LastName, Email = \
         request.POST['FirstName'], request.POST['LastName'], request.POST['Email']
     Institution, Website = request.POST['Institution'], request.POST['Website']
-    user = User.objects.create_user(first_name=FirstName, 
+    user = User.objects.create_user(first_name=FirstName,
         last_name=LastName, username=Username, email=Email, password=Password1)
     user.is_active = True
     user.save()
-    
-    account = Account(institution_name=Institution, firstname_user=FirstName, 
+
+    account = Account(institution_name=Institution, firstname_user=FirstName,
         lastname_user=LastName, username=Username, password=Password1,
         Email=Email, ID2=Username, Website=(Website if len(Website) == 0 else 'None'),
         sessionticker=0, completedtests=0, deleted_models=0, profpicrefresh=0)
     account.save()
-    
+
     # Set up profile pic locations
     ID2 = account.ID2
     stringurl = '/media/profpic_'
@@ -221,15 +223,15 @@ def create_account(request):
                 destination.write(chunk)
     else:
         shutil.copyfile('in_images/Defaultprofpic.png',stringlocation)
-    
+
     # Save image size parameters
     im = Image.open(account.photolocation)
     xsize, ysize = im.size[0], im.size[1]
-    
+
     account.photosizex = int(xsize)
     account.photosizey = int(ysize)
     account.save()
-    
+
     auth.logout(request)
     auth_user = auth.authenticate(username=Username, password=Password1)
     auth.login(request, auth_user)
@@ -248,18 +250,18 @@ def account_access(request):
     request.session['inputdic'] = 'none'
     request.session['active_case'] = 'none'
     request.session['active_model'] = 'none'
-    
+
     model_list = list()
     for i in request.session['active_account'].account_models.all():
         model_list.append(i.model_nameID)
-    
+
     profpic = request.session['active_account'].photourl
     inputdic = {'Name':request.session['active_account'].institution_name,'modelname_list':model_list ,'profpic':profpic}
     account = request.session['active_account']
-    
+
     inputdic['xsize'] = account.photosizex
     inputdic['ysize'] = account.photosizey
-    session_to_input(request.session, inputdic, 'info')
+    request_to_input(request.session, inputdic, 'info')
     return render_to_response('AccountScreen.html',inputdic)
 
 #-----------------------------------------------------------------
@@ -271,7 +273,7 @@ def batch_test_upload(request):
     except:
          return permission_denied(request)
 
-    context_instance=RequestContext(request)
+    context_instance = RequestContext(request)
     case_list = []
     update_list = []
     if request.method == 'POST':
@@ -282,10 +284,10 @@ def batch_test_upload(request):
             bc = 0 #bad count
             for index, (path, fname, file_size, model, case, status) in enumerate(case_list):
                 if status == "ready":
-                    model_count = Model.objects.filter(ID2 = str(request.session['active_account'].ID2 +":"+ model)).count()
+                    model_count = Model.objects.filter(ID2=str(request.session['active_account'].ID2 +":"+ model)).count()
                     if model_count == 0:
                         status = "model not found"
-                    case_count = Case.objects.filter(case_name = str(case)).count()
+                    case_count = Case.objects.filter(case_name=str(case)).count()
 
                     if case_count == 0:
                         if status == "model not found":
@@ -308,19 +310,16 @@ def batch_test_upload(request):
                 {'case_list': update_list, 'gcount': gc, 'bcount': bc},
                 context_instance=RequestContext(request)
             )
-
+    
     else:
-
         form = ZipUploadForm() # A empty, unbound form
+    
+    return render_to_response('batch_test_upload.html', {'form': form},
+        context_instance=RequestContext(request))
 
-    return render_to_response('batch_test_upload.html',{'form': form},
-        context_instance=RequestContext(request)
-    )
-#-----------------------------------------------------------------
+
 @login_required
 def batch_test_upload_final(request):
-     # this functions doesn't work, needs fixen'
-
     try:
          if request.session['admintoken'] == False and request.session['usertoken'] == False:
              return permission_denied(request)
@@ -360,7 +359,7 @@ def batch_test_upload_final(request):
     return render_to_response('batch_test_upload_final.html',{'result': result,
         'result_data': result_data})
 
-#-----------------------------------------------------------------
+
 @login_required
 def process_batch_tests(request):
 
@@ -435,7 +434,7 @@ def process_batch_tests(request):
 
         # Remove served Grayscale image
         file_move_safe(newtest.grayscale_path, s, 65536, True)
-#        shutil.move(newtest.grayscale_path, s)
+        #shutil.move(newtest.grayscale_path, s)
         # set the path
         newtest.grayscale_path = s
         newtest.save()
@@ -448,7 +447,6 @@ def process_batch_tests(request):
 
         # thumbnail is saved in MEDIA_DIR dir with name:
         # save as thumb_User_Model_Case.png
-
         response = newtest.rate()
         os.unlink(newtest.grayscale_path)
 
@@ -457,82 +455,68 @@ def process_batch_tests(request):
         request.session['active_account'].completedtests = int(request.session['active_account'].completedtests) + 1
         request.session['active_account'].save()
         #---------------------------------------------------------------
-        result_data.append((model,case,newtest.ID2,newtest.test_rating,"ok"))
-
-    request.session['batch_list'] = "completed"
-    return (0,result_data)
-
-#-----------------------------------------------------------------
-@login_required
-def model_regform(request):
-    return render_to_response('NewModel.html',{})
-
-#-------------------------------------------------------------------
-@login_required
-def PasswordReset(request):
-
-    return render_to_response('PasswordReset.html',{})
-
-@login_required
-def model_created(request):
-    # if page refresh
-    if request.session['createcheck'] == True:
-        input_dic = {'model_name': str(request.GET['Name'])}
-        return render_to_response('ModelRegComplete.html',input_dic)
+        result_data.append((model, case,newtest.ID2,newtest.test_rating, "ok"))
     
-    Model_name = str(request.GET['Name'])
-    description = str(request.GET['description'])
-    ModelName_r = '^[a-zA-z0-9_]+$'
-    baddescription = r'^\s*$'
+    request.session['batch_list'] = "completed"
+    return (0, result_data)
 
-    count = 0
-    if re.match(ModelName_r,Model_name) == None:
-        count = count + 1
-        inputdic01 ={'namein': Model_name,'Fail':True,'description':description}
 
-    if re.match(baddescription,description) != None:
-        count = count + 1
-        inputdic01 ={'namein': Model_name,'Fail1':True,'description':description}
+@login_required
+def edit_model(request):
+    input_dict = dict(csrf(request))
+    request_to_input(request.session, input_dict, 'error')
+    if 'overwrite' in request.GET:
+        input_dict['overwrite'] = request.GET['overwrite']
+        model = Model.objects.get(model_nameID=request.GET['overwrite'])
+        input_dict['name'], input_dict['desc'] = model.model_nameID, model.Description
+    if 'name' in request.session:
+        input_dict['name'] = request.session['name']
+    if 'desc' in request.session:
+        input_dict['desc'] = request.session['desc']
+    input_dict.update(request.META)
+    return render_to_response('NewModel.html', input_dict)
 
-    if count == 0:
 
-        for k in request.session['active_account'].account_models.all():
-            counter = 0
-            if Model_name == str(k.model_nameID):
-                counter = counter + 1
+@login_required
+def create_model(request):
+    name, desc, overwrite = \
+        str(request.POST['name']), str(request.POST['desc']), request.GET.get('overwrite')
+    name_regex, bad_desc_regex = '^[a-zA-Z0-9_]+$', r'^\s*$'
+    account = request.session['active_account']
+    request.session['name'], request.session['desc'] = name, desc
+    if not name.strip():
+        request.session['error'] = 'Your model\'s name cannot be blank.'
+        return redirect('/edit_model/')
+    elif not re.match(name_regex, name):
+        request.session['error'] = \
+            'Your model\'s name can only contain letters, numbers, and underscores (no spaces).'
+        return redirect('/edit_model/')
+    elif name in account.account_models.values_list('model_nameID') and not overwrite:
+        request.session['error'] = 'A model named "%s" already exists in the database.' % name
+        return redirect('/edit_model/')
+    elif re.match(bad_desc_regex, desc):
+        request.session['error'] = 'You must enter a description of your model.'
+        return redirect('/edit_model/')
+    else:
+        del(request.session['name'], request.session['desc'])
+        if overwrite:
+            old_model = Model.objects.get(model_nameID=overwrite)
+            old_model.model_nameID = name
+            old_model.Description = desc
+            old_model.ID2 = str(account.ID2) + ':' + name
+            old_model.save()
+            request.session['active_model'] = old_model
+            request.session['info'] = 'Your model has been successfully edited.'
+        else:
+            new_model = Model(model_nameID=name, ID2=str(account.ID2) + ':' + str(name), Description=desc)
+            new_model.setup()
+            new_model.save()
+            link = Model_Account_Link(model=new_model, account=account)
+            link.save()
+            request.session['active_model'] = new_model
+            request.session['info'] = 'Your model has been successfully created.'
+        return redirect('/model_menu/')
 
-            if counter > 0:
-                count = count + 1
-                inputdic01 = {'namein': Model_name,'modelname': True, 'description':description}
-
-    if count > 0:
-        return render_to_response('NewModel.html',inputdic01)
-
-    #Create new model
-
-    new_model = Model(model_nameID = Model_name,
-        ID2 = str(request.session['active_account'].ID2) + ':'+ str(Model_name),
-        Description = description)
-
-    new_model.setup()
-    new_model.save()
-
-    #Link Model to account
-
-    Link = Model_Account_Link(    model = new_model,
-                    account = request.session['active_account'])
-
-    Link.save()
-
-    request.session['createcheck'] = True
-
-    request.session['model_name'] = Model_name
-    request.session['model_in']=  Model_name
-    request.session['active_model'] = new_model
-
-    return redirect("/model_menu/")
-
-#-------------------------------------------------------------------
 
 @login_required
 def model_access(request):
@@ -558,9 +542,9 @@ def model_access(request):
 
         if request.session['completedtest_lookup'] == True:
             input_dic['completedtest'] = request.session['completedtest']
-
             request.session['completedtest_lookup'] = False
-
+        
+        request_to_input(request.session, input_dic, 'info')
         return render_to_response('ModelScreen.html',input_dic)
 
     # If comming frm account
@@ -584,25 +568,27 @@ def model_access(request):
             if request.session['failure'] == True:
                 input_dic['failure'] = True
                 request.session['failure'] = False
+            
+            request_to_input(request.session, input_dic, 'info')
             return render_to_response('ModelScreen.html',input_dic)
 
-#----------------------------------------------------------------
+
 def admin_login_page(request):
     return render_to_response('AdminLogin.html', csrf(request))
-#---------------------------------------------------------------
+
 
 def admin_log_in(request):
     request.session['userdel'] = ''
     request.session['inputdic'] = 'none'
-    
+
     User_in = str(request.POST['Username'])
     Pass_in = str(request.POST['Password'])
-    
+
     # Verify user
     auth.logout(request)
     user = auth.authenticate(username = User_in , password = Pass_in)
     auth.login(request, user)
-    
+
     # User exists
     if user is not None:
         if user.is_superuser == True:
@@ -617,11 +603,17 @@ def admin_log_in(request):
     else:
         return incorrect_login(request)
 
+
 @login_required
 def admin_account(request):
+    try:
+        if not request.session['admintoken']:
+            return redirect('/permission_denied/')
+    except:
+        return redirect('/permission_denied/')
     return render_to_response('AdminScreen.html',{})
 
-#---------------------------------------------------------------------
+
 @login_required
 def testcase_admin(request):
     try:
@@ -629,7 +621,7 @@ def testcase_admin(request):
             return redirect('/permission_denied/')
     except:
         return redirect('/permission_denied/')
-    
+
     for case in Case.objects.filter(UploadedLayers = False):
         if os.path.exists(str(case.LayerField)):
             case.update(UploadedLayers = True)
@@ -660,27 +652,25 @@ def Casereg(request):
             return redirect('/permission_denied/')
     except:
         return redirect('/permission_denied/')
-    
+
     inputdic = {}
     inputdic.update(csrf(request))
     return render_to_response('Casereg.html',inputdic)
 
 
-
-#-------------------------------------------------------------------
 @login_required
-def tst_instructions(request):
+def test_instructions(request):
     '''Show the instructions for creating images.'''
-    return render_to_response('tst_instructions.html')
+    return render_to_response('test_instructions.html')
 
-@login_required
+
 def make_test(model, case):
     ID2 = str(model.ID2) + ':' + str(case.case_name)
     try:
         findtest = Test.objects.get(ID2=ID2)
     except Test.DoesNotExist:
         findtest = None
-    
+
     if findtest != None:
         OldLink = Test_Model_Link.objects.get(test = findtest.id)
         OldLink.delete()
@@ -695,7 +685,7 @@ def make_test(model, case):
     newtest.save()
     return newtest
 
-@login_required
+
 def evaluate(request):
     if 'grayscale' not in request.FILES.keys():
         request.session['error'] = 'A PNG file must be uploaded.'
@@ -703,7 +693,7 @@ def evaluate(request):
     account, model, case = request.session['active_account'], request.session['active_model'], \
         request.session['active_case']
     grayrefresh, test_ID2 = 1, (str(model.ID2) + ':' + str(case.case_name)).replace(':','_')
-    
+
     img = Image.open(request.FILES['grayscale'])
     data, bands = img.getdata(), img.getbands()
     if not (img.size[0] == img.size[1] == 5001):
@@ -717,18 +707,18 @@ def evaluate(request):
     elif bands[0] not in 'LP':
         request.session['error'] = 'The PNG image must be completely grayscale.'
         return redirect('/test/')
-    
+
     grayrefresh += 1
     path = '%s%s_%i.png' % (MEDIA_DIR, test_ID2, grayrefresh)
     with open(path, 'w+') as destination:
         for chunk in request.FILES['grayscale'].chunks():
             destination.write(chunk)
-    
+
     thumbnail_path = '%sthumb_%s_%i.png' % (MEDIA_DIR, test_ID2, grayrefresh)
     img.convert('RGB')
     img.thumbnail((128, 128), Image.ANTIALIAS)
     img.save(thumbnail_path)
-    
+
     test = make_test(model, case)
     test.grayscale_path = path
     test.grayrefresh = grayrefresh
@@ -736,16 +726,17 @@ def evaluate(request):
     test.rate()
     test.save()
     os.remove(path)
-    account.completedtests += 1
+    account.completedtests = int(account.completedtests) + 1
     account.save()
-    
+    request.session['active_account'] = account
+
     request.session['info'] = \
         'Congratulations! The %s model has been successfully rated on the %s case.' % (
         model.model_nameID, case.case_name)
     return redirect('/nonactive_test/?Nonactive_Testin=%s' % case.case_name)
 
 def show_find_pt(URL2):
-    marker_red, marker_yellow, end = (URL2.find('markers=color:red'), 
+    marker_red, marker_yellow, end = (URL2.find('markers=color:red'),
         URL2.find('markers=color:yellow'), URL2.find('maptype'))
     return URL2[:marker_red] + URL2[marker_yellow:end] + URL2[marker_red:marker_yellow] + URL2[end:]
 
@@ -770,7 +761,7 @@ def case_to_dict(case):
 @login_required
 def submissionreview(request):
 
-    
+
     request.session['active_model'].Completed_cases = int(request.session['active_model'].Completed_cases) + 1
     request.session['active_model'].save()
 
@@ -789,26 +780,26 @@ def submissionreview(request):
 #------------------------------------------------------------------------------------------------
 @login_required
 def nonactive_test(request):
-    
-    
+
+
     intest_raw = str(request.GET['Nonactive_Testin'])
     intest = intest_raw.strip()
-    completed_lst = [test.test_name for test in 
+    completed_lst = [test.test_name for test in
         request.session['active_model'].model_tests.all() if not test.Active]
     #debugx
     print >> sys.stderr, 'DEBUG:\n'
     print >> sys.stderr, intest
-    
+
     if intest not in completed_lst:
         request.session['failure'] = True
         return redirect('/model_menu/')
-    
+
     active_test = request.session['active_model'].model_tests.get(test_name = intest)
     active_case = active_test.test_case
     input_dict = case_to_dict(active_case)
     input_dict['rating'] = str(active_test.test_rating)
-    
-    session_to_input(request.session, input_dict, 'info', 'error')
+
+    request_to_input(request.session, input_dict, 'info', 'error')
     input_dict[''] = ''
     return render_to_response('nonactive_test.html', input_dict)
 
@@ -847,12 +838,10 @@ def confidence_interval(scores):
         print >> sys.stderr, 'No 95%% CI. N=%d, avg=%6.2f, std=%6.2f' % (N, avg, stdev)
         return (0,0)
 
-#----------------------------------------------------------------------------------------------------------------------------------------------------
+
 @login_required
 def Leader_model(request):
     '''Create the leaderboard.'''
-    
-
     sorted_models = get_sorted_models(Model.objects.all())
     # Build Leaderboard
     inputlist = []
@@ -914,7 +903,7 @@ def switchboard(request):
 #*********************************************
 
 
-    
+
     # anything to model
 
     if request.GET['Sort_by'] == '0':
@@ -950,7 +939,7 @@ def switchboard(request):
 @login_required
 def model_to_test_switch(request):
 
-    
+
     request.session['nav']    = '2'
     inputdic = request.session['inputdic']
 
@@ -960,7 +949,7 @@ def model_to_test_switch(request):
 @login_required
 def switchboard_totest(request):
 
-    
+
 
     casename_raw = str(request.GET['casename'])
     casename = casename_raw.replace(' ', '')
@@ -1023,7 +1012,7 @@ def switchboard_totest(request):
 @login_required
 def model_to_Scenario_switch(request):
 
-    
+
 
     inputdic =  request.session['inputdic']
 
@@ -1042,7 +1031,7 @@ def model_to_Scenario_switch(request):
 @login_required
 def testcaseshow(request):
 
-    
+
 
     if request.session['active_account'] =='superuser':
 
@@ -1085,7 +1074,7 @@ def testcaseshow(request):
 @login_required
 def return_leader(request):
 
-    
+
 
     inputdic = request.session['inputdic']
 
@@ -1116,7 +1105,7 @@ def return_leader(request):
 @login_required
 def completedtest_info(request):
 
-    
+
 
     completed_lst = []
 
@@ -1131,7 +1120,7 @@ def completedtest_info(request):
 @login_required
 def case_ref(request):
 
-    
+
 
     Input = request.GET['CaseName2']
 
@@ -1142,7 +1131,7 @@ def case_ref(request):
 @login_required
 def caseref_return(request):
 
-    
+
 
     inputdic = request.session['inputdic']
 
@@ -1174,7 +1163,7 @@ def caseref_return(request):
 @login_required
 def Account_Profile(request):
 
-    
+
 
     Account_in = request.GET['Account']
 
@@ -1210,7 +1199,7 @@ def Account_Profile(request):
 @login_required
 def returnfrom_profile(request):
 
-    
+
 
     inputdic = request.session['inputdic']
 
@@ -1238,11 +1227,11 @@ def returnfrom_profile(request):
     elif request.session['nav'] == '7':
         return render_to_response('scenario_to_test.html',inputdic)
 
-#----------------------------------------------------------------------------------
+
 @login_required
 def case_hyperin(request):
 
-    
+
     inputdic = request.session['inputdic']
 
 
@@ -1331,14 +1320,14 @@ def upload_casefile(request):
 
     return render_to_response('bulkcasereg_complete.html', {'result': data})
 
-#-------------------------------------------------------------------------------
+
 @login_required
 def exportcaselibrary(request):
 
     #------------------------------------------------------------------
     # Token Verification
     try:
-        if request.session['admintoken'] == False:
+        if not request.session['admintoken']:
             return permission_denied(request)
     except:
         return permission_denied(request)
@@ -1368,8 +1357,6 @@ def exportcaselibrary(request):
 #--------------------------------------------------------------------------------------
 @login_required
 def Manage_Account(request):
-
-    
     request.session['active_model'] = 'none'
 
     return render_to_response('Account_manage.html')
@@ -1377,9 +1364,6 @@ def Manage_Account(request):
 #-----------------------------------------------------------------------------------------
 @login_required
 def edit_user(request):
-
-    
-
     Account = request.session['active_account']
 
     Firstname_in = str(Account.firstname_user)
@@ -1394,7 +1378,7 @@ def edit_user(request):
 @login_required
 def edit_user_run(request):
 
-    
+
 
     Account = request.session['active_account']
 
@@ -1461,7 +1445,7 @@ def edit_user_run(request):
 @login_required
 def edit_inst(request):
 
-    
+
 
     Account = request.session['active_account']
 
@@ -1476,7 +1460,7 @@ def edit_inst(request):
 @login_required
 def edit_inst_run(request):
 
-    
+
 
     Account = request.session['active_account']
 
@@ -1917,29 +1901,29 @@ def traffic(request):
 @login_required
 def delete_account(request):
     input_dict = dict(csrf(request))
-    session_to_input(request.session, input_dict, 'error')
+    request_to_input(request.session, input_dict, 'error')
     return render_to_response('Deleteaccount.html', input_dict)
 
 #-------------------------------------------------------------------------------
 @login_required
 def deleteaccount_confirm(request):
     password = str(request.POST['passwd'])
-    
+
     account = request.session['active_account']
     user = User.objects.get(username=account.username)
-    
+
     if password != account.password:
         request.session['error'] = 'Invalid password.'
         return redirect('/delete_account/')
-    
-    t = terminated_accounts(username=account.username, sessionticker=account.sessionticker, 
-        completedtests=account.completedtests, institution_name=account.institution_name, 
+
+    t = terminated_accounts(username=account.username, sessionticker=account.sessionticker,
+        completedtests=account.completedtests, institution_name=account.institution_name,
         modelsi=str(len(account.account_models.all())), deleted_models=str(account.deleted_models)
     )
     t.save()
     if os.path.isfile(account.photolocation):
         os.remove(account.photolocation)
-    
+
     for model in account.account_models.all():
         for test in model.model_tests.all():
             test.delete()
@@ -1947,11 +1931,11 @@ def deleteaccount_confirm(request):
             if str(link.model.ID2) == str(model.ID2):
                 link.delete()
         model.delete()
-    
+
     for link in Model_Account_Link.objects.all():
         if str(link.account.ID2) == str(account.ID2):
             link.delete()
-    
+
     account.delete()
     user.delete()
     request.session['info'] = 'Your account was successfully deleted.'
@@ -2138,58 +2122,51 @@ def deletemodel_confirm(request):
 
         inputdic = {'modelname_list':model_list, 'passfail':True}
         return render_to_response('delete_model.html',inputdic)
-
-
-
+    
     # Retrieve active model
     request.session['active_model'] = Model.objects.get(ID2 = str(request.session['active_account'].ID2) + ':' + str(selection))
     model = request.session['active_model']
-
-
-
+    
     # Delete all tests
-
+    
     for j in model.model_tests.all():
         j.delete()
-
-
+    
     # delete Test Model Links
     for i in Test_Model_Link.objects.all():
         if str(i.model.ID2) == str(model.ID2):
             i.delete()
-
+    
     # delete Account Model Links
     for i in Model_Account_Link.objects.all():
         if str(i.model.ID2) == str(model.ID2):
             i.delete()
-
+    
     # Delete Model
-
     model.delete()
-
+    
     # move along deleted models
-
     account = request.session['active_account']
     account.deleted_models = int(account.deleted_models) + 1
     account.save()
+    
+    return render_to_response('Modeldeleted.html')
 
-    return    render_to_response('Modeldeleted.html')
 
-#--------------------------------------------------------------------------------------
 @login_required
 def help(request):
     return render_to_response('help.html')
 
-#----------------------------------------------------------------------------------------
+
 @login_required
 def help_how_alter_account(request):
     return render_to_response('help_how_edit_account.html')
 
-#----------------------------------------------------------------------------
+
 @login_required
 def switchboard_toscenario(request):
     '''Scenario-specific leaderboard'''
-    
+
     name = str(request.GET['Scenario_sort'])
 
     # Gather data
@@ -2338,13 +2315,13 @@ def hyper_leaderboard(request):
 
     return redirect('/Leader_model/')
 
-#---------------------------------------------------------------------------------
+
 def password_reset(request):
     input_dict = dict(csrf(request))
-    session_to_input(request.session, input_dict, 'error')
+    request_to_input(request.session, input_dict, 'error')
     return render_to_response('PasswordReset.html', input_dict)
 
-#-----------------------------------------------------------------------------------
+
 def password_email(request):
     username = request.POST['Username']
     try:
@@ -2355,10 +2332,11 @@ def password_email(request):
         return redirect('/password_reset/')
     
     tmp_passwd = os.urandom(16).encode('base-64')[:-3]
-    account.password, user.password = tmp_passwd, tmp_passwd
+    user.set_password(tmp_passwd)
+    account.password = tmp_passwd
     account.save()
     user.save()
-    
+
     try:
         msg = 'Your new temporary password is: %s' % tmp_passwd
         send_mail('Temporary MapScore Password', msg, 'mapscore@c4i.gmu.edu', [account.Email], fail_silently=False)
@@ -2367,7 +2345,7 @@ def password_email(request):
     request.session['info'] = 'Please check your email for the temporary password.'
     return redirect('/main/')
 
-#------------------------------------------------------------------------------------
+
 @login_required
 def model_inst_sort(request):
     try:
@@ -3949,7 +3927,7 @@ def model_change_info(request):
     model.model_nameID = name
     model.save()
 
-    return render_to_response('ModelScreen.html', 
+    return render_to_response('ModelScreen.html',
         {'info' : 'Your model has been sucessfully updated.'})
 
 #----------------------------------------------------------------------------
@@ -3994,7 +3972,7 @@ def reg_conditions(request):
 @login_required
 def DownloadParam(request):
     active_case = request.session['active_case']
-    
+
     instring =   "Case_Name: " + active_case.case_name + '\r\n'
     instring = instring + "Coordinate_System: WGS_84" + '\r\n'
     instring =  instring + "Subject_Age: " +  active_case.Age + '\r\n'
@@ -4019,21 +3997,21 @@ def DownloadParam(request):
     instring = instring + "Search_Region_Lower_Lat: " + active_case.downleft_lat  + '\r\n'
     instring = instring + "Search_Region_Right_Lon: " + active_case.downright_lon + '\r\n'
     instring = instring + "Search_Region_Left_Lon: " + active_case.upleft_lon  + '\r\n'
-    
+
     #image = Image.open(NameFile)
-    
+
     #wrap = FileWrapper(NameFile)
-    
+
     resp = HttpResponse(content_type = 'text/plain')
-    
+
     #resp['Content-Length'] = os.path.getsize(NameFile)
-    
+
     resp['Content-Disposition'] = 'attachment; filename= ScenarioParameters.txt'
-    
+
     #image.save(resp,'png')
-    
+
     resp.write(instring)
-    
+
     return resp
 
 #----------------------------------------------------------------
@@ -4044,7 +4022,7 @@ def UploadLayers(request):
             return permission_denied(request)
     except:
         return permission_denied(request)
-    
+
     request.session['ActiveAdminCase'] = int(request.GET['id'])
 
     admincase = Case.objects.get(id = request.session['ActiveAdminCase'])
@@ -4240,21 +4218,21 @@ def DownloadLayersadmin(request):
 #--------------------------------------------------------------------------------
 @login_required
 def casetypeselect(request):
-    
-    
+
+
     name_lst = sorted(set([str(x.case_name) for x in Case.objects.all()]))
     type_lst = sorted(set([str(x.subject_category) for x in Case.objects.all()]))
     input_dict = {'names':name_lst, 'types':type_lst}
     input_dict.update(csrf(request))
-    session_to_input(request.session, input_dict, 'error')
+    request_to_input(request.session, input_dict, 'error')
     return render_to_response('Testselect.html', input_dict)
 
 #--------------------------------------------------------------------------------
 @login_required
 def TesttypeSwitch(request):
-    
+
     input_dict = dict(csrf(request))
-    
+
     selection = request.POST['typein2']
     if selection == '0':
         request.session['error'] = 'You have not selected a case type.'
@@ -4264,14 +4242,14 @@ def TesttypeSwitch(request):
         if case.subject_category == selection and case not in request.session['active_model'].model_tests.all():
             request.session['active_case'] = case
             return redirect('/test/')
-    
+
     request.session['error'] = 'You have completed all of the available test cases of type "%s" as of this time.' % selection
     return redirect('/casetypeselect/')
 
 #--------------------------------------------------------------------------------
 @login_required
 def TestNameSwitch(request):
-    
+
     selection = request.POST['casename']
     if selection == '0':
         request.session['error'] = 'You have not selected a case name.'
@@ -4298,11 +4276,11 @@ def NextSequentialTestSwitch(request):
         if case not in tested_cases:
             request.session['active_case'] = case
             return redirect('/test/')
-    
+
     request.session['error'] = 'You have completed all of the available test cases as of this time.'
     return redirect('/casetypeselect/')
 
-def session_to_input(session, input_dict, *args):
+def request_to_input(session, input_dict, *args):
     keys = session.keys()
     for key in args:
         if key in keys:
@@ -4312,21 +4290,21 @@ def session_to_input(session, input_dict, *args):
 @login_required
 def test(request):
     input_dict = dict(csrf(request))
-    session_to_input(request.session, input_dict, 'info', 'error')
-    
+    request_to_input(request.session, input_dict, 'info', 'error')
+
     active_case = request.session['active_case']
     if type(active_case) is str:
         input_dict.update(case_type_dict())
         input_dict['error'] = 'A case has not been selected yet.'
         return render_to_response('Testselect.html', input_dict)
-    
+
     input_dict.update(case_to_dict(active_case))
     return render_to_response('file_up.html', input_dict)
 
 def error(message, href='/main/', to='main menu'):
     return render_to_response('error.html', {
-        'message' : message, 
-        'href' : href, 
+        'message' : message,
+        'href' : href,
         'to' : to
     })
 

@@ -115,6 +115,14 @@ a:hover {
 .captcha {
     text-align: center;
 }
+#batchtable {
+    width: 100%;
+    line-height: 150%;
+}
+.batchrow {
+    outline: 1px dotted black;
+    text-align: center;
+}
 .error {
     color: #ff2525;
 }

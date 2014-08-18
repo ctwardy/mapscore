@@ -17,29 +17,33 @@ Completed Tests{{ block.super }}
     <script src='{% static 'js/testcase-thumb-hover.js' %}'></script>
     <script src='{% static 'js/jquery.tablesorter.min.js' %}'></script>
     <div class='panel'>
-        <table id='testCaseTable' class='tablesorter'>
-            <thead>
-                <h3>Your Completed Tests</h3>
-                <small>Hover over the test case name to view the image thumbnail if available.</small>
-                <tr>
-                    <th>Test Case Name</th>
-                    <th>Test Rating</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for test in completed_lst %}
+        <h3>Your Completed Tests</h3>
+        <small>Hover over the test case name to view the image thumbnail if available.</small>
+        {% if completed_lst|length > 0 %}
+            <table id='testCaseTable' class='tablesorter'>
+                <thead>
                     <tr>
-                        <td>
-                            <a class='testcase' href='/nonactive_test/?Nonactive_Testin={{ test.test_name }}'
-                                data-thumbexists='{{ test.thumbexists }}' data-thumb='{{ test.thumb }}'>{{ test.test_name }}</a>
-                        </td>
-                        <td>
-                            {{ test.test_rating }}
-                        </td>
+                        <th>Test Case Name</th>
+                        <th>Test Rating</th>
                     </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    {% for test in completed_lst %}
+                        <tr>
+                            <td>
+                                <a class='testcase' href='/nonactive_test/?Nonactive_Testin={{ test.test_name }}'
+                                    data-thumbexists='{{ test.thumbexists }}' data-thumb='{{ test.thumb }}'>{{ test.test_name }}</a>
+                            </td>
+                            <td>
+                                {{ test.test_rating }}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>You have not completed any tests with this model yet.</p>
+        {% endif %}
     </div>
     <a href='/model_menu/'>Return to model menu</a>
 {% endblock %}

@@ -6,9 +6,7 @@ Select a Case{{ block.super }}
 
 {% block content %}
     <div class='panel'>
-        {% if error %}
-            <p class='error'>{{ error }}</p>
-        {% endif %}
+        <p class='error'>{{ error }}</p>
         <form action='/NextSequentialTestSwitch/'>
             <button>Next Sequential Test</button>
         </form>
