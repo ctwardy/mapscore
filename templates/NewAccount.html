@@ -1,68 +1,32 @@
-{% extends 'base.html' %}
+{% extends 'account_form.html' %}
 
 {% block title %}
 Register Account{{ block.super }}
 {% endblock %}
 
-{% block content %}
-    {{ block.super }}
-    <div class='panel'>
-        <div class='description'>
-            <h4>Register Account</h4>
-            <p>
-                Thank you for trying the lost person model rating system. 
-                Please fill out the following form to enable your registration.
-            </p>
-            <p>
-                Your name, institution name, email, and website will be used 
-                to construct a profile that will be provided to other users 
-                on our leaderboard interface.
-            </p>
-            <p>
-                (*) Required Field
-            </p>
-            <p class='error'>{{ error | safe }}</p>
-        </div>
-        <form action='/create_account/' method='post'>
-            {% csrf_token %}
-            <p class='reginfo'>
-                <em>User Information</em><br />
-                <span class='{% if not FirstName and not first_time %}error{% endif %}'>* First name: </span>
-                <input maxlength='30' name='FirstName' value='{{ FirstName }}'/><br />
-                <span class='{% if not LastName and not first_time %}error{% endif %}'>* Last name: </span>
-                <input maxlength='30' name='LastName' value='{{ LastName }}'/><br />
-                <span class='{% if not Email and not first_time %}error{% endif %}'>* Email address: </span>
-                <input maxlength='30' name='Email' value='{{ Email }}'/><br />
-                Profile picture (optional): <br />
-                <small>Please note that your picture will stored in the public domain.<br />
-                    Your profile picture must be in JPEG or PNG format.</small>
-                <input type='file' name='profpic'/>
-            </p>
-            <p class='reginfo'>
-                <em>Organization Information</em><br />
-                <span class='{% if not Institution and not first_time %}error{% endif %}'>* Institution name: </span>
-                <input maxlength='30' name='Institution' value='{{ Institution }}'/><br />
-                <span class=''>Website: </span>
-                <input maxlength='30' name='Website' value='{{ Website }}'/><br />
-            </p>
-            <p class='reginfo'>
-                <em>Login Information</em><br />
-                <span class='{% if not Username and not first_time %}error{% endif %}'>* Username: </span>
-                <input maxlength='30' name='Username' value='{{ Username }}'/><br />
-                <span class='{% if not Password1 and not first_time %}error{% endif %}'>* Password: </span>
-                <input maxlength='30' name='Password1' value='{{ Password1 }}'/><br />
-                <span class='{% if not Password2 and not first_time %}error{% endif %}'>* Repeat password: </span>
-                <input maxlength='30' name='Password2' value='{{ Password2 }}'/><br />
-            </p>
-            <em>User Verification</em><br />
-            <img class='captcha' src='/media/Captcha1.png' />
-            <p>
-                <small>Please transcribe text from the captcha image below: </small>
-            </p>
-            <span class='{% if not Captcha and not first_time %}error{% endif %}'>* Captcha: </span>
-            <input maxlength='30' name='Captcha' /><br />
-            <button>Submit</button>
-        </form>
-    </div>
-    <a href='/main/'>Return to main menu</a>
+{% block description %}
+    <h4>Register Account</h4>
+    <p>
+        Thank you for trying the lost person model rating system. 
+        Please fill out the following form to enable your registration.
+    </p>
+    <p>
+        Your name, institution name, email, and website will be used 
+        to construct a profile that will be provided to other users 
+        on our leaderboard interface.
+    </p>
 {% endblock %}
+
+{% block otherfields %}
+    <em>User Verification</em><br />
+    <img src='/media/Captcha1.png' />
+    <p>
+        <small>Please transcribe text from the captcha image below: </small>
+    </p>
+    <span class='{% if not captcha and not first_time %}error{% endif %}'>* Captcha: </span>
+    <input maxlength='30' name='captcha' value='{{ captcha }}'/><br />
+{% endblock %}
+
+{% block action %}/create_account/{% endblock %}
+{% block href %}/main/{% endblock %}
+{% block to %}main menu{% endblock %}

@@ -8,10 +8,11 @@ Delete Account{{ block.super }}
     {{ block.super }}
     <div class='panel'>
         <p class='error'>{{ error }}</p>
+        <h3>Delete Account</h3>
         <p>
             <span class='error'><strong><em>Warning</em></strong></span>: 
-            You are about to permanently delete your account.<br />
-            Please enter your password below to continue.<br />
+            You are about to permanently delete your account and all of its associated
+            models and tests. Please enter your password below to continue.
         </p>
         <form action='/deleteaccount_confirm/' method='post'>
             {% csrf_token %}

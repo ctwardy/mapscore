@@ -21,6 +21,8 @@ Batch Test{{ block.super }}
             </ul>
             <p>
                 A confirmation screen will be displayed with warnings if a model or test case name cannot be found.
+                Also, please note that existing tests will be overwritten if the ZIP file contains submissions for
+                test cases that you have already completed.
             </p>
         </div>
         <form action='{% url 'batch_test_upload' %}' method='post' enctype='multipart/form-data'>

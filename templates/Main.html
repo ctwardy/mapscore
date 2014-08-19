@@ -12,8 +12,8 @@ Log In{{ block.super }}
         <legend><strong>Log in with existing account</strong></legend>
         <form action='/log_in/' method='post' name='login'>
             {% csrf_token %}
-            Username: <input maxlength='30' type='text' name='Username'/>
-            Password: <input maxlength='30' type='password' name='Password'>
+            Username: <input maxlength='30' type='text' name='username'/>
+            Password: <input maxlength='30' type='password' name='password'>
             <button>Login</button>
             <a href='/password_reset/'>Forgot password?</a>&nbsp;|&nbsp;
             <a href='/reg_conditions/'>New user?</a>&nbsp;|&nbsp;
@@ -51,6 +51,8 @@ Log In{{ block.super }}
                         <td><strong>{{ attr }}</strong></td>
                     {% endfor %}
                 </tr>
+            {% empty %}
+                <p>No models have more than five tests.</p>
             {% endfor %}
         </tbody>
     </table>

@@ -6,13 +6,16 @@ Account{{ block.super }}
 
 {% block content %}
     {{ block.super }}
+    <p class='error'>{{ error }}</p>
     <p class='info'>{{ info }}</p>
     <h3>Account Name: {{ Name }}</h3>
     <div id='profpic'>
         <img src='{{ profpic }}' width='{{ xsize }}' height='{{ ysize }}'/>
     </div>
     <div id='account-menu'>
+        <h4>My Account</h4>
         <form action='/model_menu/' method='get'>
+            View model: 
             <select name='model_in'>
                 <option value='0'>-- Select model to test --</option>
                 {% for modelname in modelname_list %}
@@ -23,9 +26,16 @@ Account{{ block.super }}
         </form>
         <br />
         <a href='/batch_test_upload/'>Upload batch test</a>&nbsp;|&nbsp;
-        <a href='/Leader_model/'>View leaderboard</a>&nbsp;|&nbsp;
-        <a href='/edit_model/'>Add new model</a><br />
-        <a href='/Manage_Account/'>Manage account</a>&nbsp;|&nbsp;
+        <a href='/Leader_model/'>View leaderboard</a><br />
+        <a href='/edit_model/'>Add new model</a>
+        
+        <a href='/edit_user/'>Edit user</a>
+        <a href='/edit_inst/'>Edit institution</a>
+        <a href='/edit_pw/'>Edit password</a>
+        <a href='/edit_picture/'>Edit account picture</a>
+        <a href='/delete_model/'>Delete model</a>
+        <a href='/delete_account/'>Delete account</a>
+        
         <a href='/log_out/'>Log out</a>
     </div>
 {% endblock %}

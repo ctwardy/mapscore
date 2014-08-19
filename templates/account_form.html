@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    {{ block.super }}
+    <div class='panel'>
+        <div class='description'>
+            {% block description %}{% endblock %}
+            <p>
+                (*) Required Field
+            </p>
+        </div>
+        <form action='{% block action %}{% endblock %}' method='post' enctype='multipart/form-data'>
+            {% csrf_token %}
+            <p class='reginfo'>
+                <em>User Information</em><br />
+                <span class='{% if not first_name and not first_time %}error{% endif %}'>* First name: </span>
+                <input maxlength='30' name='first_name' value='{{ first_name }}'/><br />
+                <span class='{% if not last_name and not first_time %}error{% endif %}'>* Last name: </span>
+                <input maxlength='30' name='last_name' value='{{ last_name }}'/><br />
+                <span class='{% if not email and not first_time %}error{% endif %}'>* Email address: </span>
+                <input maxlength='30' name='email' value='{{ email }}'/><br />
+                Profile picture (optional): <br />
+                <small>
+                    Please note that your picture will stored in the public domain.<br />
+                    Your profile picture must be in JPEG or PNG format.<br />
+                    A default profile picture will be used if none is provided.
+                </small>
+                <input type='file' name='profpic'/>
+            </p>
+            <p class='reginfo'>
+                <em>Organization Information</em><br />
+                <span class='{% if not institution and not first_time %}error{% endif %}'>* Institution name: </span>
+                <input maxlength='30' name='institution' value='{{ institution }}'/><br />
+                <span class=''>Website: </span>
+                <input maxlength='30' name='website' value='{{ website }}'/><br />
+            </p>
+            <p class='reginfo'>
+                <em>Login Information</em><br />
+                <span class='{% if not username and not first_time %}error{% endif %}'>* Username: </span>
+                <input maxlength='30' name='username' value='{{ username }}'/><br />
+                <span class='{% if not password1 and not first_time %}error{% endif %}'>* Password: </span>
+                <input maxlength='30' name='password1' value='{{ password1 }}'/><br />
+                <span class='{% if not password2 and not first_time %}error{% endif %}'>* Repeat password: </span>
+                <input maxlength='30' name='password2' value='{{ password2 }}'/><br />
+            </p>
+            {% block otherfields %}{% endblock %}
+            <button>Submit</button>
+        </form>
+    </div>
+    <a href='{% block href %}{% endblock %}'>Return to {% block to %}{% endblock %}</a>
+{% endblock %}

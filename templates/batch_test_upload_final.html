@@ -1,48 +1,41 @@
-{% include "header.html" %}
+{% extends 'base.html' %}
 
+{% block title %}
+Batch Test Results{{ block.super }}
+{% endblock %}
 
-<div style =' margin-left: 0% ; margin-top: 130px; margin-right: 0%; margin-bottom: 0px; color:black; overflow-y:hidden; overflow-x:hidden;'  >
-
-<br>
-<center>	
-
-	<h1> Batch Test Upload Results</h1>		
-
-<div style = ' border:double; width:750px; padding-left:50px;padding-right:50px; background-color:#FFFF99'>
-<br>
-{% if result == "abort" %}
-    <p>User aborted batch upload, all temp files have been deleted.</p>
-{% elif result == "completed" %}
-    <p>Already completed, you must <a href="/batch_test_upload/">upload</a> a new batch zip file.</p>
-{% endif %}
-
-{% if result_data %}
-	<table style='width:730px;'>
-	    <tr style='font-weight: bold;'><td>Model</td><td>Case</td><td>Test ID2</td><td>Rating</td></tr>
-	{% for model, case, testID, rating in result_data %}
-            <tr><td>{{ model }}</td><td>{{ case }}</td><td>{{ testID }}</td><td>{{ rating }}</td></tr>
-	{% endfor %}
-    </table>
-{% endif %}        
-
-</div>
-
-
-
-
-<br><br>
-
-<center>
-
-<form action = "/account/" method = "get" name = "Return to Account Menu">
-		<button name = "Return To Account Menu" type = "submit" value = "HTML">
-		Return To Model Menu
-		</button>	
-</form>
-</center>
-
-
-<br><br>
-</div>
-	
-{% include "footer.html" %}
+{% block content %}
+    <div class='panel'>
+        <h3>Batch Test Upload Results</h3>
+        <div class='description'>
+            {% if result == 'abort' %}
+                <p>User aborted batch upload, all temporary files have been deleted.</p>
+            {% elif result == 'completed' %}
+                <p>Already completed, you must <a href="/batch_test_upload/">upload</a> a new batch zip file.</p>
+            {% endif %}
+            {% if result_data %}
+                <table id='batchtable'>
+                    <thead>
+                        <tr class='batchrow'>
+                            <td>Model</td>
+                            <td>Case</td>
+                            <td>Test ID2</td>
+                            <td>Rating</td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for model, case, testID, rating in result_data %}
+                            <tr class='batchrow'>
+                                <td>{{ model }}</td>
+                                <td>{{ case }}</td>
+                                <td>{{ testID }}</td>
+                                <td>{{ rating }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% endif %}
+        </div>
+    </div>
+    <a href='/account/'>Return to account menu</a>
+{% endblock %}

@@ -1,17 +1,19 @@
 from django.conf.urls.defaults import patterns, include, url
 from django.conf.urls.static import static
 from django.http import HttpResponse
-from django.contrib import admin
 from django.conf import settings
+
+from django.contrib import admin
 admin.autodiscover()
-from Views import *
 # Uncomment the next two lines to enable the admin:
 # from django.contrib import admin
 # admin.autodiscover()
 
+from Views import *
+
 urlpatterns = patterns('',
               ('^$', base_redirect),
-              ('^main/$',main_page),
+              ('^main/$', main_page),
               ('^log_out/$',log_out),
               ('^log_in/$', log_in),
               ('^account_reg/$',account_reg),
@@ -47,13 +49,15 @@ urlpatterns = patterns('',
               ('^case_hyperin/$',case_hyperin),
               ('^upload_casefile/$',upload_casefile),
               ('^exportcaselibrary/$',exportcaselibrary),
-              ('^Manage_Account/$',Manage_Account),
+              
               ('^edit_user/$',edit_user),
               ('^edit_user_run/$',edit_user_run),
               ('^edit_inst/$',edit_inst),
               ('^edit_inst_run/$',edit_inst_run),
               ('^edit_pw/$',edit_pw),
               ('^edit_pw_run/$',edit_pw_run),
+              
+              ('^edit_account/$', edit_account), 
               ('^traffic/$',traffic),
               ('^delete_account/$',delete_account),
               ('^deleteaccount_confirm/$',deleteaccount_confirm),
@@ -86,8 +90,6 @@ urlpatterns = patterns('',
               ('^cat_modelname_sort/$',cat_modelname_sort),
               ('^catrating_sort/$',catrating_sort),
               ('^catcompleted_sort/$',catcompleted_sort),
-              ('^model_edit_info/$',model_edit_info), # to be deleted
-              ('^model_change_info/$',model_change_info), # to be deleted
               ('^model_Profile/$',model_Profile),
               ('^metric_description/$',metric_description), 
               ('^reg_conditions/$',reg_conditions),
