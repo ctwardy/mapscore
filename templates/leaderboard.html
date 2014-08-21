@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Leaderboard{{ block.super }}
+{% endblock %}
+
+{% block content %}
+    <h3>Leaderboard</h3>
+    <p class='error'>{{ error }}</p>
+    <table class='leaderboard'>
+        <thead>
+            <tr>
+                <th class='leaderboard-header'>Institution Name</th>
+                <th class='leaderboard-header'>Model Name</th>
+                <th class='leaderboard-header'>Average Rating</th>
+                <th class='leaderboard-header'>Tests Completed</th>
+            </tr>
+        </thead>
+        <tbody>
+            
+        </tbody>
+    </table>
+    <a href='/account/'>Return to account menu</a>
+{% endblock %}

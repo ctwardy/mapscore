@@ -1,72 +1,38 @@
-{% include "header.html" %}
+{% extends 'base.html' %}
 
+{% block title %}
+Terms of Use{{ block.super }}
+{% endblock %}
 
-<div style =' margin-left: 0% ; margin-top: 130px; margin-right: 0%; margin-bottom: 0px; color:black; overflow-y:hidden; overflow-x:hidden;'  >
-	<br><br>
-	<div style = 'padding-left:75px; '>
-
-	<div style = ' background-color:#FFFF99 ; border: double; width : 800px' >
-	
-	<br>	
-	<br>
-	
-
-	
-	<b>
-	<center><u>Terms of Use</u></center> <br>
-	<p style = 'padding-left:30px;padding-right:30px'>
-	  The case data on this website belongs to the International
-	  Search & Rescue Incident Database, and is used by permission of
-	  dbS Productions, LLC only for the purpose of testing models of
-	  lost person behavior.  You agree not to redistribute the case
-	  data or use it for other purposes.  (If you wish to analyze the
-	  case data, dbS Productions encourages you to contact them
-	  directly for permission.)
-    </p>
-	<p style = 'padding-left:30px;padding-right:30px'>
-	  This website is only for testing and ranking models of lost
-	  person behavior.  A good score does not necessarily mean that
-	  model will work well in an actual search.  Actual searches
-	  should be run by trained incident commanders.  Models should be
-	  selected carefully, with attention to what variables they
-	  include and omit, and tempered with local and case-specific
-	  expertise.
-    </p>
-	<p style = 'padding-left:30px;padding-right:30px'>
-	  You agree to protect your login and limit access to current
-	  members of your team, and to report account or data breaches.
-	</p>
-	</b>
-	<br><br>
-	
-	</div>
-	
-	
-	<br><br>
-	
-	</div>
-	
-	
-	<center>
-	<form action = "/account_reg/" method = "get" name = "Accept Conditions">
-		
-		<button name = "Accept Conditions" type = "submit" value = "HTML">
-		Accept and Continue
-		</button>
-	</form>
-	
-	<br>
-	
-	<form action = "/main/" method = "get" name = "Return to Main Menu">
-		
-		<button name = "Return To Main Menu" type = "submit" value = "HTML">
-		Return To Main Menu
-		</button>
-	</form>
-	</center>
-<br><br>
-
-</div>
-
-
-{% include "footer.html" %}
+{% block content %}
+    {{ block.super }}
+    <div class='panel'>
+        <h4>Terms of Use</h4>
+        <div class='description'>
+            <p>
+                The case data on this website belongs to the International
+                Search & Rescue Incident Database, and is used by permission of
+                dbS Productions, LLC only for the purpose of testing models of
+                lost person behavior.  You agree not to redistribute the case
+                data or use it for other purposes.  (If you wish to analyze the
+                case data, dbS Productions encourages you to contact them
+                directly for permission.)
+            </p>
+            <p>
+                This website is only for testing and ranking models of lost
+                person behavior.  A good score does not necessarily mean that
+                model will work well in an actual search.  Actual searches
+                should be run by trained incident commanders.  Models should be
+                selected carefully, with attention to what variables they
+                include and omit, and tempered with local and case-specific
+                expertise.
+            </p>
+            <p>
+                You agree to protect your login and limit access to current
+                members of your team, and to report account or data breaches.
+            </p>
+        </div>
+        <a href='/create_account/'>Accept and continue</a>
+    </div>
+    <a href='/main/'>Return to main menu</a>
+{% endblock %}
