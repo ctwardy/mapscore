@@ -19,10 +19,6 @@ table {
     background-color: #ffff99;
     margin: 1em auto;
 }
-.toptenth {
-    color: white;
-    background-color: navy;
-}
 hr {
     border-color: #1a1a1a;
 }
@@ -64,11 +60,15 @@ a:hover {
     margin: 2em auto;
     text-align: left;
 }
-#topten {
+.leaderboard {
     margin: 2em auto;
     padding: 0.5em;
     width: 90%;
     line-height: 250%;
+}
+.leaderboard-header {
+    color: white;
+    background-color: navy;
 }
 #profpic {
     width: 50%;

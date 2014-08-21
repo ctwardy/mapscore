@@ -19,13 +19,6 @@
                 <input maxlength='30' name='last_name' value='{{ last_name }}'/><br />
                 <span class='{% if not email and not first_time %}error{% endif %}'>* Email address: </span>
                 <input maxlength='30' name='email' value='{{ email }}'/><br />
-                Profile picture (optional): <br />
-                <small>
-                    Please note that your picture will stored in the public domain.<br />
-                    Your profile picture must be in JPEG or PNG format.<br />
-                    A default profile picture will be used if none is provided.
-                </small>
-                <input type='file' name='profpic'/>
             </p>
             <p class='reginfo'>
                 <em>Organization Information</em><br />
@@ -39,11 +32,21 @@
                 <span class='{% if not username and not first_time %}error{% endif %}'>* Username: </span>
                 <input maxlength='30' name='username' value='{{ username }}'/><br />
                 <span class='{% if not password1 and not first_time %}error{% endif %}'>* Password: </span>
-                <input maxlength='30' name='password1' value='{{ password1 }}'/><br />
+                <input maxlength='30' type='password' name='password1' value='{{ password1 }}'/><br />
                 <span class='{% if not password2 and not first_time %}error{% endif %}'>* Repeat password: </span>
-                <input maxlength='30' name='password2' value='{{ password2 }}'/><br />
+                <input maxlength='30' type='password' name='password2' value='{{ password2 }}'/><br />
             </p>
-            {% block otherfields %}{% endblock %}
+            {% block otherfields %}
+                <p class='reginfo'>
+                    <em>Profile picture (optional): </em><br />
+                    <small>
+                        Please note that your picture will stored in the public domain.<br />
+                        Your profile picture must be in JPEG or PNG format.<br />
+                        A default profile picture will be used if none is provided.
+                    </small>
+                    <input id='profpicinput' type='file' name='profpic'/>
+                </p>
+            {% endblock %}
             <button>Submit</button>
         </form>
     </div>

@@ -7,15 +7,18 @@
     <link rel='stylesheet' type='text/css' href='{% static 'css/tablesorter/style2.css' %}'>
 {% endblock %}
 
+{% block scripts %}
+    <script src='{% static 'js/jquery-2.1.0.min.js' %}'></script>
+    <script src='{% static 'js/testcase-thumb-hover.js' %}'></script>
+    <script src='{% static 'js/jquery.tablesorter.min.js' %}'></script>
+{% endblock %}
+
 {% block title %}
 Completed Tests{{ block.super }}
 {% endblock %}
 
 {% block content %}
     {{ block.super }}
-    <script src='{% static 'js/jquery-2.1.0.min.js' %}'></script>
-    <script src='{% static 'js/testcase-thumb-hover.js' %}'></script>
-    <script src='{% static 'js/jquery.tablesorter.min.js' %}'></script>
     <div class='panel'>
         <h3>Your Completed Tests</h3>
         <small>Hover over the test case name to view the image thumbnail if available.</small>
@@ -31,7 +34,7 @@ Completed Tests{{ block.super }}
                     {% for test in completed_lst %}
                         <tr>
                             <td>
-                                <a class='testcase' href='/nonactive_test/?Nonactive_Testin={{ test.test_name }}'
+                                <a class='testcase' href='/completed_test/?name={{ test.test_name }}'
                                     data-thumbexists='{{ test.thumbexists }}' data-thumb='{{ test.thumb }}'>{{ test.test_name }}</a>
                             </td>
                             <td>

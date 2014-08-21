@@ -157,3 +157,6 @@ LOGGING = {
 }
 
 LOGIN_URL = '/permission_denied/'
+
+# Logs out a user after half an hour of inactivity
+SESSION_COOKIE_AGE = 1800
