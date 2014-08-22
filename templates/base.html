@@ -23,6 +23,15 @@ MapScore Lost Person Model Rating System
                     MapScore<br />
                     Lost Person Model Rating System<br />
                 </h3>
+                {% block hrefs %}
+                    <br />
+                    <a href='/account/'>Account menu</a>&nbsp;|&nbsp;
+                    <a href='/leaderboard/'>Leaderboard</a>&nbsp;|&nbsp;
+                    <a href='https://github.com/ctwardy/Pmap-Score/issues?sort=created&direction=desc&state=open' target='_blank'>
+                    Issue Tracker</a>&nbsp;|&nbsp;
+                    <a href='/help/'>Help</a>&nbsp;|&nbsp;
+                    <a href='/log_out/'>Log out</a>
+                {% endblock %}
             {% endblock %}
         </div>
         <div id='content'>

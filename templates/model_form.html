@@ -15,7 +15,7 @@ Edit Model{{ block.super }}
             </p>
             <p class='error'>{{ error }}</p>
         </div>
-        <form action='/create_model/{% if overwrite %}?overwrite={{ overwrite }}{% endif %}' method='post'>
+        <form action='/edit_model_submit/{% if overwrite %}?overwrite={{ overwrite }}{% endif %}' method='post'>
             {% csrf_token %}
             Model name: <input type='text' maxlength='30' name='name' value='{{ name }}' /><br />
             Model description: <br />

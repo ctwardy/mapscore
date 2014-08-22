@@ -384,7 +384,7 @@ def create_account_submit(request):
         location = '%sprofpic_%s_%i.png' % (MEDIA_DIR, account.ID2, int(account.profpicrefresh))
         account.photourl, account.photolocation = '/' + location, location
         account.save()
-        set_prof_pic(account, request.FILES.get('profpic'))
+        set_prof_pic(account, request.FILES.get('profpicinput'))
         
         auth.logout(request)
         u = auth.authenticate(username=fields.get('username'), password=fields.get('password1'))
@@ -438,18 +438,30 @@ def edit_account_submit(request):
     if checks_out:
         set_account_fields(fields, account, request.user)
         account.ID2 = fields.get('username')
+        
         for model in account.account_models.all():
+            s = 'thumb_' + model.ID2.replace(':','_')
             model.ID2 = account.ID2 + ':' + model.model_nameID
             model.save()
             for test in model.model_tests.all():
                 test.ID2 = model.ID2 + ':' + test.test_name
                 test.save()
+            
+            media_files = os.listdir(MEDIA_DIR)
+            for media in media_files:
+                if media.startswith(s):
+                    new_loc = MEDIA_DIR + 'thumb_' + model.ID2.replace(':','_') + media[media.find(s) + len(s):]
+                    shutil.move(MEDIA_DIR + media, new_loc)
         
-        old_location = account.photolocation
-        location = '%sprofpic_%s_%i.png' % (MEDIA_DIR, account.ID2, int(account.profpicrefresh))
-        account.photourl, account.photolocation = '/' + location, location
+        new_location = '%sprofpic_%s_%i.png' % (MEDIA_DIR, account.ID2, int(account.profpicrefresh))
+        shutil.move(account.photolocation, new_location)
+        account.photourl, account.photolocation = '/' + new_location, new_location
         account.save()
-        shutil.move(old_location, account.photolocation)
+        
+        if request.POST.get('delete_profpic'):
+            set_prof_pic(account, None)
+        elif 'profpic' in request.FILES:
+            set_prof_pic(account, request.FILES.get('profpic'))
         
         request.session['active_account'] = account
         request.session['info'] = 'Your account has been successfully updated.'
@@ -461,20 +473,11 @@ def edit_account_submit(request):
 
 @login_required
 def edit_model(request):
-    pass
-
-
-@login_required
-def edit_model_submit(request):
-    pass
-
-
-'''
-@login_required
-def edit_model(request):
     input_dict = dict(csrf(request))
+    input_dict['href'], input_dict['to'] = '/account/', 'account menu'
     request_to_input(request.session, input_dict, 'error')
     if 'overwrite' in request.GET:
+        input_dict['href'], input_dict['to'] = '/model_menu/', 'model menu'
         input_dict['overwrite'] = request.GET['overwrite']
         model = request.session['active_account'].account_models.get(model_nameID=request.GET['overwrite'])
         input_dict['name'], input_dict['desc'] = model.model_nameID, model.Description
@@ -482,12 +485,11 @@ def edit_model(request):
         input_dict['name'] = request.session['name']
     if 'desc' in request.session:
         input_dict['desc'] = request.session['desc']
-    input_dict.update(request.META)
-    return render_to_response('NewModel.html', input_dict)
+    return render_to_response('model_form.html', input_dict)
 
 
 @login_required
-def create_model(request):
+def edit_model_submit(request):
     name, desc, overwrite = \
         str(request.POST['name']), str(request.POST['desc']), request.GET.get('overwrite')
     name_regex, bad_desc_regex = '^[a-zA-Z0-9_]+$', r'^\s*$'
@@ -510,10 +512,16 @@ def create_model(request):
         del(request.session['name'], request.session['desc'])
         if overwrite:
             old_model = account.account_models.get(model_nameID=overwrite)
+            s = 'thumb_' + old_model.ID2.replace(':','_')
             old_model.model_nameID = name
             old_model.Description = desc
             old_model.ID2 = str(account.ID2) + ':' + name
             old_model.save()
+            media_files = os.listdir(MEDIA_DIR)
+            for media in media_files:
+                if media.startswith(s):
+                    new_loc = MEDIA_DIR + 'thumb_' + old_model.ID2.replace(':','_') + media[media.find(s) + len(s):]
+                    shutil.move(MEDIA_DIR + media, new_loc)
             request.session['active_model'] = old_model
             request.session['info'] = 'Your model has been successfully edited.'
         else:
@@ -525,7 +533,7 @@ def create_model(request):
             request.session['active_model'] = new_model
             request.session['info'] = 'Your model has been successfully created.'
         return redirect('/model_menu/')
-'''
+
 
 @login_required
 def account_access(request):
@@ -858,7 +866,7 @@ def testcase_admin(request):
 
     return render_to_response('TestCaseMenu.html',{'case_list':caselist})
 
-#-----------------------------------------------------------------------
+
 @login_required
 def Casereg(request):
     try:
@@ -866,10 +874,8 @@ def Casereg(request):
             return redirect('/permission_denied/')
     except:
         return redirect('/permission_denied/')
-
-    inputdic = {}
-    inputdic.update(csrf(request))
-    return render_to_response('Casereg.html',inputdic)
+    
+    return render_to_response('Casereg.html', csrf(request))
 
 
 @login_required
@@ -899,24 +905,27 @@ def evaluate(request):
     elif bands[0] not in 'LP':
         request.session['error'] = 'The PNG image must be completely grayscale.'
         return redirect('/test/')
-
+    
     grayrefresh += 1
     path = '%s%s_%i.png' % (MEDIA_DIR, test_ID2, grayrefresh)
     with open(path, 'w+') as destination:
         for chunk in request.FILES['grayscale'].chunks():
             destination.write(chunk)
-
+    
     thumbnail_path = '%sthumb_%s_%i.png' % (MEDIA_DIR, test_ID2, grayrefresh)
     img.convert('RGB')
     img.thumbnail((128, 128), Image.ANTIALIAS)
     img.save(thumbnail_path)
-
+    
     test = create_test(model, case)
     test.grayscale_path = path
     test.grayrefresh = grayrefresh
     test.save()
     test.rate()
     test.save()
+    model.update_rating()
+    model.Completed_cases = int(model.Completed_cases) + 1
+    model.save()
     os.remove(path)
     account.completedtests = int(account.completedtests) + 1
     account.save()
@@ -925,12 +934,12 @@ def evaluate(request):
     request.session['info'] = \
         'Congratulations! The %s model has been successfully rated on the %s case.' % (
         model.model_nameID, case.case_name)
-    return redirect('/nonactive_test/?Nonactive_Testin=%s' % case.case_name)
+    return redirect('/completed_test/?name=%s' % case.case_name)
 
 
 @login_required
 def completed_test(request):
-    test_name = str(request.GET['name']).strip()
+    test_name = str(request.GET.get('name')).strip()
     completed_lst = list(test.test_name for test in
         request.session['active_model'].model_tests.all() if not test.Active)
     
@@ -948,17 +957,47 @@ def completed_test(request):
 
 @login_required
 def leaderboard(request):
-    input_dict = dict()
+    input_dict = dict(csrf(request))
+    models = list(Model.objects.filter(Completed_cases__gt=0))
+    filter_choice = request.POST.get('filter')
+    
+    instname = lambda model: model.account_set.all()[0].institution_name
+    if filter_choice == 'case':
+        model_data, case_name = list(), request.POST.get('case_name')
+        for model in models:
+            try:
+                test = model.model_tests.get(test_name=case_name, Active=False)
+                model_data.append((instname(model), model.model_nameID, 
+                    round(float(test.test_rating), 3), '', 1))
+            except Test.DoesNotExist:
+                pass
+        input_dict['msg'] = 'of case "%s"' % case_name
+    elif filter_choice == 'category':
+        model_data, category = list(), request.POST.get('case_category')
+        for model in models:
+            all_tests = model.model_tests.filter(Active=False)
+            valid_tests = list(test for test in all_tests if test.test_case.subject_category == category)
+            if len(valid_tests) > 0:
+                scores = list(float(test.test_rating) for test in valid_tests)
+                lowerbound, upperbound = (-1, 1) if len(scores) == 1 else confidence_interval(scores)
+                model_data.append((instname(model), model.model_nameID, 
+                    round(sum(scores) / len(scores), 3), '[%5.3f, %5.3f]' % (lowerbound, upperbound), len(scores)))
+        input_dict['msg'] = 'of category "%s"' % category
+    else:
+        model_data = list()
+        for model in models:
+            all_tests = model.model_tests.filter(Active=False)
+            scores = list(float(test.test_rating) for test in all_tests)
+            lowerbound, upperbound = (-1, 1) if len(scores) == 1 else confidence_interval(scores)
+            model_data.append((instname(model), model.model_nameID, 
+                round(float(model.model_avgrating), 3), '[%5.3f, %5.3f]' % (lowerbound, upperbound), model.Completed_cases))
+    
+    input_dict['case_names'] = Case.objects.values_list('case_name', flat=True)
+    input_dict['case_categories'] = set(case.subject_category for case in Case.objects.all())
+    input_dict['model_data'] = model_data
+    input_dict['prev_filter'] = filter_choice
     return render_to_response('leaderboard.html', input_dict)
 
-
-
-
-
-
-
-
-# START
 
 @login_required
 def Leader_model(request):
@@ -1714,6 +1753,12 @@ def deletemodel_confirm(request):
     # Delete Model
     model.delete()
     
+    s = 'thumb_' + model.ID2.replace(':','_')
+    media_files = os.listdir(MEDIA_DIR)
+    for media in media_files:
+        if media.startswith(s):
+            os.remove(MEDIA_DIR + media)
+    
     # move along deleted models
     account = request.session['active_account']
     account.deleted_models = int(account.deleted_models) + 1
@@ -1814,7 +1859,7 @@ def switchboard_toscenario(request):
 
     return render_to_response('Leaderboard_scenario.html',inputdic)
 
-#-------------------------------------------------------------------------------
+
 @login_required
 def test_to_Scenario_switch(request):
     inputdic = request.session['inputdic']
@@ -1832,7 +1877,7 @@ def test_to_Scenario_switch(request):
 
     return render_to_response('test_to_scenario.html',inputdic)
 
-#-------------------------------------------------------------------------------
+
 @login_required
 def test_to_test_switch(request):
     inputdic = request.session['inputdic']
@@ -1844,7 +1889,7 @@ def test_to_test_switch(request):
 
     return render_to_response('Leaderboard_test.html',inputdic)
 
-#--------------------------------------------------------------------------------
+
 @login_required
 def scenario_to_test_switch(request):
     inputdic = request.session['inputdic']
@@ -1853,7 +1898,7 @@ def scenario_to_test_switch(request):
 
     return render_to_response('scenario_to_test.html',inputdic)
 
-#------------------------------------------------------------------------------
+
 @login_required
 def scenario_to_scenario_switch(request):
     inputdic = request.session['inputdic']
@@ -1872,7 +1917,6 @@ def scenario_to_scenario_switch(request):
 
     return render_to_response('Leaderboard_scenario.html',inputdic)
 
-#---------------------------------------------------------------------------------
 
 @login_required
 def hyper_leaderboard(request):
@@ -1892,9 +1936,7 @@ def model_inst_sort(request):
             return permission_denied(request)
     except:
         return permission_denied(request)
-
-    #-------------------------------------------------------------------
-
+    
     # extract data
     instname = str(request.GET['instname'])
     modelname = str(request.GET['modelname'])

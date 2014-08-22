@@ -6,8 +6,13 @@
     <script>
         $(document).ready(function() {
             $('#delete_profpic').click(function() {
-                var profpic = $('#profpic');
-                
+                var profpic = $('#profpicinput');
+                if(profpic.is(':disabled')) {
+                    profpic.attr('disabled', false);
+                }
+                else {
+                    profpic.attr('disabled', true);
+                }
             })
         });
     </script>
@@ -32,7 +37,7 @@ Edit Account{{ block.super }}
 
 {% block otherfields %}
     {{ block.super }}<input id='delete_profpic' type='checkbox' name='delete_profpic' value='True'/>
-    Delete profile picture<br /><em>Validation</em><br />
+    Delete your current profile picture<br /><em>Validation</em><br />
     <span class='{% if not old_password and not first_time %}error{% endif %}'>* Old password: </span>
     <input maxlength='30' type='password' name='old_password' value='{{ old_password }}'/><br />
 {% endblock %}
