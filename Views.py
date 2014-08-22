@@ -1002,7 +1002,6 @@ def leaderboard(request):
 
 
 @login_required
->>>>>>> 7fc8f1ef8797803dd96c8cc5ee0c35b376e956c0
 def Leader_model(request):
     '''Create the leaderboard.'''
     sorted_models = get_sorted_models(Model.objects.all())
