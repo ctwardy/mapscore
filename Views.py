@@ -1364,10 +1364,12 @@ def confidence_interval(scores):
     '''
     N,avg,stdev = 0,0.0,0.0
     try:
+        np.clip(scores, -1, 1, out=scores)  # Remove anomalies
         N, avg, stdev = len(scores), np.mean(scores), np.std(scores)
-        halfwidth = 1.96*stdev / math.sqrt(N)
-        lowerbound = round(np.clip(avg-halfwidth, -1, 1),4)
-        upperbound = round(np.clip(avg+halfwidth, -1, 1),4)
+        halfwidth = 1.96*stdev / np.sqrt(N)
+        lowerbound = round(avg-halfwidth, 4)
+        upperbound = round(avg+halfwidth, 4)
+        assert lowerbound < avg < upperbound
         return (lowerbound, upperbound)
     except:
         print >> sys.stderr, 'No 95%% CI. N=%d, avg=%6.2f, std=%6.2f' % (N, avg, stdev)
