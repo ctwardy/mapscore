@@ -1,47 +1,54 @@
 from django.conf.urls.defaults import patterns, include, url
 from django.conf.urls.static import static
 from django.http import HttpResponse
-from django.contrib import admin
 from django.conf import settings
+
+from django.contrib import admin
 admin.autodiscover()
-from Views import *
 # Uncomment the next two lines to enable the admin:
 # from django.contrib import admin
 # admin.autodiscover()
 
+from Views import *
+
 urlpatterns = patterns('',
               ('^$', base_redirect),
-              ('^main/$',main_page),
+              ('^main/$', main_page),
               ('^log_out/$',log_out),
-              ('^account_reg/$',account_reg),
-              ('^create_account/$',create_account),
+              ('^log_in/$', log_in),
               ('^account/$',account_access),
               ('^batch_test_upload/$',batch_test_upload),
-              url('^batch_test_upload/$',batch_test_upload, name='batch_test_upload'),
-              url('^batch_test_upload_final/$',batch_test_upload_final, name='batch_test_upload_final'),              
-              ('^new_model/$',model_regform),
-              ('^model_created/$',model_created),
-              ('^model_menu/$',model_access),
+              url('^batch_test_upload/$', batch_test_upload, name='batch_test_upload'),
+              url('^batch_test_upload_final/$', batch_test_upload_final, name='batch_test_upload_final'), 
+              
+              ('^create_account/$', create_account), 
+              ('^create_account_submit/$', create_account_submit), 
+              ('^edit_account/$', edit_account), 
+              ('^edit_account_submit/$', edit_account_submit), 
+              ('^edit_model/$', edit_model), 
+              ('^edit_model_submit/$', edit_model_submit), 
+              
+              ('^model_menu/$', model_access), 
               (r'^admin/$',include(admin.site.urls)),
-              ('^admin_login/$',admin_login),
+              ('^admin_login_page/$',admin_login_page),
+              (r'^admin_log_in/$', admin_log_in), 
               ('^admin_account/$',admin_account),
               ('^admin_cases/$',testcase_admin),
               ('^new_testcase/$',Casereg),
-              ('^test_instructions/$',tst_instructions),
-#              ('^regen_test/$',regen_test),
-              ('^upload_file/$',load_image),
-              ('^Rate_Test/$' , Rate),
-              ('^confirm_grayscale/$',confirm_grayscale),
-              ('^denygrayscale_confirm/$', denygrayscale_confirm),
-              ('^acceptgrayscale_confirm/$',acceptgrayscale_confirm),
-              ('^submissionreview/$',submissionreview),
-              ('^nonactive_test/$', nonactive_test),
+              ('^test_instructions/$',test_instructions),
+              #('^regen_test/$',regen_test),
+              ('^evaluate/$', evaluate),
+              ('^completed_test/$', completed_test),
+              
               ('^Leader_model/$',Leader_model),
               ('^switchboard/$',switchboard),
               ('^model_to_test_switch/$',model_to_test_switch),
               ('^switchboard_totest/$',switchboard_totest),
+              
               ('^case_info/$',testcaseshow),
+              
               ('^return_leader/$',return_leader),
+              
               ('^completedtest_info/$',completedtest_info),
               ('^case_ref/$',case_ref),
               ('^caseref_return/$',caseref_return),
@@ -50,25 +57,8 @@ urlpatterns = patterns('',
               ('^case_hyperin/$',case_hyperin),
               ('^upload_casefile/$',upload_casefile),
               ('^exportcaselibrary/$',exportcaselibrary),
-              ('^Manage_Account/$',Manage_Account),
-              ('^edit_user/$',edit_user),
-              ('^edit_user_run/$',edit_user_run),
-              ('^edit_inst/$',edit_inst),
-              ('^edit_inst_run/$',edit_inst_run),
-              ('^edit_pw/$',edit_pw),
-              ('^edit_pw_run/$',edit_pw_run),
-              ('^uploadprofpic/$',uploadprofpic),
-              ('^accountregcomplete/$',accountregcomplete),
-              ('^confirm_prof_pic/$',confirm_prof_pic),
-              ('^denyprofpic_confirm/$',denyprofpic_confirm),
-              ('^confirmprofpic_confirm/$',confirmprofpic_confirm),
-              ('^edit_picture/$',edit_picture),
-              ('^remove_profpic/$',remove_profpic),
-              ('^alterprofpic/$',alterprofpic),
-              ('^change_accountpic/$',change_accountpic),
+              
               ('^traffic/$',traffic),
-              ('^PasswordReset/$',PasswordReset),
-              ('^CollectingData/$',CollectingData),
               ('^delete_account/$',delete_account),
               ('^deleteaccount_confirm/$',deleteaccount_confirm),
               ('^terminate_accounts/$',terminate_accounts),
@@ -79,6 +69,7 @@ urlpatterns = patterns('',
               ('^deletemodel_confirm/$',deletemodel_confirm),
               ('^help/$',help),
               ('^help_how_alter_account/$',help_how_alter_account),
+              
               ('^model_to_Scenario_switch/$',model_to_Scenario_switch),
               ('^switchboard_toscenario/$',switchboard_toscenario),
               ('^test_to_Scenario_switch/$',test_to_Scenario_switch),
@@ -86,9 +77,11 @@ urlpatterns = patterns('',
               ('^scenario_to_test_switch/$',scenario_to_test_switch),
               ('^scenario_to_scenario_switch/$',scenario_to_scenario_switch),
               ('^hyper_leaderboard/$',hyper_leaderboard),
-              ('^password_reset/$',password_reset),
-              ('^password_email/$',password_email),
-              ('^CollectingData/$',CollectingData),
+              
+              ('^password_reset/$', password_reset),
+              ('^password_reset_submit/$', password_reset_submit),
+              
+              # To be deleted
               ('^model_inst_sort/$',model_inst_sort),
               ('^model_name_sort/$',model_name_sort),
               ('^model_rtg_sort/$',model_rtg_sort),
@@ -101,26 +94,23 @@ urlpatterns = patterns('',
               ('^cat_modelname_sort/$',cat_modelname_sort),
               ('^catrating_sort/$',catrating_sort),
               ('^catcompleted_sort/$',catcompleted_sort),
-              ('^model_edit_info/$',model_edit_info),
-              ('^model_change_info/$',model_change_info),
-              ('^model_change_info/$',model_change_info),
               ('^model_Profile/$',model_Profile),
-              ('^metric_description/$',metric_description),
-              ('^metric_description_nonactive/$',metric_description_nonactive),
-              ('^metric_description_submissionreview/$',metric_description_submissionreview),
-              ('^reg_conditions/$',reg_conditions),
-              ('^DownloadParam/$',DownloadParam),
-              ('^UploadLayers/$',UploadLayers),
-              ('^upload_Layerfile/$',upload_Layerfile),
-              ('^DownloadLayers/$',DownloadLayers),
-              ('^delete_Layers/$',delete_Layers),
-              ('^DownloadLayersadmin/$',DownloadLayersadmin),
-              ('^casetypeselect/$',casetypeselect),
-              ('^NextSequentialTestSwitch/$',NextSequentialTestSwitch),
-              ('^TesttypeSwitch/$',TesttypeSwitch),
-              ('^TestNameSwitch/$',TestNameSwitch),
+              
+              ('^leaderboard/$', leaderboard), 
+              ('^metric_description/$', metric_description), 
+              ('^reg_conditions/$', reg_conditions),
+              ('^DownloadParam/$', DownloadParam),
+              ('^UploadLayers/$', UploadLayers),
+              ('^upload_Layerfile/$', upload_Layerfile),
+              ('^DownloadLayers/$', DownloadLayers),
+              ('^delete_Layers/$', delete_Layers),
+              ('^DownloadLayersadmin/$', DownloadLayersadmin),
+              ('^casetypeselect/$', casetypeselect),
+              ('^NextSequentialTestSwitch/$', NextSequentialTestSwitch),
+              ('^TesttypeSwitch/$', TesttypeSwitch),
+              ('^TestNameSwitch/$', TestNameSwitch),
               ('^test/$', test),
-           
+              ('^permission_denied/$', permission_denied), 
               (r'^robots\.txt$', lambda r: HttpResponse("User-agent: *\nDisallow: /", mimetype="text/plain")),
              
              
@@ -133,4 +123,4 @@ urlpatterns = patterns('',
 
     # Uncomment the next line to enable the admin:
     # url(r'^admin/', include(admin.site.urls)),
-)+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+) + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

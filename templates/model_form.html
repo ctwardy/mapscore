@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Edit Model{{ block.super }}
+{% endblock %}
+
+{% block content %}
+    {{ block.super }}
+    <div class='panel'>
+        <h3>Edit Model</h3>
+        <div class='description'>
+            <p>
+                Please take a moment to fill out the following model registration form.
+                All fields must be completed.
+            </p>
+            <p class='error'>{{ error }}</p>
+        </div>
+        <form action='/edit_model_submit/{% if overwrite %}?overwrite={{ overwrite }}{% endif %}' method='post'>
+            {% csrf_token %}
+            Model name: <input type='text' maxlength='30' name='name' value='{{ name }}' /><br />
+            Model description: <br />
+            <textarea rows='16' cols='64' name='desc'>{{ desc }}</textarea><br />
+            <button>Submit</button>
+        </form>
+    </div>
+    <a href='{{ href }}'>Return to {{ to }}</a>
+{% endblock %}

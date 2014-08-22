@@ -1,0 +1,47 @@
+{% extends 'account_form.html' %}
+
+{% load staticfiles %}
+{% block scripts %}
+    <script src='{% static 'js/jquery-2.1.0.min.js' %}'></script>
+    <script>
+        $(document).ready(function() {
+            $('#delete_profpic').click(function() {
+                var profpic = $('#profpicinput');
+                if(profpic.is(':disabled')) {
+                    profpic.attr('disabled', false);
+                }
+                else {
+                    profpic.attr('disabled', true);
+                }
+            })
+        });
+    </script>
+{% endblock %}
+
+{% block title %}
+Edit Account{{ block.super }}
+{% endblock %}
+
+{% block description %}
+    <h4>Edit Account</h4>
+    <p>
+        Edit your account here.
+        Leave fields the way they are if you do not wish to change them.
+    </p>
+    <p>
+        Please keep in mind that your name, institution name, email, and website
+        will be publicly available on the leaderboard.
+        Enter your old password at the bottom of the form to validate all changes.
+    </p>
+{% endblock %}
+
+{% block otherfields %}
+    {{ block.super }}<input id='delete_profpic' type='checkbox' name='delete_profpic' value='True'/>
+    Delete your current profile picture<br /><em>Validation</em><br />
+    <span class='{% if not old_password and not first_time %}error{% endif %}'>* Old password: </span>
+    <input maxlength='30' type='password' name='old_password' value='{{ old_password }}'/><br />
+{% endblock %}
+
+{% block action %}/edit_account_submit/{% endblock %}
+{% block href %}/account/{% endblock %}
+{% block to %}account menu{% endblock %}

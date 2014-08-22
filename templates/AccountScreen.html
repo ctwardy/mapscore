@@ -1,87 +1,36 @@
-{% include "header.html" %}
+{% extends 'base.html' %}
 
+{% block title %}
+Account{{ block.super }}
+{% endblock %}
 
-
-<div style =' margin-left: 0% ; margin-top: 130px; margin-right: 0%; margin-bottom: 0px; color:black; overflow-y:hidden; overflow-x:hidden;'  >
-
-<center><div>
-<br><br>
-
-    <h1>    <b>Account Name:</b> {{ Name}}<br><br> </h1>
-        
-
-    
-    <div style = 'width:500px;height:auto;border:double;border-color:black;border-width:5px;background-image:url("/media/blueframe.jpg")'>
-
-    
-    <br><br>
-    
-    <image src = '{{profpic}}' style = 'border:solid; border-width:5px;border-color:black' width = '{{xsize}}'  height = '{{ysize}}'>
-    
-    <br><br><br>
-    
+{% block content %}
+    {{ block.super }}
+    <p class='error'>{{ error }}</p>
+    <p class='info'>{{ info }}</p>
+    <h3>Account Name: {{ Name }}</h3>
+    <div id='profpic'>
+        <img src='{{ profpic }}' width='{{ xsize }}' height='{{ ysize }}'/>
     </div>
-    
-    <br><br><br>
-    
-<form action = "/Leader_model/" method = "get" name = "go to Leaderboard">
-        
-        
-        <button name = "Go to Leaderboard" type = "submit" value = "HTML" style =' color:white; background-color:#000099'>
-        <p style ='font-size:20px'> View Leaderboard </p>
-        </button>
-        
-    </form> 
-    <br>
-    <br>
-    <div style ='border:solid;width:500px;background : url("/media/wood.gif")'>
-    <br><br>
-    <p>
-      <form action = "/model_menu/" method = "get">
-        <select name = 'model_in'>
-          <option value= '0' >-- Select model to test --</option>           
-          {% for i in modelname_list %}
-          <option> {{i}} </option>
-          {% endfor %}
-
-          <input type ='submit' value = 'Submit'/>
-        </select> 
-      </form>
-    <br><br>
-    <p>
-      <form action = "/batch_test_upload/" method = "get" name = "Batch Test Upload">
-        <button name = "batch_test_upload" type = "submit" value = "HTML" style = 'width:200px;height:25px '>
-          Batch Test Upload
-        </button>   
-      </form>
-    <p>
-    <p>
-      <form action = "/new_model/" method = "get" name = "New Model">
-        <button name = "New_Model" type = "submit" value = "HTML" style = 'width:200px;height:25px '>
-          Add New Model
-        </button>   
-      </form>
-    <p>
-      <form action = "/Manage_Account/" method = "get" name = "Manage Account">
-        <button name = "Manage Account" type = "submit" value = "HTML" style = 'width:200px;height:25px'>
-        Manage Account
-        </button>   
-      </form>
-    <br><br>
+    <div id='account-menu'>
+        <h4>My Account</h4>
+        <form action='/model_menu/' method='get'>
+            View model: 
+            <select name='model_in'>
+                <option value='0'>-- Select model to test --</option>
+                {% for modelname in modelname_list %}
+                    <option>{{ modelname }}</option>
+                {% endfor %}
+            </select>
+            <button>Submit</button>
+        </form>
+        <br />
+        <a href='/batch_test_upload/'>Upload batch test</a>&nbsp;|&nbsp;
+        <a href='/leaderboard/'>View leaderboard</a>&nbsp;|&nbsp;
+        <a href='/log_out/'>Log out</a><br />
+        <a href='/edit_model/'>Create new model</a>&nbsp;|&nbsp;
+        <a href='/delete_model/'>Delete model</a><br />
+        <a href='/edit_account/'>Edit account</a>&nbsp;|&nbsp;
+        <a href='/delete_account/'>Delete account</a><br />
     </div>
-
-    <br>
-    <br>
-    
-    <form action = "/log_out/" method = "get" name = "Log Out" >
-        <button name = "Log Out" type = "submit" value = "HTML" style = 'width:125px;background-color:red;color:white;border-color:black' >
-          Log Out
-        </button>       
-    </form>
-    
-    <br>    
-    
-</div>  </center>
-
-    
-{% include "footer.html" %}
+{% endblock %}

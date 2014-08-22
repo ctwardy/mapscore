@@ -1,0 +1,47 @@
+/* Some additional CSS from the old completedtest_info.html
+ * Now moved into a CSS file and included using a static tag
+ */
+
+table.tablesorter {
+    font-size: 18px;
+    width: 430;
+    border: 1px solid;
+    line-height: 100%;
+}
+table.tablesorter th {
+    text-align: left;
+    padding: 5px;
+}
+table.tablesorter td {
+    padding: 5px;
+    border: 1px solid black;
+    text-align:right;
+    width: 200px;
+}
+table.tablesorter .header {
+    background-image: url(/static/css/tablesorter/bg.png);
+    background-repeat: no-repeat;
+    border-left: 1px solid #FFF;
+    border-right: 1px solid #000;
+    border-top: 1px solid #FFF;
+    padding-left: 30px;
+    padding-top: 8px;
+    height: auto;
+}
+table.tablesorter .headerSortUp {
+    background-image: url(/static/css/tablesorter/asc.png);
+    background-repeat: no-repeat;
+}
+table.tablesorter .headerSortDown {
+    background-image: url(/static/css/tablesorter/desc.png);
+    background-repeat: no-repeat;
+}
+.popup{
+    position:absolute;
+    width:128px;
+    height:128px;
+}
+.popup img{
+    width:128px;
+    height:128px;
+}
