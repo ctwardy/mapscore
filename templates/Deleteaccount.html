@@ -1,66 +1,24 @@
-{% include "header.html" %}
+{% extends 'base.html' %}
 
+{% block title %}
+Delete Account{{ block.super }}
+{% endblock %}
 
-<div style =' margin-left: 0% ; margin-top: 130px; margin-right: 0%; margin-bottom: 0px; color:black; overflow-y:hidden; overflow-x:hidden;'  >
-
-<div style ='padding-left:200px'>
-
-<br><br>
-<h1 style = 'color:red'><b style ='padding-left:225px'>
-		Delete Account
-		
-	</b></h1>
-	<br><br>
-	<div style='padding-left:100px'>
-
-	<b> 	In order to delete your account, please enter your password below <br>
-		and select submit. Once submitted, your account will be permanently <br>
-		removed from your system. </b>
-	
-		</div>
-	<br><br>
-	
-<div style ='width:500px;height:auto;border:double;background-color:#FFFF99;margin-left:70px'>	
-	
-	
-	<br><br>
-	
-	
-
-	<form action = "/deleteaccount_confirm/" method = "get" name = "deleteaccount" >
-	
-		
-		
-		 <center>Password: &nbsp;&nbsp;&nbsp;
-		<Input maxlength = '30' type = "password" name = "Password"> </center>
-		{% if passfail %} <br> <i style ='color:red;font-size:15px'> <center> Invalid Password </center> </i> {% endif %}
-		<br><br>
-		<center><input type = "Submit">	</center>
-		
-
-		
-		
-	</form>
-	
-	
-	
-	<br><br>
-	
-	</div>
-	
-	</div>
-	<br><br>
-	<div style = 'margin-left:175px'>
-	<form action = "/Manage_Account/" method = "get" name = "Return to Main Menu" style ='padding-left:325px'>
-	
-		<button name = "Return To Main Menu" type = "submit" value = "HTML">
-		Return 
-		</button>
-	</form>
-	</div>
-	<br><br>	
-	
-</div>
-
-	
-{% include "footer.html" %}
+{% block content %}
+    {{ block.super }}
+    <div class='panel'>
+        <p class='error'>{{ error }}</p>
+        <h3>Delete Account</h3>
+        <p>
+            <span class='error'><strong><em>Warning</em></strong></span>: 
+            You are about to permanently delete your account and all of its associated
+            models and tests. Please enter your password below to continue.
+        </p>
+        <form action='/deleteaccount_confirm/' method='post'>
+            {% csrf_token %}
+            <input maxlength='30' type='password' name='passwd'>
+            <button>Submit</button>
+        </form>
+    </div>
+    <a href='/account/'>Return to account menu</a>
+{% endblock %}
