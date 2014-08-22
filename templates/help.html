@@ -1,36 +1,9 @@
-{% include "header.html" %}
+{% extends 'base.html' %}
 
+{% block title %}
+Help{{ block.super }}
+{% endblock %}
 
-<div style =' margin-left: 0% ; margin-top: 130px; margin-right: 0%; margin-bottom: 0px; color:black; overflow-y:hidden; overflow-x:hidden;'  >
-
-<center><div>
-<br>
-
-<h1><b>
-		Help Menu
-		
-	</b></h1>
-	
-	
-	<br><br>	
-	
-
-	<a href="/help_how_alter_account/">How do you alter your account information?</a>
-	
-	
-	<br>
-	<br><br>
-	
-	
-	
-	
-	
-	
-
-</div>	</center>
-
-
-</div>
-
-
-{% include "footer.html" %}
+{% block content %}
+<a href="/help_how_alter_account/">How do you alter your account information?</a>
+{% endblock %}

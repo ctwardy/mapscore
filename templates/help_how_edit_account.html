@@ -1,48 +1,25 @@
-{% include "header.html" %}
+{% extends 'base.html' %}
 
+{% block title %}
+Account Help
+{% endblock %}
 
-<div style =' margin-left: 0% ; margin-top: 130px; margin-right: 0%; margin-bottom: 0px; color:black; overflow-y:hidden; overflow-x:hidden;'  >
-
-<center>
-<br>
-
-<h1 style = 'color:navy'><b>
-		How do you alter your account information?
-		
-</b></h1>
-
-<br><br>
-	
-</center>	
-
-	<div style ='padding-left:225px'>
-	On your account menu page, there is a Manage Account link. By selecting this button, you are <br>
-	prompted with a list of options that allow you to change your user information, institution information, <br>
-	password, and account photo. You can also choose to delete an individual model or delete your entire  <br>
-	account at any time. 
-	</div>
-	
-	
-	
-	
-<br><br><br>
-	
-	<center>
-	<form action = "/help/" method = "get" name = "Return to help Menu">
-		
-	
-		<button name = "Return To help Menu" type = "submit" value = "HTML">
-		Return
-		</button>
-		
-	</form>
-	
-	</center>
-	
-<br><br><br>
-
-
-
-</div>
-
-{% include "footer.html" %}
+{% block content %}
+    <div class='panel'>
+        <h3>How do you alter your account information?</h3>
+        <div class='description'>
+            <p>
+                On your account menu, there is a link to edit your account.
+                When you go to that page, your will be prompted with an account form
+                with your current information filled in. Do not edit the fields that you wish
+                to keep. Your current account photo will be kept even if you don't upload
+                anything. To delete your current account photo, check off the box underneath
+                the upload button. If you want to use a new account photo, 
+                upload a new photo to replace your current account photo.
+                When you are finished updating your profile, enter your old password at the
+                bottom of the form to verify all changes. You can also choose to delete an 
+                individual model or delete your entire account at any time. 
+            </p>
+        </div>
+    </div>
+{% endblock %}

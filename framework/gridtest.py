@@ -1158,16 +1158,12 @@ def Bulkin(request):
     return redirect('/grid_testresult/')
 
 #---------------------------------------------------------------------------------
+@login_required
 def DownloadGridsync(request):
 
     #------------------------------------------------------------------
     # Token Verification
-    try:
-        if request.session['usertoken'] == False:
-            return render_to_response('noaccess.html',{})
-    except:
-        return render_to_response('noaccess.html',{})
-
+    
     #----------------------------------------------------------------
 
 

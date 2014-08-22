@@ -1,0 +1,35 @@
+{% extends 'account_form.html' %}
+
+{% block title %}
+Create Account{{ block.super }}
+{% endblock %}
+
+{% block hrefs %}{% endblock %}
+
+{% block description %}
+    <h4>Create Account</h4>
+    <p>
+        Thank you for trying the lost person model rating system. 
+        Please fill out the following form to complete your registration.
+    </p>
+    <p>
+        Your name, institution name, email, and website will be used 
+        to construct a profile that will be provided to other users 
+        on our leaderboard interface.
+    </p>
+{% endblock %}
+
+{% block otherfields %}
+    {{ block.super }}
+    <em>User Verification</em><br />
+    <img src='/media/Captcha1.png' />
+    <p>
+        <small>Please transcribe text from the captcha image below: </small>
+    </p>
+    <span class='{% if not captcha and not first_time %}error{% endif %}'>* Captcha: </span>
+    <input maxlength='30' name='captcha' value='{{ captcha }}'/><br />
+{% endblock %}
+
+{% block action %}/create_account_submit/{% endblock %}
+{% block href %}/main/{% endblock %}
+{% block to %}main menu{% endblock %}

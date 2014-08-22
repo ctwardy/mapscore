@@ -1,0 +1,155 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Leaderboard{{ block.super }}
+{% endblock %}
+
+{% load staticfiles %}
+{% block scripts %}
+    <script src='{% static 'js/jquery-2.1.0.min.js' %}'></script>
+    <script>
+        function Model(instname, modelname, rating, ci, completed) {
+            this.instname = instname;
+            this.modelname = modelname;
+            this.rating = rating;
+            this.ci = ci;
+            this.completed = completed;
+        }
+        var models = new Array({{ model_data|length }});
+        var ascending = true;
+        {% for instname, modelname, rating, ci, completed in model_data %}
+        models[{{ forloop.counter0 }}]=new Model('{{ instname }}', '{{ modelname }}', {{ rating }}, '{{ ci }}', {{ completed }});{% endfor %}
+        
+        var case_names = new Array({{ case_names|length }});
+        var case_categories = new Array({{ case_categories|length }});
+        {% for val in case_names %}case_names[{{ forloop.counter0 }}]='{{ val }}';{% endfor %}
+        {% for val in case_categories %}case_categories[{{ forloop.counter0 }}]='{{ val }}';{% endfor %}
+        function update_filter() {
+            var value = $('#filter').val();
+            $('#other_fields').empty();
+            if(value === 'case') {
+                var case_name_form = 'Case name: <select name=\'case_name\'>';
+                for(var i = 0; i < case_names.length; i++)
+                    case_name_form += '<option>' + case_names[i] + '</option>';
+                case_name_form += '</select>.';
+                $('#other_fields').append(case_name_form);
+            }
+            else if(value === 'category') {
+                var case_cat_form = 'Category name: <select name=\'case_category\'>';
+                for(var i = 0; i < case_categories.length; i++)
+                    case_cat_form += '<option>' + case_categories[i] + '</option>';
+                case_cat_form += '</select>.';
+                $('#other_fields').append(case_cat_form);
+            }
+            else if(value === 'none') {
+                $('#other_fields').append('All models will be shown.');
+            }
+        }
+        function renderModels(container, modelArr) {
+            var display = '';
+            for(index in modelArr) {
+                var m = modelArr[index];
+                display += '<tr><td>' + m.instname + '</td><td>' + m.modelname;
+                display += '</td><td>' + m.rating + ' ' + m.ci + '</td>';
+                if(m.completed > 10)
+                    display += '<td>' + m.completed + '</td></tr>';
+                else
+                    display += '<td class=\'error\'>' + m.completed + '</td></tr>';
+            }
+            container.append(display);
+        }
+        function sortBy(container, ascending, models, ascFunc, descFunc) {
+            container.empty();
+            if(ascending)
+                models.sort(ascFunc);
+            else
+                models.sort(descFunc);
+            renderModels(container, models);
+        }
+        function clearLabels() {
+            $('#instname-header').empty();
+            $('#modelname-header').empty();
+            $('#rating-header').empty();
+            $('#completed-header').empty();
+        }
+        function setLabel(container, ascending) {
+            clearLabels();
+            if(ascending)
+                container.append(' (ascending)');
+            else
+                container.append(' (descending)');
+        }
+        function sortByInstName() {
+            var container = $('#model_data');
+            sortBy(container, ascending, models, 
+            function(a, b) { return a.instname.localeCompare(b.instname) }, 
+            function(a, b) { return -a.instname.localeCompare(b.instname) });
+            setLabel($('#instname-header'), ascending);
+            ascending = !ascending;
+        }
+        function sortByModelName() {
+            var container = $('#model_data');
+            sortBy(container, ascending, models, 
+            function(a, b) { return a.modelname.localeCompare(b.modelname) }, 
+            function(a, b) { return -a.modelname.localeCompare(b.modelname) });
+            setLabel($('#modelname-header'), ascending);
+            ascending = !ascending;
+        }
+        function sortByAvgRating() {
+            var container = $('#model_data');
+            sortBy(container, ascending, models, 
+            function(a, b) { return a.rating - b.rating }, 
+            function(a, b) { return b.rating - a.rating });
+            setLabel($('#rating-header'), ascending);
+            ascending = !ascending;
+        }
+        function sortByCompTests() {
+            var container = $('#model_data');
+            sortBy(container, ascending, models, 
+            function(a, b) { return a.completed - b.completed }, 
+            function(a, b) { return b.completed - a.completed });
+            setLabel($('#completed-header'), ascending);
+            ascending = !ascending;
+        }
+    </script>
+{% endblock %}
+
+{% block content %}
+    <form id='leaderboard-form' action='/leaderboard/' method='post'>
+        {% csrf_token %}
+        <div class='panel description'>
+            <h3>Leaderboard</h3>
+            <p class='error'>{{ error }}</p>
+            Filter by 
+            <select id='filter' name='filter' onchange='update_filter()'>
+                <option {% ifequal prev_filter 'none' %}selected{% endifequal %}>none</option>
+                <option {% ifequal prev_filter 'case' %}selected{% endifequal %}>case</option>
+                <option {% ifequal prev_filter 'category' %}selected{% endifequal %}>category</option>
+            </select>
+            <button>Submit</button>
+            <div id='other_fields'></div>
+        </div>
+        <table class='leaderboard'>
+            <thead>
+                <tr>
+                    <th class='leaderboard-header' onclick='sortByInstName()'>Institution Name
+                    <br /><small id='instname-header'></small></th>
+                    <th class='leaderboard-header' onclick='sortByModelName()'>Model Name
+                    <br /><small id='modelname-header'></small></th>
+                    <th class='leaderboard-header' onclick='sortByAvgRating()'>Average Rating *
+                    <br /><small>{{ msg }}</small><small id='rating-header'></small></th>
+                    <th class='leaderboard-header' onclick='sortByCompTests()'>Tests Completed **
+                    <br /><small>{{ msg }}</small><small id='completed-header'></small></th>
+                </tr>
+            </thead>
+            <tbody id='model_data'>
+            </tbody>
+            <p>
+                * Ranges for n > 1 are 95% confidence intervals of the mean.<br />
+                ** Red numbers indicate n < 11.
+            </p>
+        </table>
+    </form>
+    <a href='/account/'>Return to account menu</a>
+    <script>update_filter(); sortByAvgRating();</script>
+{% endblock %}

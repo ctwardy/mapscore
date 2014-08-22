@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Case {{ case_name }}{{ block.super }}
+{% endblock %}
+
+{% block content %}
+    {{ block.super }}
+    <p class='info'>{{ info }}</p>
+    <p class='error'>{{ error }}</p>
+    <h3>Test Rating: {{ rating }}</h3>
+    {% if rating and rating != 'unrated' %}
+        <p>
+            Metric from -1 (worst possible) to 1 (perfect).
+            On average, a random submission produces a rating of 0.
+        </p>
+    {% endif %}
+    <a href='/metric_description/'>Metric description</a><br />
+    {% if showfind %}
+        <p>
+            <strong>
+                The (Lat,Lon) position for the actual find location was: {{ find_pt }}<br />
+                This mapped to the grid cell {{ find_grid }} on your submitted grayscale image.<br />
+                The actual find location is plotted below at point "F": <br />
+            </strong>
+        </p>
+        {% include 'map.html' with dynamic_map_id='dynamic_map_find' showfind=True %}
+        <hr />
+    {% endif %}
+    {% include 'case.html' %}
+    <p>
+        <a href='/completedtest_info/'>Return to test list</a>&nbsp;|&nbsp;
+        <a href='/model_menu/'>Return to model menu</a>
+    </p>
+{% endblock %}
