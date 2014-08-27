@@ -608,12 +608,6 @@ def batch_test_upload(request):
 
 @login_required
 def batch_test_upload_final(request):
-    try:
-         if not (request.session['admintoken'] or request.user.is_authenticated()):
-             return permission_denied(request)
-    except:
-         return permission_denied(request)
-
     if request.method != 'POST':
         return render_to_response('AccountScreen.html', {})
 
