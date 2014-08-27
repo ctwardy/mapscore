@@ -79,7 +79,6 @@ def confidence_interval(scores):
 
     N, avg, stdev = 0, 0.0, 0.0
     try:
-        np.clip(scores, -1, 1, out=scores)  # Remove anomalies
         N, avg, stdev = len(scores), np.mean(scores), np.std(scores)
         halfwidth = 1.96*stdev / np.sqrt(N)
         lowerbound = round(avg-halfwidth, 4)
@@ -913,6 +912,24 @@ def evaluate(request):
     img.thumbnail((128, 128), Image.ANTIALIAS)
     img.save(thumbnail_path)
 
+    # First check to see if this test already exists
+    # and if yes, delete existing one to prevent duplicates
+    try:
+        findtest = Test.objects.get(ID2 = test_ID2)
+    except Test.DoesNotExist:
+        findtest = None
+    # Test does exist:
+    if findtest != None:
+        #debugx
+        print >>sys.stderr, 'DEBUG: deleting previous test\n'
+        print >>sys.stderr, str(findtest.id) + ":" + str(findtest.ID2)
+        #delete the test_model_link first
+        OldLink = Test_Model_Link.objects.get(test = findtest.id)
+        OldLink.delete()
+        #then delete existing test
+        findtest.delete()
+
+
     test = create_test(model, case)
     test.grayscale_path = path
     test.grayrefresh = grayrefresh
@@ -920,10 +937,11 @@ def evaluate(request):
     test.rate()
     test.save()
     model.update_rating()
-    model.Completed_cases = int(model.Completed_cases) + 1
+    # removing below to derive the completed count from a query
+    #model.Completed_cases = int(model.Completed_cases) + 1
     model.save()
     os.remove(path)
-    account.completedtests = int(account.completedtests) + 1
+    #account.completedtests = int(account.completedtests) + 1
     account.save()
     request.session['active_account'] = account
 
@@ -984,9 +1002,11 @@ def leaderboard(request):
         for model in models:
             all_tests = model.model_tests.filter(Active=False)
             scores = list(float(test.test_rating) for test in all_tests)
-            lowerbound, upperbound = (-1, 1) if len(scores) == 1 else confidence_interval(scores)
+            lowerbound, upperbound = (-1, 1)
+            if len(scores) > 1:
+                lowerbound, upperbound = confidence_interval(scores)
             model_data.append((instname(model), model.model_nameID,
-                round(float(model.model_avgrating), 3), '[%5.3f, %5.3f]' % (lowerbound, upperbound), model.Completed_cases))
+                round(float(model.model_avgrating), 3), '[%5.3f, %5.3f]' % (lowerbound, upperbound), len(model.model_tests.all())))
 
     input_dict['case_names'] = Case.objects.values_list('case_name', flat=True)
     input_dict['case_categories'] = set(case.subject_category for case in Case.objects.all())
