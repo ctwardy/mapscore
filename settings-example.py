@@ -1,7 +1,8 @@
-# Django settings for MapRateWeb project.
+"""
+Django settings for MapRateWeb project.
+
+"""
 import os
-
-
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
@@ -9,21 +10,22 @@ TEMPLATE_DEBUG = DEBUG
 ADMINS = (
     # ('Your Name', 'your_email@example.com'),
 )
-
-SESSION_SAVE_EVERY_REQUEST =True
-
 MANAGERS = ADMINS
+
+SESSION_SAVE_EVERY_REQUEST = True
 
 DATABASES = {
     'default': {
-#        'ENGINE': 'postgresql_psycopg2', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-#        'ENGINE': 'django.db.backends.postgresql_psycopg2', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-        'ENGINE': 'django.db.backends.sqlite3', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': 'probmap',# Or path to database file if using sqlite3.
-        'USER': 'probmap',                      # Not used with sqlite3.
-        'PASSWORD': 'probmap',                  # Not used with sqlite3.
-        'HOST': 'localhost',                      # Set to empty string for localhost. Not used with sqlite3.
-        'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
+        # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        # 'ENGINE': 'django.db.backends.sqlite3',
+        # db name, or path to database file if using sqlite3
+        'NAME': 'probmap',
+        # 'NAME': 'database/website_data.db',
+        'USER': 'probmap',  # Not used with sqlite3.
+        'PASSWORD': 'probmap',  # Not used with sqlite3.
+        'HOST': 'localhost',  # Set to empty string for localhost. Not used with sqlite3.
+        'PORT': '',  # Set to empty string for default. Not used with sqlite3.
     }
 }
 
@@ -87,7 +89,7 @@ STATICFILES_DIRS = (
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-#    'django.contrib.staticfiles.finders.DefaultStorageFinder',
+    # 'django.contrib.staticfiles.finders.DefaultStorageFinder',
 )
 
 # Make this unique, and don't share it with anybody.
@@ -97,7 +99,18 @@ SECRET_KEY = '=v$h+97b*+z-vcx0ny67gq12mje97hzl-9*81o1@*a!@3xc)r2'
 TEMPLATE_LOADERS = (
     'django.template.loaders.filesystem.Loader',
     'django.template.loaders.app_directories.Loader',
-#     'django.template.loaders.eggs.Loader',
+    # 'django.template.loaders.eggs.Loader',
+)
+
+TEMPLATE_CONTEXT_PROCESSORS = (
+    "django.contrib.auth.context_processors.auth",
+    "django.core.context_processors.debug",
+    "django.core.context_processors.i18n",
+    "django.core.context_processors.media",
+    "django.core.context_processors.static",
+    "django.core.context_processors.tz",
+    "django.core.context_processors.request",
+    "django.contrib.messages.context_processors.messages"
 )
 
 MIDDLEWARE_CLASSES = (
@@ -106,15 +119,18 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
- 
 )
 
-ROOT_URLCONF = 'mapscore.urls'
+# Root URL configuration file: routes for HTTP requests
+ROOT_URLCONF = 'mapscore.framework.urls'
 
-TEMPLATE_DIRS = (os.path.join(os.path.dirname(__file__),'templates').replace('\\','/'),
+PROJECT_DIR = os.path.dirname(__file__)
+
+TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
+    os.path.join(PROJECT_DIR, 'templates').replace('\\','/'),
 )
 
 INSTALLED_APPS = (
@@ -142,6 +158,7 @@ LOGGING = {
     'handlers': {
         'mail_admins': {
             'level': 'ERROR',
+            'filters': [],
             'class': 'django.utils.log.AdminEmailHandler'
         }
     },
@@ -149,8 +166,8 @@ LOGGING = {
         'django.request': {
             'handlers': ['mail_admins'],
             'level': 'ERROR',
+            'filters': [],
             'propagate': True,
         },
     }
 }
-

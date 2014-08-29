@@ -1,48 +1,12 @@
-{% include "header_external.html" %}
+{% extends "leaderboard_base.html" %}
 
+{% block board_title %}
 
-<div style =' margin-left: 0% ; margin-top: 120px; margin-right: 0%; margin-bottom: 0px; color:black; overflow-y:hidden; overflow-x:hidden;'  >
-
-  <div style = 'padding-left:5%; padding-right:5%' >
-    
-    <div style = '' >
-      <br>
-      <div style = 'padding-top: 1%; padding-bottom: 1%;'>
-        <div style = 'padding-left:0%'>
-          <fieldset style='background-color:#FFFF99; DISPLAY:inline;'>
-            <legend style="font-weight:bold;">Login with existing account</legend>
-            <form style = 'DISPLAY:inline;' action = "/account/" method = "post" name = "Login ">
-                {% csrf_token %}
-              Username: <Input maxlength = '30' type = "text" name = "Username">
-              Password: <Input maxlength = '30' type = "password" name = "Password">
-              <button type="submit" name="Login">Login</button>
-            </form>
-            <!--
-            <form style = 'DISPLAY:inline;' action="/password_reset">
-              <input type="submit" value="Forgot Password?">
-            </form>
-            -->
-            <a href="/password_reset/">Forgot Password?</a> &nbsp;|&nbsp;
-            <a href="/reg_conditions/">New User?</a> &nbsp;|&nbsp;
-            <a href="/admin_login/">Admin Login</a>
-          </fieldset>
-          <!--
-          <fieldset style='background-color:#FFFF99;DISPLAY:inline;'>
-            <legend style="font-weight:bold;">Don't have an account? </legend>
-            <form style='DISPLAY:inline;' action = "/reg_conditions/" method = "get" name = "Return to Main Menu">
-              <button name = "Register New Account" type = "submit" value = "HTML" style ='border:ridge;background-color:orange;border-color:black;color:black ;width:200px;height:25px'>
-                Register New Account
-              </button>
-            </form>            
-          </fieldset>
-          -->
-        </div>        
-      </div>
-    </div>  
-    
-    <br>
-
-    <p><b> Welcome to the MapScore website. MapScore scores
+<div class="container">
+  <div class="row top-buffer">
+    <div class="col-md-8 col-centered">
+      <p><b>
+        Welcome to the MapScore website. MapScore scores
         probability maps for Wilderness Search &amp; Rescue (WiSAR) so
         the WiSAR community can compare methods for generating such
         maps. MapScore requests users to generate maps for actual
@@ -51,63 +15,43 @@
         University, MapScore has received funding from an NSF REU
         award to Brigham Young University. It is part of the
         SAR<i>Bayes</i> project.
-    </b></p>
+      </b></p>
+    </div><!-- col -->
+  </div><!-- row -->
+</div><!-- container -->
+<div class="container">
+  <div class="row top-buffer">
+    <div class='col-md-10 col-centered'>
+      <div class="panel panel-default"
+        style="background-color:#FFFF99;border:1px solid gray;">
+        <div class="panel-heading">
+          <h3 class="panel-title">Login with existing account</h3>
+        </div>
+        <div class="panel-body" style="display:inline;">
+          <form class="form-inline" style="padding-left:10px;" action="/account/" method="post" name="Login">
+            {% csrf_token %}
+            <label for="username-input">Username:</label>
+            <input id="username-input" class="form-control" maxlength='30' type="text" name="Username">
+            <label for="password-input">Password:</label>
+            <input id="password-input" class="form-control" maxlength='30' type="password" name="Password">
+            <button class="btn btn-default "type="submit" name="Login">Login</button>
+            <div class="btn-group">
+              <a class="btn btn-default"href="/password_reset/">Forgot Password?</a>
+              <a class="btn btn-default"href="/reg_conditions/">New User?</a>
+              <a class="btn btn-default"href="/admin_login/">Admin Login</a>
+            </div><!-- btn-group -->
+          </form>
+        </div><!-- panel-body -->
+      </div><!-- panel -->
+    </div><!-- /col -->
+  </div><!-- /row -->
+  <br>
+</div><!-- container -->
 
-    
-    <br>
-</div>
-     <center> <p style ='font-size:18px'> <b>Top 10 Rated Models (with
-     5 or more tests completed) </b> </p></center>
-
-
-    <div style ='padding-left:25px'>
-    <table border = "0" style = " font-size:15px; width:900px"  bgcolor = '#FFFF99'>
-    <tr style ='color:white;background-color:navy'>
-    <th> <p style ='font-size:15px'> Institution Name </p> </th>
-    <th> <p style ='font-size:15px'> Model Name </p> </th>
-    <th> <p style ='font-size:15px'> Average Rating </p> </th>
-    <th> <p style ='font-size:15px'> Tests Completed </p> </th>
-
-    </tr>
-
-
-    {% for i in Scorelist %}
-    <tr style = " font-size:12px" >
-        {% for j in i %}
-            <td>
-              <p style =' font-size:15px'>
-                <center><b>{{j}}</b></center>
-              </p>
-            </td>
-        {% endfor %}
-    </tr>
-    {% endfor %}
-
-
-    </table>
-    </div>
-
-    <br>
-    <hr color = 'Navy'>
-    <br>
-
-<!--
-    <center>
-    <div style = 'padding-left: 0%; padding-right:15%; padding-top:
-         1%; padding-bottom: 1%; border:none; width:850px;'>
-        <form style='DISPLAY:inline;' action = "/admin_login/" method = "get" name = "adminlogin">
-            <button name = "adminlogin" type = "submit" value = "HTML" style ='border:ridge;background-color:navy;color:white;border-color:black;width:200px;height:25px'>
-            <div color = 'red'>
-            Administrator Login
-            </div>
-            </button>
-
-        </form>
-    </div>  
-    </center>
-    -->
 <br>
-</div>
+<p class="text-center" style='font-size:18px'>
+  <b>Top 10 Rated Models (with 5 or more tests completed) </b>
+</p>
+{% endblock board_title %}
 
-
-{% include "footer.html" %}
+{% block options %}{% endblock options %}

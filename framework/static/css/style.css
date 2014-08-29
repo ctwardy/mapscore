@@ -1,0 +1,106 @@
+body {
+    background:url("/media/background.jpg");
+}
+div.main-frame {
+    background:url("/media/lightgreen.jpg");
+}
+.mason-logo {
+    border: double;
+    color: white;
+    height: 67px;
+    width: 107px;
+    background-image: url('/media/mason_logo.gif');
+}
+.mason-border {
+    border: double;
+    color: gold;
+    border-width: 10px;
+    background-color: green;
+}
+.navbar-default {
+    background-color: green;
+    background-image: none;
+}
+.nav-options > a {
+    color: white;
+    font-size: 16pt;
+}
+.nav-options {
+    font-size: 16pt;
+}
+.col-centered {
+    float: none;
+    margin: 0 auto;
+}
+.top-buffer {
+    margin-top: 20px;
+}
+.link-button {
+    background: none!important;
+    border: none;
+    padding: 0!important;
+    /*border is optional*/
+    border-bottom: 1px solid #0000FF;
+    cursor: pointer;
+    font-weight: bold;
+    color: #0000FF;
+}
+.profpic-frame {
+    width: 500px;
+    height: auto;
+    border: double;
+    border-color: black;
+    border-width: 5px;
+    background: navy;
+}
+
+/* tables */
+tbody tr:nth-child(even) {
+    background: #CCC
+}
+tbody tr:nth-child(odd) {
+    background: #FFF
+}
+tbody td {
+    border: 1px solid;
+}
+/*
+thead tr {
+    background-color: navy;
+    color: white;
+}
+*/
+table.tablesorter {
+	font-family:arial;
+	background-color: #CCC;
+    border: 2px solid;
+	font-size: 10pt;
+	width: 100%;
+	text-align: left;
+}
+table.tablesorter thead tr th, table.tablesorter tfoot tr th {
+	background-color: #e6EEEE;
+	border: 1px solid;
+	font-size: 12pt;
+	padding: 4px;
+}
+table.tablesorter tbody td {
+	color: #3D3D3D;
+	padding: 4px;
+	vertical-align: top;
+    text-align: center;
+    vertical-align: middle;
+}
+table.tablesorter thead tr .tablesorter-headerUnSorted {
+	background: url(/static/img/bg.gif) no-repeat right;
+	cursor: pointer;
+}
+table.tablesorter thead tr .tablesorter-headerAsc {
+	background: url(/static/img/asc.gif) no-repeat right;
+}
+table.tablesorter thead tr .tablesorter-headerDesc {
+	background: url(/static/img/desc.gif) no-repeat right;
+}
+table.tablesorter thead tr .tablesorter-headerDesc, table.tablesorter thead tr .tablesorter-headerAsc {
+    background-color: #8dbdd8;
+}
