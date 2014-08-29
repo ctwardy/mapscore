@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<!--
+MapScore Lost Person Model Rating System
+-->
+
+{% load staticfiles %}
+
+<html lang='en'>
+    <head>
+        <meta name='robots' content='noindex, nofollow'/>
+        <title>{% block title %} | MapScore Project{% endblock %}</title>
+        {% block links %}
+            <link rel='stylesheet' type='text/css' href='/media/style.css'/>
+        {% endblock %}
+        {% block scripts %}{% endblock %}
+    </head>
+    <body>
+        <div id='header'>
+            {% block header %}
+                <img class='logo' style='float:left;' src='/media/mason_logo.gif'/>
+                <img class='logo' style='float:right;' src='/media/mason_logo.gif'/>
+                <h3 id='top'>
+                    MapScore<br />
+                    Lost Person Model Rating System<br />
+                </h3>
+                {% block hrefs %}
+                    <br />
+                    <a href='/account/'>Account menu</a>&nbsp;|&nbsp;
+                    <a href='/leaderboard/'>Leaderboard</a>&nbsp;|&nbsp;
+                    <a href='https://github.com/ctwardy/Pmap-Score/issues?sort=created&direction=desc&state=open' target='_blank'>
+                    Issue Tracker</a>&nbsp;|&nbsp;
+                    <a href='/help/'>Help</a>&nbsp;|&nbsp;
+                    <a href='/log_out/'>Log out</a>
+                {% endblock %}
+            {% endblock %}
+        </div>
+        <div id='content'>
+            {% block content %}
+            {% endblock %}
+        </div>
+        <div id='footer'>
+            {% block footer %}
+                <hr />
+                <strong><em>
+                    GMU: C4I Center -- Dr. Charles Twardy (<a href='mailto:ctwardy@gmu.edu'>ctwardy@gmu.edu</a>)<br />
+                    (Partly funded by the National Science Foundation)<br />
+                </em></strong>
+            {% endblock %}
+        </div>
+    </body>
+</html>

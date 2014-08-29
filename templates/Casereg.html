@@ -5,33 +5,43 @@
 <div style = 'padding-left:20%;'>
 
 
-<div style = 'padding-left:100px'>
-<p style = " font-size:15px" >
-<br>
-		<h1><i>Create New Test Cases: </i> </h1>
-		
-	</p>
-</div>	
-	
-	<div style = 'padding-left:100px'>
+<div style = 'padding-left:80px'>
+<p style = 'font-size:15px' >
+<br/>
+		<h2><i>This interface is for bulk uploading new cases from a CSV file.</i> </h2>
+</p>
+</div>
+
+	<div style = 'padding-left:80px;font-size:12px'>
 	<br>
-	<h1> Bulk Upload: Case (.csv) File </h1>
-	<br><br>
-	<div style = ' border:double; width:300px; padding-left:50px;background-color:#FFFF99'>
+	<div style = ' border:double; width:400px; padding-left:50px;background-color:#FFFF99'>
+		<br/><br/>
+	<i>Formatting:</i>
+	<br/>
+	Delimiter: <b>,</b><br/>
+	<br/>
+	Quote Character: <b>"</b><br/><br/>
+	Column order:<br/>
+	result, case_name, key, country, state, county, populationdensity, weather, <br/>
+	subject_category, subject_subcategory, scenario, subject_activity, Age, Sex, <br/>
+	number_lost, group_type, ecoregion_domain, ecoregion_division, terrain, lastlat, <br/>
+	lastlon, findlat, findlon, total_hours, notify_hours, search_hours, comments
+	<br/>
+	Column header is optional
 	<br><br>
 	<form action = "/upload_casefile/" method="post" enctype="multipart/form-data" name = "Upload File">
-		
+
 		{% csrf_token %}
-		
+
 		<input type = 'file' name ='casecsv'><br><br>
 		<button name = "Upload File" type = "submit" value = "HTML">
 		Submit File
-		</button>	
+		</button>
 		<br><br>
 	</form>
 	<br><br><br>
 	</div>
-	
+
 	<br><br><br><br><br>
 	<form action = "/admin_cases/" method = "get" name = "Return to Case Menu">
 		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
@@ -42,10 +52,10 @@
 		Return To Case Menu
 		</button>
 	</form>
-	
-	
+
+
 </div>
-</div>	
+</div>
 <br>
 
 

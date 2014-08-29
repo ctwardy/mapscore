@@ -1,0 +1,139 @@
+/* CSS File for Mapscore Project
+ * To be moved to /static/
+ */
+
+html {
+    background: url('background.jpg');
+}
+body {
+    background: url('lightgreen.jpg');
+    margin: 1em auto;
+    padding: 0.75em;
+    width: 75%;
+    line-height: 150%;
+    font-family: Tahoma Geneva sans-serif;
+    color: #1a1a1a;
+    text-align: center;
+}
+table {
+    background-color: #ffff99;
+    margin: 1em auto;
+}
+hr {
+    border-color: #1a1a1a;
+}
+a {
+    text-decoration: none;
+    margin: 2em 0em;
+}
+a:hover {
+    font-weight: bold;
+}
+#header {
+    margin: 0.5em;
+    padding: 0.5em;
+    background-color: green;
+    line-height: 200%;
+    border: 0.6em double;
+    border-color: gold;
+}
+#top {
+    display: inline-block;
+    margin: 0.5em;
+    color: white;
+}
+.logo {
+    display: inline-block;
+    border: double;
+    border-color: white;
+}
+#content {
+    margin: 0.5em;
+}
+#login {
+    display: inline;
+    background-color: #ffff99;
+    text-align: left;
+}
+.description {
+    width: 90%;
+    margin: 2em auto;
+    text-align: left;
+}
+.leaderboard {
+    margin: 2em auto;
+    padding: 0.5em;
+    width: 90%;
+    line-height: 250%;
+}
+.leaderboard-header {
+    color: white;
+    background-color: navy;
+}
+#profpic {
+    width: 50%;
+    margin: 1em auto;
+    padding: 3em;
+    background: url('blueframe.jpg') center;
+}
+#account-menu {
+    width: 50%;
+    margin: 1em auto;
+    padding: 2em;
+    border: solid 0.2em;
+    background: url('wood.gif');
+}
+.panel {
+    width: 60%;
+    margin: 1em auto;
+    padding: 2em;
+    background-color: #ffff99;
+    border: double 0.4em;
+    border-color: #b00000;
+    line-height: 200%;
+}
+.map {
+    width: 52.5%;
+    margin: 1em auto;
+}
+.case_map {
+    margin: 0em;
+    display: inline-block;
+    float: left;
+}
+.caseinfo {
+    width: 40%;
+    margin: 0em;
+    display: inline-block;
+    line-height: 150%;
+    padding: 1em;
+}
+.reginfo {
+    width: 75%;
+    text-align: right;
+}
+.captcha {
+    text-align: center;
+}
+#batchtable {
+    width: 100%;
+    line-height: 150%;
+}
+.batchrow {
+    outline: 1px dotted black;
+    text-align: center;
+}
+.error {
+    color: #ff2525;
+}
+.info {
+    color: green;
+}
+#upload {
+    clear: both;
+}
+#footer {
+    margin: 0.5em;
+    font-size: 0.9em;
+    clear: both;
+}

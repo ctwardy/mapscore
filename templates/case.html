@@ -1,0 +1,42 @@
+{% include 'map.html' with classes='case_map' dynamic_map_id='dynamic_map_last' showfind=False %}
+<div class='description panel caseinfo'>
+    <p>
+        <strong>Test Case Name:</strong> {{ case_name }}<br />
+        <strong>Required Coordinate System:</strong> WGS_84<br />
+    </p>
+    <p>
+        <h4>Subject(s) Information: </h4>
+        <strong>Subject age:</strong> {{ Age }}<br />
+        <strong>Subject sex:</strong> {{ Sex }}<br />
+        <strong>Subject category:</strong> {{ subject_category }}<br />
+        <strong>Scenario:</strong> {{ scenario }}<br />
+        <strong>Subject sub-category:</strong> {{ subject_subcategory }}<br />
+        <strong>Subject activity:</strong> {{ subject_activity }}<br />
+        <strong>Group type:</strong> {{ group_type }}<br />
+        <strong>Number lost:</strong> {{ number_lost }}<br />
+    </p>
+    <p>
+        <h4>Search Region Information: </h4>
+        <strong>Country:</strong> {{ country }}<br />
+        <strong>State:</strong> {{ state }}<br />
+        <strong>Terrain:</strong> {{ terrain }}<br />
+        <strong>Ecoregion domain:</strong> {{ ecoregion_domain }}<br />
+        <strong>Ecoregion division:</strong> {{ ecoregion_division }}<br />
+        <strong>Total hours before located:</strong> {{ total_hours }}<br />
+    </p>
+    <p>
+        <strong>Last known position:</strong> {{ LKP }}<br />
+        <strong>Number of horizontal cells:</strong> {{ horcells }}<br />
+        <strong>Number of vertical cells:</strong> {{ vercells }}<br />
+        <strong>Total number of cells:</strong> {{ totalcellnumber }}<br />
+        <strong>Estimated cell width:</strong> {{ cellwidth }} m<br />
+        <strong>Estimated search region width:</strong> {{ regionwidth }} km<br />
+    </p>
+    <p>
+        <h4>Search region boundary points: </h4>
+        <strong>Upper latitude:</strong> {{ upright_lat }}<br />
+        <strong>Lower latitude:</strong> {{ downleft_lat }}<br />
+        <strong>Right longitude:</strong> {{ upright_lon }}<br />
+        <strong>Left longitude:</strong> {{downleft_lon }}<br />
+    </p>
+</div>

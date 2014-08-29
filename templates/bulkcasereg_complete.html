@@ -4,31 +4,93 @@
 <div style =' margin-left: 0% ; margin-top: 130px; margin-right: 0%; margin-bottom: 0px; color:black; overflow-y:hidden; overflow-x:hidden;'  >
 
 
-<center><div>
+<center>
+<center>
+
+	<h1> Batch Case Upload Results</h1>
+
+<br>
+	<table style='width:800px; border:1; '>
+		<tr style='font-weight: bold;'>
+			<th>result</th>
+			<th>case_name</th>
+			<th>key</th>
+			<th>country</th>
+			<th>state</th>
+			<th>county</th>
+			<th>populationdensity</th>
+			<th>weather</th>
+			<th>subject_category</th>
+			<!--<th>subject_subcategory</th>
+			<th>scenario</th>
+			<th>subject_activity</th>
+			<th>Age</th>
+			<th>Sex</th>
+			<th>number_lost</th>
+			<th>group_type</th>
+			<th>ecoregion_domain</th>
+			<th>ecoregion_division</th>
+			<th>terrain</th>
+			<th>lastlat</th>
+			<th>lastlon</th>
+			<th>findlat</th>
+			<th>findlon</th>
+			<th>total_hours</th>
+			<th>notify_hours</th>
+			<th>search_hours</th>
+			<th>comments</th>-->
+		</tr>
+{% if result %}
+	{% for case_name, key, country, state, county, populationdensity, weather, subject_category, subject_subcategory, scenario, subject_activity, Age, Sex, number_lost, group_type, ecoregion_domain, ecoregion_division, terrain, lastlat, lastlon, findlat, findlon, total_hours, notify_hours, search_hours, comments, result in result %}
+		<tr>
+			<td>{{ result }} </td>
+			<td>{{ case_name }} </td>
+			<td>{{ key }} </td>
+			<td>{{ country }} </td>
+			<td>{{ state }} </td>
+			<td>{{ county }} </td>
+			<td>{{ populationdensity }} </td>
+			<td>{{ weather }} </td>
+			<td>{{ subject_category }} </td>
+			<!--<td>{{ subject_subcategory }} </td>
+			<td>{{ scenario }} </td>
+			<td>{{ subject_activity }} </td>
+			<td>{{ Age }} </td>
+			<td>{{ Sex }} </td>
+			<td>{{ number_lost }} </td>
+			<td>{{ group_type }} </td>
+			<td>{{ ecoregion_domain }} </td>
+			<td>{{ ecoregion_division }} </td>
+			<td>{{ terrain }} </td>
+			<td>{{ lastlat }} </td>
+			<td>{{ lastlon }} </td>
+			<td>{{ findlat }} </td>
+			<td>{{ findlon }} </td>
+			<td>{{ total_hours }} </td>
+			<td>{{ notify_hours }} </td>
+			<td>{{ search_hours }} </td>
+			<td>{{ comments }} </td>-->
+		</tr>
+	{% endfor %}
+{% endif %}
+	</table>
 
 
-	<p><b>
-		The Cases have been sucessfully uploaded 
-		
-	</b></p>
-	
 	<br><br>
-	
-	
-	
+
 	<form action = "/admin_cases/" method = "get" name = "Return to Case Menu">
-		
+
 		<button name = "Return To Case Menu" type = "submit" value = "HTML">
 		Return To Case Menu
 		</button>
 	</form>
-	
-	<br>	
-	
+
+	<br>
+
 
 </div>
 </div>	</center>
 
-	
+
 
 {% include "footer.html" %}

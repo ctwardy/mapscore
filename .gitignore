@@ -7,3 +7,11 @@ todo.txt
 settings.py
 temp.txt
 probmap
+
+*.zip
+
+*.png
+
+arc-models/lognorm_summary.pdf
+
+arc-models/motion_model_flymake.py
