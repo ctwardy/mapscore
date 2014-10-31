@@ -1,4 +1,7 @@
-from django.conf.urls.defaults import patterns, include, url
+try:
+    from django.conf.urls.defaults import patterns, include, url
+except:
+    from django.conf.urls import patterns, include, url
 from django.conf.urls.static import static
 from django.http import HttpResponse
 from django.conf import settings

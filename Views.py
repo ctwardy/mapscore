@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# -*- coding: UTF-8 -*-
+# -*- coding: utf-8 -*-
 # -*- mode: python -*-
 # -*- py-indent-offset: 4 -*-
 
@@ -62,8 +62,9 @@ def get_sorted_models(all_models, condition=lambda model: True):
     ''' Return list of rated models, highest-rated first.
         Uses model_avgrating attribute and operator.attrgetter method. '''
 
-    rated_models = list(model for model in all_models
-        if model.model_avgrating != 'unrated' and condition(model))
+    rated_models = [model for model in all_models
+                if model.model_avgrating != 'unrated'
+                and condition(model)]
     return sorted(rated_models, key=attrgetter('model_avgrating'), reverse=True)
 
 
@@ -84,10 +85,10 @@ def confidence_interval(scores):
         lowerbound = round(avg-halfwidth, 4)
         upperbound = round(avg+halfwidth, 4)
         assert lowerbound < avg < upperbound
-        return (lowerbound, upperbound)
+        return (lowerbound, upperbound, avg)
     except:
         print >> sys.stderr, 'No 95%% CI. N=%d, avg=%6.2f, std=%6.2f' % (N, avg, stdev)
-        return (0, 0)
+        return (-1, 1, scores[0])
 
 
 def check_account_fields(fields, new_user=True):
@@ -763,7 +764,7 @@ def model_access(request):
         request_to_input(request.session, input_dic, 'info', 'error')
         return render_to_response('ModelScreen.html',input_dic)
 
-    # If comming frm account
+    # If coming frm account
     else:
         selection = request.GET['model_in']
         if selection == '0':
@@ -971,13 +972,19 @@ def completed_test(request):
 
 @login_required
 def leaderboard(request):
+    '''Generate the data for the main leaderboard: Average, 95% CI, and N.
+
+    Handles filter choice of 'case', 'category', and usual 'model'.
+
+    '''
     input_dict = dict(csrf(request))
     models = list(Model.objects.filter(Completed_cases__gt=0))
     filter_choice = request.POST.get('filter')
-
     instname = lambda model: model.account_set.all()[0].institution_name
+
     if filter_choice == 'case':
-        model_data, case_name = list(), request.POST.get('case_name')
+        model_data, case_name = [], request.POST.get('case_name')
+        input_dict['msg'] = 'of case "%s"' % case_name
         for model in models:
             try:
                 test = model.model_tests.get(test_name=case_name, Active=False)
@@ -985,28 +992,22 @@ def leaderboard(request):
                     round(float(test.test_rating), 3), '', 1))
             except Test.DoesNotExist:
                 pass
-        input_dict['msg'] = 'of case "%s"' % case_name
-    elif filter_choice == 'category':
-        model_data, category = list(), request.POST.get('case_category')
-        for model in models:
-            all_tests = model.model_tests.filter(Active=False)
-            valid_tests = list(test for test in all_tests if test.test_case.subject_category == category)
-            if len(valid_tests) > 0:
-                scores = list(float(test.test_rating) for test in valid_tests)
-                lowerbound, upperbound = (-1, 1) if len(scores) == 1 else confidence_interval(scores)
-                model_data.append((instname(model), model.model_nameID,
-                    round(sum(scores) / len(scores), 3), '[%5.3f, %5.3f]' % (lowerbound, upperbound), len(scores)))
-        input_dict['msg'] = 'of category "%s"' % category
     else:
-        model_data = list()
+        if filter_choice == 'category':
+            category = request.POST.get('case_category')
+            input_dict['msg'] = 'of "%s"' % category
+        model_data = []
         for model in models:
-            all_tests = model.model_tests.filter(Active=False)
-            scores = list(float(test.test_rating) for test in all_tests)
-            lowerbound, upperbound = (-1, 1)
-            if len(scores) > 1:
-                lowerbound, upperbound = confidence_interval(scores)
-            model_data.append((instname(model), model.model_nameID,
-                round(float(model.model_avgrating), 3), '[%5.3f, %5.3f]' % (lowerbound, upperbound), len(model.model_tests.all())))
+            tests = model.model_tests.filter(Active=False)
+            if filter_choice == 'category':
+                tests = [t for t in tests if t.test_case.subject_category == category]
+            if len(tests) > 0:
+                scores = [float(test.test_rating) for test in tests]
+                lowerbound, upperbound, avg = confidence_interval(scores)
+                model_data.append((instname(model), model.model_nameID,
+                    round(avg, 2), '[%5.2f, %5.2f]' % (lowerbound, upperbound), len(scores)))
+                model.model_avgrating = '%5.3f' % avg
+                model.save()
 
     input_dict['case_names'] = Case.objects.values_list('case_name', flat=True)
     input_dict['case_categories'] = set(case.subject_category for case in Case.objects.all())
@@ -1017,7 +1018,11 @@ def leaderboard(request):
 
 @login_required
 def Leader_model(request):
-    '''Create the leaderboard.'''
+    '''Duplicate(?) function to create leaderboard.
+
+    TODO: figure out what calls this and why it can't use previous.
+
+    '''
     sorted_models = get_sorted_models(Model.objects.all())
     # Build Leaderboard
     inputlist = []
@@ -1027,23 +1032,19 @@ def Leader_model(request):
         institution = account.institution_name
         username = account.username
         name = model.model_nameID
-        rating = float(model.model_avgrating)
+
         tests = model.model_tests.all()
         finished_tests = [test for test in tests if not test.Active]
-        N = len(finished_tests)
         scores = [float(x.test_rating) for x in finished_tests]
+        N = len(scores)
+        lowerbound, upperbound, avg = confidence_interval(scores)
 
         # Build case, depending on sample size
-        case = [institution, name, '%5.3f'%rating, N, username]
-        if N <= 1:
-            case.extend([-1, 1, True])  # std=False, sm.sample=True
-        else:
-            lowerbound, upperbound = confidence_interval(scores)
-            if N < 10:  # small sample=True
-                case.extend([lowerbound, upperbound, True])
-            else: # small sample = False
-                case.extend([lowerbound, upperbound, False])
-        #print >> sys.stderr, case
+        case = [institution, name, '%5.3f'%avg, N, username]
+        if N < 10:  # small sample=True
+            case.extend([lowerbound, upperbound, True])
+        else: # small sample = False
+            case.extend([lowerbound, upperbound, False])
         inputlist.append(case)
 
     # Prepare variables to send to HTML template
@@ -1822,7 +1823,7 @@ def switchboard_toscenario(request):
             if N < 2:
                 entry.extend([-1, 1, True])  # std=False, sm.sample=True
             else:
-                lowerbound, upperbound = confidence_interval(scores)
+                lowerbound, upperbound, avg = confidence_interval(scores)
                 if N < 10:  # small sample=True
                     entry.extend([lowerbound, upperbound, True])
                 else: # small sample = False
