@@ -1,0 +1,65 @@
+function search_path = big_path(N,probs,C_total,percentages,spt)
+%this function will take a large probability distribution and number of 
+%search areas to create a group of squares - want to extend this to human
+%created search regions at some point, possibly with mapsar/translate into
+%an array?
+%parameters: N should be even to facilitate region creation in the first
+%iteration. probs: the array of search probabilities. C: the total cost the
+%unit is allowed to travel. percentages: how much should be spent in each
+%region, should be length-N vector adding up to 1. Region 1 will be the top left, region
+%two will be on it's right, and so on until it reaches the right end of the
+%array and then the counting will start again from the left. Spt: user
+%defined starting point, length 2 vector of pixel indeces
+
+m = floor(N/2); 
+region_width = length(probs(1,:))/m; %for this to work need probs dimensions to be multiple of N
+region_height = length(probs(:,1))/m;
+num_across = length(probs(1,:))/region_width
+num_down = length(probs(:,1))/region_height
+current_region = probs(1:region_height,1:region_width); %initialize current search region
+current_path = spt;
+current_across = 1;
+current_down = 1; %location of the current search region
+next_across = current_across;
+next_down = current_down;
+next_width_start = 1;
+next_height_start = 1;
+for i = 1:N
+    
+    %create next search region
+    
+    if direction_flag == 0 %going from left to right
+        if current_across<num_across
+            next_across = current_across + 1;
+            direction_flag = 0; %going from left to right
+            next_width_start = current_across * region_width + 1;%don't need to update height starting point
+        elseif current_across == num_across %at the edge of the region
+            next_down = next_down + 1;
+            direction_flag = 1; %going from right to left
+            next_height_start = current_down*region_height+1;
+        end
+    else %going from left to right
+        if current_across>1
+            next_across = current_across - 1
+            direction_flag = 1;
+            next_width_start = next_across*region_width + 1;
+        elseif current_across==1
+            next_down = next_down + 1
+            direction_flag = 0; %start back the other way
+            next_height_start = 
+    end
+    next_region = probs(next_height_start: (next_height_start+region_height -1), next_width_start:(next_width_start + region_width -1));
+
+    %examine interface between search regions to determine the ending point
+    %use percentages to determine the cost allowed in the current area
+    
+    %run hill climbing algorithm
+    
+    %append generated path to current path
+    
+    %update starting point and region of interest for the next iteration, unless i = N, then we
+    %are done
+    
+end
+
+%compute ending path sum
