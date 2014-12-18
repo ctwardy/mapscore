@@ -1,0 +1,36 @@
+function [neighbors_x, neighbors_y] = get_neighbors(x,y,m,n)
+    % x and y are assumed to be column and row indeces, respectively,  of
+    % an mxn matrix.  gets all neighbors, including diagonals
+    
+    %check for corner cases
+    if (x == 1) && (y==1) %top left corner
+        neighbors_x = [1;2;2];
+        neighbors_y = [2; 2;1];
+    elseif (x == m) && (y==1) %top right corner
+        neighbors_x = [n; n-1; n-1];
+        neighbors_y = [2; 2; 1];
+    elseif (x==1) && (y==n) %bottom left corner
+        neighbors_x = [1;2;2];
+        neighbors_y = [n-1; n-1; n];
+    elseif (x==m) && (y ==n) %bottom right corner
+        neighbors_x = [n, n-1, n-1]';
+        neighbors_y = [m-1, m-1, m]';
+    %check for edge cases
+    elseif (x~=1) && (y==1) %top edge
+        neighbors_x = [x-1, x-1, x, x+1, x+1]';
+        neighbors_y = [1,2, 2, 2, 1]';
+    elseif (x ~=1) && (y == n) %bottom edge
+        neighbors_x = [x-1, x-1, x, x+1, x+1]';
+        neighbors_y = [n, n-1, n-1, n-1, n]';
+    elseif (x==1) && (y~=1) %left edge
+        neighbors_x = [ 1, 2, 2, 2, 1]';
+        neighbors_y = [y-1, y-1, y, y+1, y+1]';
+    elseif (x == m) && (y~=1) %right edge
+        neighbors_x = [m, m-1, m-1, m-1, m]';
+        neighbors_y = [y-1, y-1, y, y+1, y+1]';
+    %middle case
+    else 
+        neighbors_x = [x-1, x-1, x-1, x, x, x+1, x+1, x+1]';
+        neighbors_y = [y-1, y, y+1, y-1, y+1, y-1, y, y+1]';
+    end
+end
