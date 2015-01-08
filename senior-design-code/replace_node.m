@@ -20,7 +20,7 @@ function [path_sum_new, new_path, probs_update] = replace_node(current_path, pro
             n_probs(i) = current_probs(valid_choices(i,2), valid_choices(i,1));%have to look at the current probs
         end
         a = find(n_probs == max(n_probs));
-        new_point_choice(k,:) = valid_choices(a,:);
+        new_point_choice(k,:) = valid_choices(a(1),:);
         best_probs(k) = probs(new_point_choice(k,2), new_point_choice(k,1));
     end
     best_point = find(best_probs == max(best_probs));
