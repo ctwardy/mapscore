@@ -42,7 +42,7 @@ for i = 1:N-1 %for every level of resolution
     [current_path,res_probs_update] = link_paths(path_part,current_path,m_old, n_old, m_new,n_new,current_res_probs, lower_res_probs);
     lower_res_probs = res_probs_update; % update the lower resolution for the next iteration
 end
-
+path_sum = 0;
 %compute the final path sum        
 for j = 1:length(current_path(:,1))
     path_sum = path_sum + prob_detect*res_probs_update(current_path(j,2), current_path(j,1));
