@@ -2,13 +2,13 @@
 %first, load in the array of probabilities, for this example i just picked
 %a matrix from a uniform distribution between 0 and 1 and then turn that
 %into probabilities that sum to 1
-function best_sum = greedy_algorithm(m,n,probs,prob_detect)
+function [best_path,best_sum] = greedy_algorithm(m,n,probs,prob_detect)
 %starting off with 4x4 matrix for simplicity
  %turn the example set into probabilities. 
 %set a cost for the search, here it is arbitrarily 75% of cells that the quad can cover,
 %can determine this through flight time, etc
 tic
-num_cells = ceil(m*n*0.75);
+num_cells = floor(m*n*0.75);
 
 path_sum = zeros(m,n);
 current_x = zeros(m,n,num_cells);
@@ -35,7 +35,7 @@ for x = 1:1:n
             next_x = current_neighbors(best_neighbor,1);
             next_y = current_neighbors(best_neighbor,2);
             if length(next_x)>1 %if there are two equal probability cells in the neighbors list just pick one randomly
-                p = ranperm(length(next_x), 1);
+                p = randperm(length(next_x), 1);
                 current_x(y,x,k) = next_x(p);
                 current_y(y,x,k) = next_y(p);
             else 
@@ -58,12 +58,13 @@ best_pathx = zeros(num_cells,1);
 best_pathy = zeros(num_cells,1);
 best_pathtempx = current_x(best_start_y, best_start_x, :);
 best_pathtempy = current_y(best_start_y, best_start_x, :);
-toc
+
 for i =1:num_cells
     best_pathx(i) = best_pathtempx(1,1,i);
     best_pathy(i) = best_pathtempy(1,1,i);
 end
 best_path = [best_pathx best_pathy];
+size(best_path)
 % display(sprintf('the best greedy path sum is: %d',best_sum))
 % display(sprintf('the best greedy starting point is %d , %d', best_start_x, best_start_y))
 % display(sprintf('the best greedy path found is: '));
