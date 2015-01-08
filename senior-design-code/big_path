@@ -13,7 +13,7 @@ C = input('What percentage of the total area can the UAV cover?'); % needs a num
 starting_path = input('What is the starting path through the top level?') % needs an n x 2 array
 %need to check inputs for final version
 current_path = starting_path;
-higher_res_probs = top_level_probs;
+lower_res_probs = top_level_probs;
 [m_old, n_old] = size(top_level_probs);
 for i = 1:N-1 %for every level of resolution
     for j = 1: length(current_path(:,1))-1
@@ -21,7 +21,7 @@ for i = 1:N-1 %for every level of resolution
         %resolutions probabilities and segment but segmentation indexing 
         %is proving difficult to wrap my head around.
         current_res_probs(:,:,j) = load(input('next probability array','s'));
-        C_area = floor(C*higher_res_probs(current_path(j,2), current_path(j,1))*numel(current_res_probs)); %current cost * probability subject is in an area = proportional time spent in that area * number of cells = number of cells in new resolution we can cover
+        C_area = floor(C*lower_res_probs(current_path(j,2), current_path(j,1))*numel(current_res_probs)); %current cost * probability subject is in an area = proportional time spent in that area * number of cells = number of cells in new resolution we can cover
         [m_new,n_new] = size(current_res_probs);
         %calculate starting and ending points for this level from previous
         %path resolution
@@ -39,7 +39,7 @@ for i = 1:N-1 %for every level of resolution
     end
     %link the paths together
     
-    [current_path,higher_res_probs] = link_paths(path_part,current_path,m_old, n_old, m_new,n_new,current_res_probs, higher_res_probs);
+    [current_path,res_probs_update] = link_paths(path_part,current_path,m_old, n_old, m_new,n_new,current_res_probs, lower_res_probs);
 end
 
 %compute the final path sum        
