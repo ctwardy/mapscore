@@ -1,4 +1,9 @@
-function best_path_sum = hill_climbing(m,n,probs,prob_detect,C,spt, ept)
+function [best_path,best_path_sum] = hill_climbing(m,n,probs,prob_detect,C,spt, ept)
+    %m,n - dimensions of matrix
+    %probs - array of probability that the subject is in location
+    %prob_detect - probability that searcher will see subject
+    %C - total cost i.e. number of cells that can be visited
+    %spt, ept - starting and ending points, respectively
     tic
     i_best_path = zeros(C,2,10); %for storing the best path
     i_path_sum = zeros(1,10);
