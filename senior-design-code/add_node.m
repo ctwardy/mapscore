@@ -29,7 +29,7 @@ function [path_sum_new, new_path, probs_update] = add_node(current_path,current_
             n_probs(p) = current_probs(valid_choices(p,2), valid_choices(p,1));
         end
         a = find(n_probs == max(n_probs));
-        new_point_choice(k,:) = valid_choices(a,:);
+        new_point_choice(k,:) = valid_choices(a(1),:);
         best_probs(k) = current_probs(new_point_choice(k,2), new_point_choice(k,1));
     end
     best_point = find(best_probs == max(best_probs));
@@ -37,7 +37,6 @@ function [path_sum_new, new_path, probs_update] = add_node(current_path,current_
         best_point = best_point(1);%pick the first best choice if there are more than one
     end
     %update path sum new
-    current_probs(new_point_choice(best_point,2), new_point_choice(best_point,1));
     path_sum_new = path_sum + prob_detect*current_probs(new_point_choice(best_point,2), new_point_choice(best_point,1));
     probs_update = current_probs;
     probs_update(new_point_choice(best_point,2), new_point_choice(best_point,1)) = (1-prob_detect)*probs_update(new_point_choice(best_point,2), new_point_choice(best_point,1));%reflect that the new point has been visited in the probabilities matrix
