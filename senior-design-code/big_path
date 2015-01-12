@@ -37,7 +37,7 @@ for i = 1:N-1 %for every level of resolution
             dy_old = 0;
         end
         [spt,ept] = endpts(dx_old, dy_old, dx_new, dy_new,m_new, n_new);
-        [path_part(1:C_area,1:C_area,j), path_sum] = hill_climbing(m_new,n_new,current_res_probs,prob_detect,C_area,spt,ept);
+        [path_part(1:C_area,:,j), path_sum] = hill_climbing(m_new,n_new,current_res_probs,prob_detect,C_area,spt,ept);
     end
     %link the paths together
     
