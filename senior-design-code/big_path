@@ -16,13 +16,15 @@ current_path = starting_path;
 lower_res_probs = top_level_probs;
 [m_old, n_old] = size(top_level_probs);
 for i = 1:N-1 %for every level of resolution
+    [m_new,n_new] = input('Size of current_resolution blocks'); % expecting a two dimensional array
+    current_res_probs = zeros(m_new,n_new,length(current_path(:,1)));
+    path_part = zeros(m_new*n_new, 2,length(current_path(:,1));
     for j = 1: length(current_path(:,1))-1
         %load this node's next level - would like to load entire
         %resolutions probabilities and segment but segmentation indexing 
         %is proving difficult to wrap my head around.
         current_res_probs(:,:,j) = load(input('next probability array','s'));
         C_area = floor(C*lower_res_probs(current_path(j,2), current_path(j,1))*numel(current_res_probs)); %current cost * probability subject is in an area = proportional time spent in that area * number of cells = number of cells in new resolution we can cover
-        [m_new,n_new] = size(current_res_probs);
         %calculate starting and ending points for this level from previous
         %path resolution
         dx_new = current_path(j+1,1) - current_path(j,1); %next direction, determines ending point
@@ -35,14 +37,14 @@ for i = 1:N-1 %for every level of resolution
             dy_old = 0;
         end
         [spt,ept] = endpts(dx_old, dy_old, dx_new, dy_new,m_new, n_new);
-        [path_part(:,:,j), path_sum] = hill_climbing(m_new,n_new,current_res_probs,prob_detect,C_area,spt,ept);
+        [path_part(1:C_area,1:C_area,j), path_sum] = hill_climbing(m_new,n_new,current_res_probs,prob_detect,C_area,spt,ept);
     end
     %link the paths together
     
     [current_path,res_probs_update] = link_paths(path_part,current_path,m_old, n_old, m_new,n_new,current_res_probs, lower_res_probs);
     lower_res_probs = res_probs_update; % update the lower resolution for the next iteration
 end
-path_sum = 0;
+
 %compute the final path sum        
 for j = 1:length(current_path(:,1))
     path_sum = path_sum + prob_detect*res_probs_update(current_path(j,2), current_path(j,1));
