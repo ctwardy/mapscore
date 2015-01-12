@@ -8,7 +8,7 @@
 
 N = input('How many layers of Resolution?'); %integer
 prob_detect = input('What is the UAVs probability of detection?'); % number between 0 and 1
-top_level_probs = load(input('Top Level File Name','s')); %filename
+top_level_probs = load(input('Top Level File Name','s'),...); %filename
 C = input('What percentage of the total area can the UAV cover?'); % needs a number between 0 and 1
 starting_path = input('What is the starting path through the top level?'); % needs an n x 2 array
 %need to check inputs for final version
@@ -23,7 +23,7 @@ for i = 1:N-1 %for every level of resolution
         %load this node's next level - would like to load entire
         %resolutions probabilities and segment but segmentation indexing 
         %is proving difficult to wrap my head around.
-        current_res_probs(:,:,j) = load(input('next probability array','s'));
+        current_res_probs(:,:,j) = load(input('next probability array','s'),...);
         C_area = floor(C*lower_res_probs(current_path(j,2), current_path(j,1))*numel(current_res_probs)); %current cost * probability subject is in an area = proportional time spent in that area * number of cells = number of cells in new resolution we can cover
         %calculate starting and ending points for this level from previous
         %path resolution
