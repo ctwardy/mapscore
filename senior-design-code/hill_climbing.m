@@ -1,18 +1,19 @@
-function [best_path,best_path_sum] = hill_climbing(m,n,probs,prob_detect,C,spt, ept)
+function [hill_path] = hill_climbing(m,n,probs,prob_detect,C,spt, ept)
     %m,n - dimensions of matrix
     %probs - array of probability that the subject is in location
     %prob_detect - probability that searcher will see subject
     %C - total cost i.e. number of cells that can be visited
     %spt, ept - starting and ending points, respectively
-    tic
     i_best_path = zeros(C,2,10); %for storing the best path
     i_path_sum = zeros(1,10);
     path_sum_start = zeros(1,10);
+    path_start = zeros(C,2,10);
     for i = 1:10 
         probs_current = probs;
         %first find random starting path with length less than or equal to C
         l = C+1;
-        while l>C 
+        current_path = spt;
+        while ((l>C)||(length(current_path(:,1))== 2))
         current_path = gen_rand_path(spt,ept,m,n);
         l = length(current_path(:,1));
         end
@@ -23,8 +24,10 @@ function [best_path,best_path_sum] = hill_climbing(m,n,probs,prob_detect,C,spt, 
             probs_current(current_path(j,2), current_path(j,1)) = probs_current(current_path(j,2), current_path(j,1))*(1-prob_detect);
         end
         path_sum_start(i) = path_sum;
+        
+        path_start(1:length(current_path(:,1)),:,i) = current_path;
         %hill climbing loop:  two rules:  add a node, replace a node
-        for a = 1:100     
+        for a = 1:200     
             if length(current_path(:,1))<C %add the highest valid probability node into the path
                 [path_sum_new, new_path, probs_update] = add_node(current_path, probs_current, path_sum, m,n,prob_detect);
             else %can't add a node because length of path = C, so go through each node and figure out the best way to switch
@@ -43,11 +46,11 @@ function [best_path,best_path_sum] = hill_climbing(m,n,probs,prob_detect,C,spt, 
 
     best_path_sum = max(i_path_sum);
     best_i = find(i_path_sum == best_path_sum);
-    best_path = i_best_path(:,:,best_i);
-    best_path_start = path_sum_start(best_i);
+    hill_path = i_best_path(:,:,best_i(1));
+
 %     disp('best hill climbing path is:')
 %     disp(best_path);
 %     disp('best hill climbing sum is:')
 %     disp(best_path_sum);
 
-    toc
+    
