@@ -24,22 +24,23 @@ function [spt,ept] = endpts(dx_old, dy_old, dx_new, dy_new,m, n)
         spt = [floor(n/2),1];
     end
     %ept if statements - depend on new values
-
     if (dx_new > 0) && (dy_new == 0) %going right
         ept = [n,floor(m/2)];
     elseif (dx_new < 0) && (dy_new == 0) %going left
         ept = [1,floor(m/2)];    
-    elseif (dx_new > 0) && (dy_new > 0) %going top right
-        ept = [1,n];
-    elseif (dx_new > 0) && (dy_new < 0) %going bottom left
-        ept = [1,m];
-    elseif (dx_new < 0) && (dy_new > 0) %going top left
-        ept = [1,1];
-    elseif (dx_new < 0) && (dy_new < 0) %going bottom right
+    elseif (dx_new > 0) && (dy_new > 0) %going bottom right
         ept = [n,m];
-    elseif (dx_new == 0) && (dy_new > 0) %going top
+    elseif (dx_new > 0) && (dy_new < 0) %going top left
+        ept = [1,1];
+    elseif (dx_new < 0) && (dy_new > 0) %going bottom left
+        ept = [1,m];
+    elseif (dx_new < 0) && (dy_new < 0) %going top right
+        ept = [n,1];
+    elseif (dx_new == 0) && (dy_new < 0) %going top
         ept = [floor(n/2),1];
-    elseif (dx_new == 0) && (dy_new < 0) %going bottom
+    elseif (dx_new == 0) && (dy_new > 0) %going bottom
         ept = [floor(n/2),m];
+    elseif (dx_new == 0) && (dy_new ==0) %hit end of path, will do greedy
+        ept = [0,0];
     end
 end
