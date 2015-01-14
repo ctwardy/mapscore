@@ -5,49 +5,74 @@
 %the same size, want to spend time in every search region
 %inputs from user: probability files, number of levels to go down - N
 % the inputs should be interfaced with the gui somehow
-
-N = input('How many layers of Resolution?'); %integer
-prob_detect = input('What is the UAVs probability of detection?'); % number between 0 and 1
-top_level_probs = struct2cell(load(input('Top Level File Name','s'))); %filename
-C = input('What percentage of the total area can the UAV cover?'); % needs a number between 0 and 1
-starting_path = input('What is the starting path through the top level?'); % needs an n x 2 array
+clear all; close all; clc;
+N = input('How many layers of Resolution?: '); %integer
+prob_detect = input('What is the UAVs probability of detection?: '); % number between 0 and 1
+top_level_struct = load(input('Top Level File Name: ','s')); %filename
+fname = fieldnames(top_level_struct);
+top_level_probs = top_level_struct.(fname{1}); % have to do this to convert from struct to array
+C = input('What percentage of the total area can the UAV cover?: '); % needs a number between 0 and 1
+starting_path = input('What is the starting path through the top level?: '); % needs an n x 2 array
 %need to check inputs for final version
 current_path = starting_path;
 lower_res_probs = top_level_probs;
 [m_old, n_old] = size(top_level_probs);
-for i = 1:N-1 %for every level of resolution
-    res_size = input('Size of current_resolution blocks'); % expecting a two dimensional array
-    m_new = res_size(1); n_new = res_size(2);
-    current_res_probs = zeros(m_new,n_new,length(current_path(:,1)));
+for i = 2:N %for every level of resolution
+    str = sprintf('Resolution level %d ',i);
+    disp(str);
+    current_res_struct = load(input('next resolution probability array: ','s'));
+    fname = fieldnames(current_res_struct);
+    current_res_probs = current_res_struct.(fname{1});
+    [m_new, n_new] = size(current_res_probs);
     path_part = zeros(m_new*n_new, 2,length(current_path(:,1)));
-    for j = 1: length(current_path(:,1))-1
-        %load this node's next level - would like to load entire
-        %resolutions probabilities and segment but segmentation indexing 
-        %is proving difficult to wrap my head around.
-        current_res_probs(:,:,j) = struct2cell(load(input('next probability array','s')));
+    for j = 1: length(current_path(:,1))
+        %figure out which segment of the path to use for path planning,
+        %assumes that m_new is a multiple of m_old, i.e. each cell in the
+        %old resolution is expanding into an integer number of cells in the
+        %new resolution
+        m_current = m_new/m_old;
+        n_current = n_new/n_old;
+        current_probs = current_res_probs((current_path(j,2)-1)*m_current+1:current_path(j,2)*m_current, (current_path(j,1)-1)*n_current+1:current_path(j,1)*n_current);
+        
         C_area = floor(C*lower_res_probs(current_path(j,2), current_path(j,1))*numel(current_res_probs)); %current cost * probability subject is in an area = proportional time spent in that area * number of cells = number of cells in new resolution we can cover
         %calculate starting and ending points for this level from previous
         %path resolution
-        dx_new = current_path(j+1,1) - current_path(j,1); %next direction, determines ending point
-        dy_new = current_path(j+1,2) - current_path(j,2);
-        if j>2
-            dx_old = current_path(j,1) - current_path(j-1,1); %previous direction, determines starting point
+        if j<length(current_path(:,1))
+            dx_new = current_path(j+1,1) - current_path(j,1); %next direction, determines ending point
+            dy_new = current_path(j+1,2) - current_path(j,2);
+        else % j == length(current_path(:,1), we've reached the end of hte current path
+            dx_new = 0;
+            dy_new = 0;
+        end
+        if j>=2
+            dx_old = current_path(j,1) - current_path(j-1,1);%previous direction, determines starting point
             dy_old = current_path(j,2) - current_path(j-1,2);
-        else
+        else %j = 1
             dx_old = 0;
             dy_old = 0;
         end
-        [spt,ept] = endpts(dx_old, dy_old, dx_new, dy_new,m_new, n_new);
-        [path_part(1:C_area,:,j), path_sum] = hill_climbing(m_new,n_new,current_res_probs,prob_detect,C_area,spt,ept);
+        [spt,ept] = endpts(dx_old, dy_old, dx_new, dy_new,m_current, n_current);
+        if ((ept(1) == 0)&&(ept(2) == 0)) %at the end of the path, do a greedy algorithm
+            disp('end of current path')
+            path_part(1:C_area,:,j) = greedy_algorithm(current_probs, prob_detect, spt, C_area);
+        elseif ((dx_old == 0)&&(dy_old == 0)) %this happens at the beginning, do greedy from the endpoint and then reverse the path
+            disp('start of current path');
+            path_temp = greedy_algorithm(current_probs,prob_detect,ept, C_area); % ending point is starting point of the path
+            path_part(1:C_area,:,j) = flipud(path_temp);%flips up/down so that the ending point is hte last part of the array
+        else % the normal case, hill climbing with fixed start and end points
+            disp('hill climbing');
+            path_part(1:C_area,:,j) = hill_climbing(m_current,n_current,current_probs,prob_detect,C_area,spt,ept);
+        end
     end
-    %link the paths together
-    
-    [current_path,res_probs_update] = link_paths(path_part,current_path,m_old, n_old, m_new,n_new,current_res_probs, lower_res_probs);
-    lower_res_probs = res_probs_update; % update the lower resolution for the next iteration
+    %link the paths together to update current path
+    current_path = link_paths(path_part,current_path, m_current,n_current);
+    lower_res_probs = current_res_probs; % update the lower resolution for the next iteration
+end
+disp('done');
+%compute the final path sum        
+path_sum = 0;
+for j = 1:length(current_path(:,1))
+    path_sum = path_sum + prob_detect*current_res_probs(current_path(j,2), current_path(j,1));
+    current_res_probs(current_path(j,2), current_path(j,1)) = current_res_probs(current_path(j,2), current_path(j,1))*(1-prob_detect);
 end
 
-%compute the final path sum        
-for j = 1:length(current_path(:,1))
-    path_sum = path_sum + prob_detect*res_probs_update(current_path(j,2), current_path(j,1));
-    res_probs_update(current_path(j,2), current_path(j,1)) = res_probs_update(current_path(j,2), current_path(j,1))*(1-prob_detect);
-end
