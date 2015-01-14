@@ -8,7 +8,6 @@ function [path_sum_new, new_path, probs_update] = add_node(current_path,current_
     %get the current point on the path and it's immediate neighbors
     new_point_choice = zeros(size(current_path));
     best_probs = zeros(length(current_path(1,:)),1);
-    
     for k = 2:(length(current_path(:,1))-1)
         current_xy = current_path(k,:);
         next_xy = current_path(k+1,:); %next point on path
@@ -28,6 +27,7 @@ function [path_sum_new, new_path, probs_update] = add_node(current_path,current_
         for p = 1: length(valid_choices(:,1))
             n_probs(p) = current_probs(valid_choices(p,2), valid_choices(p,1));
         end
+
         a = find(n_probs == max(n_probs));
         new_point_choice(k,:) = valid_choices(a(1),:);
         best_probs(k) = current_probs(new_point_choice(k,2), new_point_choice(k,1));
