@@ -3,21 +3,23 @@
 # -*- mode: python -*-
 # -*- py-indent-offset: 4 -*-
 
-# MapScore main views file
+"""
+MapScore main views file
+
+"""
 
 # Import standard library modules
-import random
-import math
+import os
+import re
 import shutil
 import csv
-import os
-import string
-import numpy as np
 import sys
 import cStringIO
-import time
-import re
-import os
+import zipfile
+
+# Other 3rd-party Imports
+import numpy as np
+from PIL import Image
 
 # Import Django modules and functions
 from django.contrib.auth.decorators import login_required
@@ -31,6 +33,8 @@ from django.core import exceptions
 from django.core.files.move import file_move_safe
 from operator import itemgetter, attrgetter
 from django.template import RequestContext
+from django.core.context_processors import csrf
+
 
 # Import mapscore Django models
 from mapscore.framework.models import Account
@@ -41,20 +45,11 @@ from mapscore.framework.models import ModelAccountLink
 from mapscore.framework.models import TestModelLink
 from mapscore.framework.models import Mainhits
 from mapscore.framework.models import TerminatedAccounts
-
-from PIL import Image
-import zipfile
-from django.core.servers.basehttp import FileWrapper
-from django.core.context_processors import csrf
 from mapscore.forms import ZipUploadForm
 
 # User-uploaded content
 MEDIA_DIR = 'media/'
 USER_GRAYSCALE = MEDIA_DIR
-
-# To print to the console, use:
-# print >> sys.stderr, 'Hello world!'
-
 
 ######################################## Helper functions ########################################
 
@@ -91,9 +86,9 @@ def confidence_interval(scores):
 
 
 def check_account_fields(fields, new_user=True):
-    ''' Validate all user field changes by checking them against their respective regexes.
+    """ Validate all user field changes by checking them against their respective regexes.
         Ensure that no two accounts have the same username if creating a new user.
-        Ensure that the password confirmation matches. '''
+        Ensure that the password confirmation matches. """
 
     regexes = {
         'first_name' : r'^.+$',
@@ -224,7 +219,6 @@ def create_test(model, case):
 ######################################## Views ########################################
 
 def base_redirect(response):
-    ''' Go to main. '''
     return redirect('/main/')
 
 
@@ -359,9 +353,9 @@ def create_account(request):
 
 
 def create_account_submit(request):
-    ''' Check user field input for correctness.
+    """ Check user field input for correctness.
         Create an account and user if all fields are valid. Otherwise,
-        redirect back to the registration page. '''
+        redirect back to the registration page. """
 
     fields, checks_out = check_account_fields(request.POST)
     captcha = request.POST.get('captcha')
@@ -524,7 +518,7 @@ def edit_model_submit(request):
             request.session['active_model'] = old_model
             request.session['info'] = 'Your model has been successfully edited.'
         else:
-            new_model = Model(name_id=name, ID2=str(account.ID2) + ':' + str(name), Description=desc)
+            new_model = Model(name_id=name, ID2=str(account.ID2) + ':' + str(name), description=desc)
             new_model.save()
             link = ModelAccountLink(model=new_model, account=account)
             link.save()
@@ -564,8 +558,8 @@ def batch_test_upload(request):
         form = ZipUploadForm(request.POST, request.FILES)
         if form.is_valid():
             case_list = form.process_zip_file()
-            gc = 0 #good count
-            bc = 0 #bad count
+            gc = 0  # good count
+            bc = 0  # bad count
             for index, (path, fname, file_size, model, case, status) in enumerate(case_list):
                 if status == "ready":
                     model_count = Model.objects.filter(ID2=str(request.session['active_account'].ID2 +":"+ model)).count()
