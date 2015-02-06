@@ -1,10 +1,13 @@
 #!/usr/env/python
 # models.py
 
-from django.db import models
+
 import math
 from PIL import Image
 import numpy as np
+
+from django.db import models
+from django.contrib.auth.models import User
 
 
 
@@ -321,12 +324,8 @@ class Model(models.Model):
 
 
 class Account(models.Model):
-    firstname_user = models.CharField(max_length=30)
-    lastname_user = models.CharField(max_length=30)
     username = models.CharField(max_length=30)
-    password  = models.CharField(max_length=30)
     institution_name = models.CharField(max_length=40)
-    Email = models.EmailField()
     Website = models.URLField()
 
     photosizex = models.IntegerField(default=0)
@@ -344,11 +343,6 @@ class Account(models.Model):
 
     class Meta:
         db_table = 'account'
-
-    @property
-    def fullname(self):
-        return '{} {}'.format(self.firstname_user, self.lastname_user).strip()
-
 
 
 class ModelAccountLink(models.Model):

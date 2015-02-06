@@ -31,7 +31,7 @@ from django.shortcuts import redirect
 from django.core.mail import send_mail
 from django.core import exceptions
 from django.core.files.move import file_move_safe
-from operator import itemgetter, attrgetter
+from operator import attrgetter
 from django.template import RequestContext
 from django.core.context_processors import csrf
 
@@ -149,19 +149,19 @@ def set_prof_pic(account, tmp_img=None):
 
 
 def set_account_fields(fields, account, user):
-    ''' Given a dictionary of valid fields, update the account and user objects. '''
+    """ Given a dictionary of valid fields, update the account and user objects. """
 
-    first_name, last_name, email = fields['first_name'], fields['last_name'], fields['email']
-    institution, website = fields['institution'], fields['website']
-    username, password = fields['username'], fields['password1']
-    account.firstname_user, account.lastname_user, account.Email = first_name, last_name, email
-    account.institution_name, account.Website = institution, website
-    account.username, account.password = username, password
-    account.save()
-    user.first_name, user.last_name, user.email = first_name, last_name, email
-    user.username = username
-    user.set_password(password)
+    user.username = fields['username']
+    user.first_name = fields['first_name']
+    user.last_name = fields['last_name']
+    user.email = fields['email']
+    user.set_password(fields['password1'])
     user.save()
+
+    account.username = user.username
+    account.institution_name =  fields['institution']
+    account.website = fields['website']
+    account.save()
 
 
 def show_find_pt(URL2):
@@ -310,11 +310,11 @@ def password_reset(request):
     request_to_input(request.session, input_dict, 'error')
     return render_to_response('PasswordReset.html', input_dict)
 
-
+# TODO: Fix password reset so it is more secure and doesn't allow a DoS on users
 def password_reset_submit(request):
-    ''' Given a valid username, set a user's password to a random string.
+    """ Given a valid username, set a user's password to a random string.
         Store plaintext passwords in Account objects because, in the event of an email send failure,
-        User objects only store passwords as a hash, and hashes are non-reversible. '''
+        User objects only store passwords as a hash, and hashes are non-reversible. """
 
     username = request.POST['Username']
     try:
@@ -326,16 +326,15 @@ def password_reset_submit(request):
 
     tmp_passwd = os.urandom(16).encode('base-64')[:-3]
     user.set_password(tmp_passwd)
-    account.password = tmp_passwd
     account.save()
     user.save()
 
     try:
         msg = 'Your new temporary password is: %s' % tmp_passwd
         send_mail(
-            'Temporary MapScore Password', msg, 'mapscore@c4i.gmu.edu', [account.Email], fail_silently=False)
+            'Temporary MapScore Password', msg, 'mapscore@c4i.gmu.edu', [user.email], fail_silently=False)
     except:
-        print >> sys.stderr, 'Attempted to send email to user %s, email %s' % (username, account.Email)
+        print >> sys.stderr, 'Attempted to send email to user %s, email %s' % (username, user.email)
     request.session['info'] = 'Please check your email for the temporary password.'
     return redirect('/main/')
 
@@ -368,7 +367,7 @@ def create_account_submit(request):
         if 'good_fields' in request.session:
             del(request.session['good_fields'])
 
-        user, account = User(), Account(sessionticker=1, completedtests=0, deleted_models=0, profpicrefresh=0)
+        user, account = User(), Account(sessionticker=1)
         set_account_fields(fields, account, user)
         user.is_active = True
         user.save()
@@ -397,15 +396,16 @@ def edit_account(request):
 
     input_dict, account = dict(csrf(request)), request.session.get('active_account')
     good_fields = request.session.get('good_fields')
+    thisuser = User.objects.get(username=account.username)
     reset_dict = {
-        'first_name' : account.firstname_user,
-        'last_name' : account.lastname_user,
-        'email' : account.Email,
-        'institution' : account.institution_name,
-        'website' : account.Website,
-        'username' : account.username,
-        'password1' : account.password,
-        'password2' : account.password
+        'first_name': thisuser.first_name,
+        'last_name': thisuser.last_name,
+        'email': thisuser.email,
+        'institution': account.institution_name,
+        'website': account.Website,
+        'username': account.username,
+        'password1': "",
+        'password2': ""
     }
     if '/account/' in request.META.get('HTTP_REFERER'):
         good_fields = reset_dict
@@ -425,7 +425,8 @@ def edit_account_submit(request):
     fields, checks_out = check_account_fields(request.POST, new_user=new_user)
 
     old_password = request.POST.get('old_password')
-    if old_password != account.password:
+    #if old_password != account.password:
+    if not request.user.check_password(old_password):
         checks_out = False
 
     if checks_out:
@@ -443,7 +444,7 @@ def edit_account_submit(request):
             media_files = os.listdir(MEDIA_DIR)
             for media in media_files:
                 if media.startswith(s):
-                    new_loc = MEDIA_DIR + 'thumb_' + model.ID2.replace(':','_') + media[media.find(s) + len(s):]
+                    new_loc = MEDIA_DIR + 'thumb_' + model.ID2.replace(':', '_') + media[media.find(s) + len(s):]
                     shutil.move(MEDIA_DIR + media, new_loc)
 
         new_location = '%sprofpic_%s_%i.png' % (MEDIA_DIR, account.ID2, int(account.profpicrefresh))
@@ -513,7 +514,7 @@ def edit_model_submit(request):
             media_files = os.listdir(MEDIA_DIR)
             for media in media_files:
                 if media.startswith(s):
-                    new_loc = MEDIA_DIR + 'thumb_' + old_model.ID2.replace(':','_') + media[media.find(s) + len(s):]
+                    new_loc = MEDIA_DIR + 'thumb_' + old_model.ID2.replace(':', '_') + media[media.find(s) + len(s):]
                     shutil.move(MEDIA_DIR + media, new_loc)
             request.session['active_model'] = old_model
             request.session['info'] = 'Your model has been successfully edited.'
@@ -793,11 +794,12 @@ def admin_log_in(request):
 
     # Verify user
     auth.logout(request)
-    user = auth.authenticate(username = User_in , password = Pass_in)
-    auth.login(request, user)
+    user = auth.authenticate(username=User_in, password=Pass_in)
+
 
     # User exists
     if user is not None:
+        auth.login(request, user)
         if user.is_superuser == True:
             request.session['admintoken'] = True
             request.session['admin_name'] = User_in
@@ -1298,31 +1300,32 @@ def caseref_return(request):
 
 @login_required
 def Account_Profile(request):
-    Account_in = request.GET['Account']
+    account_in = request.GET['Account']
 
-    Active_account = Account.objects.get(username = Account_in)
+    active_account = Account.objects.get(username=account_in)
+    active_user = User.objects.get(username=active_account.username)
+    name = str(active_account.institution_name)
+    email = str(active_user.email)
+    registeredUser = str(active_user.get_full_name())
+    website = str(active_account.Website)
+    profpic = str(active_account.photourl)
 
-    Name = str(Active_account.institution_name)
-    Email = str(Active_account.Email)
-    RegisteredUser = str(Active_account.firstname_user) + ' ' + str(Active_account.lastname_user)
-    website = str(Active_account.Website)
-    profpic = str(Active_account.photourl)
-
-    inputdic = {'Name':Name, 'Email':Email, 'RegisteredUser':RegisteredUser, 'website':website,'profpic':profpic}
+    inputdic = {'Name': name, 'Email': email, 'RegisteredUser': registeredUser,
+                'website': website, 'profpic': profpic}
 
     if website !='none':
         inputdic['websitexists'] = True
 
-    inputdic['xsize'] = int(Active_account.photosizex)
-    inputdic['ysize'] = int(Active_account.photosizey)
+    inputdic['xsize'] = int(active_account.photosizex)
+    inputdic['ysize'] = int(active_account.photosizey)
 
     # get model descriptions
     modellst = []
-    for i in Active_account.account_models.all():
+    for i in active_account.account_models.all():
         templst = []
         templst.append(i.name_id)
         templst.append(i.description)
-        templst.append(Account_in)
+        templst.append(account_in)
         modellst.append(templst)
 
     inputdic['modellst'] = modellst
