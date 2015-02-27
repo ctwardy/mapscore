@@ -6,73 +6,128 @@
 %inputs from user: probability files, number of levels to go down - N
 % the inputs should be interfaced with the gui somehow
 clear all; close all; clc;
+%declare some global variables
+global pl alphal m_current n_current m_new n_new Cp
 N = input('How many layers of Resolution?: '); %integer
 prob_detect = input('What is the UAVs probability of detection?: '); % number between 0 and 1
-top_level_struct = load(input('Top Level File Name: ','s')); %filename
-fname = fieldnames(top_level_struct);
-top_level_probs = top_level_struct.(fname{1}); % have to do this to convert from struct to array
-C = input('What percentage of the total area can the UAV cover?: '); % needs a number between 0 and 1
-starting_path = input('What is the starting path through the top level?: '); % needs an n x 2 array
-%need to check inputs for final version
-current_path = starting_path;
-lower_res_probs = top_level_probs;
-[m_old, n_old] = size(top_level_probs);
-for i = 2:N %for every level of resolution
+Cp = input('What percentage of the total area can the UAV cover?: '); % needs a number between 0 and 1
+output_filename = 'C:\Users\Eric Cawi\Documents\senior design\test.txt';
+fid = fopen(output_filename,'w');
+%write some basic information to the test file
+strN = sprintf('%d layers of resolution',N);
+fprintf(fid,'%s \r\n',strN);
+strp = sprintf('probability of detection: %f',prob_detect);
+fprintf(fid,'%s \r\n',strp);
+strc = sprintf('Total Area that the system can cover: %f',Cp);
+fprintf(fid,'%s \r\n',strc);
+for i = 1:N %for every level of resolution
     str = sprintf('Resolution level %d ',i);
     disp(str);
-    current_res_struct = load(input('next resolution probability array: ','s'));
+    current_res_struct = load(input('resolution probability array: ','s'));
     fname = fieldnames(current_res_struct);
     current_res_probs = current_res_struct.(fname{1});
-    [m_new, n_new] = size(current_res_probs);
-    path_part = zeros(m_new*n_new, 2,length(current_path(:,1)));
-    for j = 1: length(current_path(:,1))
-        %figure out which segment of the path to use for path planning,
-        %assumes that m_new is a multiple of m_old, i.e. each cell in the
-        %old resolution is expanding into an integer number of cells in the
-        %new resolution
+    if i ==1 %at the top level, run a greedy algorithm with a starting point
+        [m_old, n_old] = size(current_res_probs);
+        spt = input('What is the starting point of the search?');
+        C_area = m_old*n_old; %going through every cell in this thing since I haven't figured out how to find a path based on kadane cells yet
+        current_path = greedy_algorithm(current_res_probs, prob_detect, spt, C_area);
+        %update the file
+        strn = sprintf('x y - level %d path',i);
+        fprintf(fid,'\r\n%s \r\n',strn);
+        for k = 1:length(current_path(:,1))
+            fprintf(fid,'%d %d \r\n',current_path(k,:)-1);
+        end
+        lower_res_probs = current_res_probs;
+    else
+        [m_new, n_new] = size(current_res_probs);
+        path_part = zeros(m_new*n_new, 2,length(current_path(:,1)));
+        %prepare to optimize effort
+        pl = zeros(length(current_path(:,1)),1);
+        for k =1:length(current_path(:,1))
+            pl(k) = lower_res_probs(current_path(k,2),current_path(k,1));
+        end
+        alphal = (1-prob_detect)*ones(size(pl));
         m_current = m_new/m_old;
         n_current = n_new/n_old;
-        current_probs = current_res_probs((current_path(j,2)-1)*m_current+1:current_path(j,2)*m_current, (current_path(j,1)-1)*n_current+1:current_path(j,1)*n_current);
-        
-        C_area = floor(C*lower_res_probs(current_path(j,2), current_path(j,1))*numel(current_res_probs)); %current cost * probability subject is in an area = proportional time spent in that area * number of cells = number of cells in new resolution we can cover
-        %calculate starting and ending points for this level from previous
-        %path resolution
-        if j<length(current_path(:,1))
-            dx_new = current_path(j+1,1) - current_path(j,1); %next direction, determines ending point
-            dy_new = current_path(j+1,2) - current_path(j,2);
-        else % j == length(current_path(:,1), we've reached the end of hte current path
-            dx_new = 0;
-            dy_new = 0;
+        %determine the effort for the points in the current path with fmincon
+        n0 = rand(length(current_path(:,1)),1);
+        n = fmincon(@S,n0,[],[],[],[],zeros(size(n0)),ones(size(n0)),@cnstr);
+        disp(n)
+        for j = 1: length(current_path(:,1))
+            %figure out which segment of the path to use for path planning,
+            %assumes that m_new is a multiple of m_old, i.e. each cell in the
+            %old resolution is expanding into an integer number of cells in the
+            %new resolution
+            current_probs = current_res_probs((current_path(j,2)-1)*m_current+1:current_path(j,2)*m_current, (current_path(j,1)-1)*n_current+1:current_path(j,1)*n_current);
+            C_area = floor(m_current*n_current*n(j)); %current cost * probability subject is in an area = proportional time spent in that area * number of cells = number of cells in new resolution we can cover
+            disp(C_area)
+            %calculate starting and ending points for this level from previous
+            %path resolution
+            if j<length(current_path(:,1))
+                dx_new = current_path(j+1,1) - current_path(j,1); %next direction, determines ending point
+                dy_new = current_path(j+1,2) - current_path(j,2);
+            else % j == length(current_path(:,1), we've reached the end of hte current path
+                dx_new = 0;
+                dy_new = 0;
+            end
+            if j>=2
+                dx_old = current_path(j,1) - current_path(j-1,1);%previous direction, determines starting point
+                dy_old = current_path(j,2) - current_path(j-1,2);
+            else %j = 1
+                dx_old = 0;
+                dy_old = 0;
+            end
+            [spt,ept] = endpts(dx_old, dy_old, dx_new, dy_new,m_current, n_current);
+            if ((ept(1) == 0)&&(ept(2) == 0)) %at the end of the path, do a greedy algorithm
+                disp('end of current path')
+                path_part(1:C_area,:,j) = greedy_algorithm(current_probs, prob_detect, spt, C_area);
+            elseif ((dx_old == 0)&&(dy_old == 0)) %this happens at the beginning, do greedy from the endpoint and then reverse the path
+                disp('start of current path');
+                path_temp = greedy_algorithm(current_probs,prob_detect,ept, C_area); % ending point is starting point of the path
+                path_part(1:C_area,:,j) = flipud(path_temp);%flips up/down so that the ending point is hte last part of the array
+            else % the normal case, hill climbing with fixed start and end points
+                disp('hill climbing');
+                path_part(1:C_area,:,j) = hill_climbing(m_current,n_current,current_probs,prob_detect,C_area,spt,ept);
+            end
+            strn = sprintf('x y - level %d path through level %d point (%d,%d)',i,i-1, current_path(j,1)-1,current_path(j,2)-1);
+            fprintf(fid,'\r\n%s \r\n',strn);
+            for k = 1:length(path_part(1:C_area,1,j))
+                fprintf(fid,'%d %d \r\n',path_part(k,:,j)-1);
+            end
         end
-        if j>=2
-            dx_old = current_path(j,1) - current_path(j-1,1);%previous direction, determines starting point
-            dy_old = current_path(j,2) - current_path(j-1,2);
-        else %j = 1
-            dx_old = 0;
-            dy_old = 0;
-        end
-        [spt,ept] = endpts(dx_old, dy_old, dx_new, dy_new,m_current, n_current);
-        if ((ept(1) == 0)&&(ept(2) == 0)) %at the end of the path, do a greedy algorithm
-            disp('end of current path')
-            path_part(1:C_area,:,j) = greedy_algorithm(current_probs, prob_detect, spt, C_area);
-        elseif ((dx_old == 0)&&(dy_old == 0)) %this happens at the beginning, do greedy from the endpoint and then reverse the path
-            disp('start of current path');
-            path_temp = greedy_algorithm(current_probs,prob_detect,ept, C_area); % ending point is starting point of the path
-            path_part(1:C_area,:,j) = flipud(path_temp);%flips up/down so that the ending point is hte last part of the array
-        else % the normal case, hill climbing with fixed start and end points
-            disp('hill climbing');
-            path_part(1:C_area,:,j) = hill_climbing(m_current,n_current,current_probs,prob_detect,C_area,spt,ept);
-        end
+        %link the paths together to update current path
+        current_path = link_paths(path_part,current_path, m_current,n_current,m_new, n_new);
+        lower_res_probs = current_res_probs; % update the lower resolution for the next iteration
+        m_old = m_new;
+        n_old = n_new;
     end
-    %link the paths together to update current path
-    current_path = link_paths(path_part,current_path, m_current,n_current);
-    lower_res_probs = current_res_probs; % update the lower resolution for the next iteration
 end
-disp('done');
+%close the file at the end
 %compute the final path sum        
 path_sum = 0;
+disp('plotting')
+background_probs = imread('C:\Users\Eric Cawi\Documents\senior design\ring_test.png');
+min_x = 1;
+max_x = 40;
+min_y = 1;
+max_y = 40;
+figure();
+imagesc([min_x max_x], [min_y max_y], background_probs);
+hold on
+plot(current_path(:,1),current_path(:,2),'-*','linewidth',2.25)
+plot(current_path(1,1),current_path(1,2),'r*','markersize',20)
+quiver(current_path(:,1),current_path(:,2),[current_path(2:end,1)-current_path(1:end-1,1);0],[current_path(2:end,2)-current_path(1:end-1,2);0],'linewidth',2.5)
+xlabel('x','fontsize',14)
+ylabel('y','fontsize',14)
+title('Search Path overlaid onto the probability matrix','fontsize',20)
 for j = 1:length(current_path(:,1))
     path_sum = path_sum + prob_detect*current_res_probs(current_path(j,2), current_path(j,1));
     current_res_probs(current_path(j,2), current_path(j,1)) = current_res_probs(current_path(j,2), current_path(j,1))*(1-prob_detect);
 end
+strsum = sprintf('total probability covered: %f', path_sum);
+fprintf(fid,'\r\n%s \r\n',strsum);
+fclose(fid);
 
+disp('done');
+%note, for the output file, the indices are presented as python compatible,
+%for further matlab stuff you'll have to add 1 to every array
