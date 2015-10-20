@@ -1,0 +1,48 @@
+\documentclass[]{article}
+
+%opening
+\title{Modeling Lost Person Movement as Diffusion based on elevation and land cover}
+\author{Eric Cawi}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+This work creates a model for lost person movement based on gas diffusion. to be filled in
+\end{abstract}
+\tableofcontents
+
+\section{Create Working Gas Model}
+Burgess and Darken created a simple gas diffusion model to create avenues of approach. \textbf{Insert diagram here}. First, the area is divided into cells. Then the elevation data is transformed onto the interval $[0,.25]$, which represents the maximum transfer of gas from that cell to the another cell. For example, a cell with a value of .25 and a concentration of 1 (units) can transfer up to .25 of it's gas to each of the four neighboring cells. This ensures the conservation of concentration in the simulation. This simulation also allows for sources and sinks to be placed at arbitrary grid cells. Burgess and Darken run this simulation until a relative equilibrium is reached (mathematically taking the limit as time goes to infinity), and then use the gradient of the final concentration to generate possible paths of approach for military applications. Note-using the gradient to generate the avenues of approach is solving the transport equation-hard to solve numerically.
+
+For search and rescue, I am more interested in the final gas concentration. Modeling the last known point as a source, the gas model simulates the overall movement of many hikers from the last known point (assertion, want to prove this). I use the source because it models a spike of probability at the LKP, and as B/D used originally it represents a continuous stream of people moving around the material
+
+In this model, I use elevation/land cover data as the speed at which the gas is allowed to propagate. Because the arrays involved are very large, I downsample by a factor of 4 on the NED dataset, then resample up to 5001x5001 pixels using Matlab's default interpolation- i think it's bicubic. Currently I'm running out to a huge number of iterations because I haven't calibrated the transformations to match different categories/mean distances yet.
+\section{Transformations from elevation/land cover to impedance}
+Elevation- using Tobler's hiking function
+Land Cover - using 1-Don's values
+\section{Diffusion Equation with source}
+The diffusion equation models the overall random walks of particles diffusing through materials. At each point there is some diffusion constant determining the maximum velocity of the concentration. Mathematically, freely diffusing gas like the Burgess Darken model can be modeled with this equation. In 1-D with a constant diffusion coefficient, the solution is a normal distribution, and generalizations give similarly smooth distributions. In our case the diffusion is given by:
+\[\frac{dc(x,y,t)}{dt}=\nabla \cdot(D(x,y)\nabla c(x,y,t)=\]
+\[(\frac{dD(x,y)}{dx},\frac{dD(x,y)}{dy})\cdot\nabla c(x,y,t) + D(x,y)\Delta c(x,y,t)\]
+Current work: finite difference scheme for this equation.
+\section{Boundary Considerations}
+I'm considering using the boundary of the map as a sink and seeing what happens, or having some other way of modeling the interactions with the outside layer because in the current state we might be getting innaccurate reflection. Boundary conditions will be important for the PDE formulation as well.
+
+\section{Static Model Preliminary Testing}
+Done on 10 arizona cases I had elevation data for. Observations- On flat terrain the concentration behaves like regular diffusion, i.e. a smooth version of the distance rings. Otherwise, it avoids big changes in elevation, as expected. E.g. if a subject doesn't start on a mountain then the mountain will have lower probability. However, a 2 or 3 of the hikers tested were going for the mountain, which makes sense because they were probably trying to hike on the mountain, but this model isn't going to catch that. Fixing this would require more information about the subject, for example "They were heading towards Mt. Awesome when they got lost." Since the odds are they moved in the direction of Mt. Awesome, a sink dropped at the intended location would skew the concentration in that direction. But that isn't available all the time.
+Not done for land cover yet
+\section{Scaling with Bob's Book}
+not done
+\section{Testing/fitting on Yosemite Cases}
+Prediction- lots of mountains in yosemite, so we should see higher probabilities around ridges/trails that stay at the same elevation. I would like to somehow set up this as a batch
+
+\section{Comparison with diffusion Models}
+Compare results and speed.
+\section{Discussion}
+Goal: An easy GIS ready application/A diffusion model that responds to terrain and is about as good as the distance model, which means that the search team now has more information.
+
+
+%Need Citations
+\end{document}
