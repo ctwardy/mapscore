@@ -1,121 +1,151 @@
 #!/usr/env/python
 # models.py
 
-from django.db import models
+
 import math
-import random
 from PIL import Image
-#import Image
-from django import forms
 import numpy as np
-import os
 
-# Create your models here.
+from django.db import models
+from django.contrib.auth.models import User
 
-#----------------------------------------------------------------------------------
-# Define Case Class
+
+
+"""
+Google Static Maps API URLs must be of the following form:
+
+    http://maps.googleapis.com/maps/api/staticmap?parameters
+
+see the docs at: https://developers.google.com/maps/documentation/staticmaps/
+for more details.
+
+Some other marker options::
+
+    "&markers=color:green%7Clabel:A%7c{upleft_lat},{upleft_lon}"
+    "&markers=color:green%7Clabel:B%7c{upright_lat},{upright_lon}"
+    "&markers=color:green%7Clabel:C%7c{downright_lat},{downright_lon}"
+    "&markers=color:green%7Clabel:D%7c{downleft_lat},{downleft_lon}"
+
+"""
+GOOGLE_STATIC_MAPS_URL_TEMPLATE ="\
+http://maps.googleapis.com/maps/api/staticmap?\
+size=500x500&maptype=hybrid&sensor=false\
+&center={lastlat},{lastlon}\
+&path=color:0x0000ff|weight:5|\
+{upleft_lat},{upleft_lon}|\
+{upright_lat},{upright_lon}|\
+{downright_lat},{downright_lon}|\
+{downleft_lat},{downleft_lon}|\
+{upleft_lat},{upleft_lon}\
+&markers=color:red%7Clabel:L%7c{lastlat},{lastlon}"
+
+GOOGLE_STATIC_MAPS_URL_FIND_TEMPLATE = (GOOGLE_STATIC_MAPS_URL_TEMPLATE +
+    "&markers=color:yellow%7Clabel:F%7c{findlat},{findlon}")
 
 class Case(models.Model):
+    country = models.CharField(max_length=50)
+    state = models.CharField(max_length=50)
+    county = models.CharField(max_length=50)
+    populationdensity = models.CharField(max_length=50)
+    weather = models.CharField(max_length=50)
 
-    # Define Database Table Fields
-    #input parameters
-    country = models.CharField(max_length = 50)
-    state =  models.CharField(max_length = 50)
-    county = models.CharField(max_length = 50)
-    populationdensity = models.CharField(max_length = 50)
-    weather = models.CharField(max_length = 50)
+    lastlat = models.CharField(max_length=50)
+    lastlon = models.CharField(max_length=50)
+    findlat = models.CharField(max_length=50)
+    findlon = models.CharField(max_length=50)
 
-    lastlat = models.CharField(max_length = 50)
-    lastlon = models.CharField(max_length = 50)
-    findlat = models.CharField(max_length = 50)
-    findlon = models.CharField(max_length = 50)
-    case_name = models.CharField(max_length = 50)
-    Age = models.CharField(max_length = 100)
-    Sex = models.CharField(max_length = 100)
-    key = models.CharField(max_length = 50)
-    subject_category = models.CharField(max_length = 50)
-    subject_subcategory = models.CharField(max_length = 50)
-    scenario  = models.CharField(max_length = 50)
-    subject_activity = models.CharField(max_length = 50)
-    number_lost = models.CharField(max_length = 50)
-    group_type = models.CharField(max_length = 50)
-    ecoregion_domain = models.CharField(max_length = 50)
-    ecoregion_division = models.CharField(max_length = 50)
-    terrain = models.CharField(max_length = 50)
-    total_hours = models.CharField(max_length = 50)
-    notify_hours = models.CharField(max_length = 50)
-    search_hours = models.CharField(max_length = 50)
-    comments = models.CharField(max_length = 5000)
-    LayerField = models.CharField(max_length = 50)
+    case_name = models.CharField(max_length=50)
+    Age = models.CharField(max_length=100)
+    Sex = models.CharField(max_length=100)
+    key = models.CharField(max_length=50)
+
+    subject_category = models.CharField(max_length=50)
+    subject_subcategory = models.CharField(max_length=50)
+    subject_activity = models.CharField(max_length=50)
+
+
+    scenario = models.CharField(max_length=50)
+    number_lost = models.CharField(max_length=50)
+    group_type = models.CharField(max_length=50)
+
+    ecoregion_domain = models.CharField(max_length=50)
+    ecoregion_division = models.CharField(max_length=50)
+    terrain = models.CharField(max_length=50)
+
+    total_hours = models.CharField(max_length=50)
+    notify_hours = models.CharField(max_length=50)
+    search_hours = models.CharField(max_length=50)
+
+    comments = models.CharField(max_length=5000)
+    LayerField = models.CharField(max_length=50)
     UploadedLayers = models.BooleanField()
 
-    # Other items
     showfind = models.BooleanField()
-    upright_lat = models.CharField(max_length = 30)
-    upright_lon = models.CharField(max_length = 30)
-    downright_lat = models.CharField(max_length = 30)
-    downright_lon = models.CharField(max_length = 30)
-    upleft_lat = models.CharField(max_length = 30)
-    upleft_lon = models.CharField(max_length = 30)
-    downleft_lat = models.CharField(max_length = 30)
-    downleft_lon = models.CharField(max_length = 30)
-    findx = models.CharField(max_length = 10)
-    findy = models.CharField(max_length = 10)
+    upright_lat = models.CharField(max_length=30)
+    upright_lon = models.CharField(max_length=30)
+    downright_lat = models.CharField(max_length=30)
+    downright_lon = models.CharField(max_length=30)
+    upleft_lat = models.CharField(max_length=30)
+    upleft_lon = models.CharField(max_length=30)
+    downleft_lat = models.CharField(max_length=30)
+    downleft_lon = models.CharField(max_length=30)
+    findx = models.CharField(max_length=10)
+    findy = models.CharField(max_length=10)
 
-    sidecellnumber = models.CharField(max_length = 30)
-    totalcellnumber = models.CharField(max_length = 30)
+    sidecellnumber = models.CharField(max_length=30)
+    totalcellnumber = models.CharField(max_length=30)
 
-    URL = models.CharField(max_length = 1000)
-    URLfind = models.CharField(max_length = 1000)
+    URL = models.CharField(max_length=1000)
+    URLfind = models.CharField(max_length=1000)
 
-    horstep = models.CharField(max_length = 30)
-    verstep = models.CharField(max_length = 30)
+    horstep = models.CharField(max_length=30)
+    verstep = models.CharField(max_length=30)
+
+    class Meta:
+        db_table = 'mapscore_case'
 
     def GreatSphere(self,LatIn):
-        '''Calculate the longitude cellsize at this latitude.
+        """Calculate the longitude cellsize at this latitude.
         Uses a Great Sphere approximation.
 
-        '''
+        """
 
-        Lat = math.radians(float(LatIn))
+        lat = math.radians(float(LatIn))
+        distance_traveled = 5
+        earth_radius_meters = 6372.8 * 1000
 
-        # d = distance translated
-        d = 5
-        # a = earth radius in meters
-        a = 6372.8 *1000
-
-        num = 1 - math.cos(d/a)
-        denom = math.pow(math.cos(Lat),2)
-        full = 1 - (num/denom)
+        num = 1 - math.cos(distance_traveled / earth_radius_meters)
+        denom = math.pow(math.cos(lat), 2)
+        full = 1 - (num / denom)
         rad_diff = math.acos(full)
-        degree_diff = math.degrees(rad_diff)
 
-        return degree_diff
+        return math.degrees(rad_diff)
 
-
-    # Define Initialization Method
     def initialize(self):
-
         SideLength_km_ex = 25         # length of bounding box in km
         cellside_m = 5                # length of cell (pixel) in m
         SideLength_m_ex = SideLength_km_ex * 1000
         self.sidecellnumber = SideLength_m_ex/cellside_m + 1
-        self.totalcellnumber = math.pow(self.sidecellnumber,2)
-        LastLat = float(self.lastlat)
-        LastLon = float(self.lastlon)
-        FindLat = float(self.findlat)
-        FindLon = float(self.findlon)
+        self.totalcellnumber = math.pow(self.sidecellnumber, 2)
+        last_lat = float(self.lastlat)
+        last_lon = float(self.lastlon)
+        find_lat = float(self.findlat)
+        find_lon = float(self.findlon)
 
         #Generate boundary Coordinates
-        Hor_step = self.GreatSphere(LastLat)
+        hor_step = self.GreatSphere(last_lat)
         ver_step = float(cellside_m) / 111122.19769903777
-        self.horstep = Hor_step
+        self.horstep = hor_step
         self.verstep = ver_step
 
-        rightbound = LastLon + Hor_step/2 + ((SideLength_m_ex/cellside_m)/2)*Hor_step
-        leftbound = LastLon - Hor_step/2 - ((SideLength_m_ex/cellside_m)/2)*Hor_step
-        upbound = LastLat +  ver_step/2 + ((SideLength_m_ex/cellside_m)/2)*ver_step
-        lowbound = LastLat -  ver_step/2 - ((SideLength_m_ex/cellside_m)/2)*ver_step
+        val = (SideLength_m_ex / cellside_m) / 2
+        hor_scale = val * hor_step
+        ver_scale = val * ver_step
+
+        rightbound = last_lon + (hor_step / 2) + hor_scale
+        leftbound = last_lon - (hor_step / 2) - hor_scale
+        upbound = last_lat + (ver_step / 2) + ver_scale
+        lowbound = last_lat - (ver_step / 2) - ver_scale
 
         # Corners
         self.upright_lat = upbound
@@ -145,24 +175,22 @@ class Case(models.Model):
         # for i in (range(self.sidecellnumber)):
         #     LatList.append(LatList[i] - ver_step)
 
-
         # Screen Coords of FindLoc, with (0,0) in the top left
-        self.findx = int((FindLon - leftbound) / Hor_step)
-        self.findy = int((upbound - FindLat) / ver_step)
-
+        self.findx = int((find_lon - leftbound) / hor_step)
+        self.findy = int((upbound - find_lat) / ver_step)
         self.generate_image_url()
 
         # We used to show FindLoc only for the first 20 trials
         # but right now we are always showing it.
         #if self.id <= 20:
         #    self.showfind = True
-
         self.showfind = True
 
         # Try to fill in a missing Total_Time
         if str(self.total_hours).lower() == 'unknown':
             try:
-                self.total_hours = float(self.notify_hours) + float(self.search_hours)
+                self.total_hours = (float(self.notify_hours) +
+                                    float(self.search_hours))
             except ValueError:
                 pass
 
@@ -170,76 +198,38 @@ class Case(models.Model):
         self.LayerField  = "Layers/%s_%s.zip" % (self.id, self.case_name)
         self.UploadedLayers = False
 
-
-#----------------------------------------------------------------------------------
     def generate_image_url(self):
-        '''Generates image URL using Google Maps
-        '''
-        sidepixels = 500
-        #Generate url
-        url = 'http://maps.google.com/maps/api/staticmap?center='
-        url = url + str(self.lastlat) + ',' + str(self.lastlon)
-        url = url + '&size=' + str(sidepixels) +'x' + str(sidepixels)
-        url = url + '&path=color:0x0000ff|weight:5'
-        url = url + '|' + str(self.upleft_lat) + ',' +str(self.upleft_lon) + '|'
-        url = url + str(self.upright_lat) + ',' +str(self.upright_lon) + '|'
-        url = url + str(self.downright_lat) + ',' +str(self.downright_lon) + '|'
-        url = url + str(self.downleft_lat) + ',' +str(self.downleft_lon)
-        url = url + '|' + str(self.upleft_lat) + ',' +str(self.upleft_lon)
-        url = url + "&markers=color:red%7Clabel:L%7c" + str(self.lastlat) + ',' + str(self.lastlon)
-        #url = url + "&markers=color:green%7Clabel:A%7c" + str(self.upleft_lat) + ',' +str(self.upleft_lon)
-        #url = url + "&markers=color:green%7Clabel:B%7c" + str(self.upright_lat) + ',' +str(self.upright_lon)
-        #url = url +   "&markers=color:green%7Clabel:C%7c" + str(self.downright_lat) + ',' +str(self.downright_lon)
-        #url = url +   "&markers=color:green%7Clabel:D%7c" + str(self.downleft_lat) + ',' +str(self.downleft_lon)
-
-        URLfind = url +  "&markers=color:yellow%7Clabel:F%7c" + str(self.findlat) + ',' +str(self.findlon)
-
-
-
-        url = url + '&maptype=hybrid&sensor=false'
-        URLfind = URLfind + '&maptype=hybrid&sensor=false'
-        self.URL = url
-        self.URLfind = URLfind
-
-
-
-#----------------------------------------------------------------------------------
-# Define Test Class
+        """Generates image URL using Google Maps """
+        attrs = self.__dict__
+        self.URL = GOOGLE_STATIC_MAPS_URL_TEMPLATE.format(**attrs)
+        self.URLfind = GOOGLE_STATIC_MAPS_URL_FIND_TEMPLATE.format(**attrs)
 
 
 class Test(models.Model):
 
-    # Define Database Table Fields
     test_case = models.ForeignKey(Case)
-    test_name = models.CharField(max_length = 30)
-    test_rating = models.CharField(max_length = 10)
-    Active = models.BooleanField()
-    ID2 = models.CharField(max_length = 100)
-    nav = models.CharField(max_length = 2)
-    show_instructions = models.BooleanField()
+    test_name = models.CharField(max_length=30)
+    test_rating = models.CharField(max_length=10, default='unrated')
+    active = models.BooleanField(default=False)
+    ID2 = models.CharField(max_length=100)
+    nav = models.CharField(max_length=2, default=0)
+    show_instructions = models.BooleanField(default=True)
 
     Validated = models.BooleanField()
+    test_url = models.CharField(max_length=300)
+    test_url2 = models.CharField(max_length=300)
+    grayscale_path = models.CharField(max_length=300)
+    grayrefresh = models.CharField(max_length=10, default=0)
 
-    test_url = models.CharField(max_length = 300)
-    test_url2 = models.CharField(max_length = 300)
-    grayscale_path = models.CharField(max_length = 300)
-    grayrefresh =  models.CharField(max_length = 10)
+    class Meta:
+        db_table = 'test'
+
+    # TODO: Figure out why this is return str type?
     def __unicode__(self):
         return str(self.test_name)
-    def setup(self):
-        self.grayrefresh = 0
-        self.test_rating = 'unrated'
-        self.Active = False
-        self.nav = 0
-        self.show_instructions = True
-        self.save()
 
-
-    #.........................................................................................
-    # Rating scripts
-    #.........................................................................................
     def getmap(self):
-        '''Load the image and force it to be grayscale.
+        """Load the image and force it to be grayscale.
            Return a values as a (5001,5001) numpy array.
            This should be faster than the old 'for' loop checking pixels for RGB.
 
@@ -248,14 +238,14 @@ class Test(models.Model):
              * Can we open direct to numpy array and avoid second conversion?
              * What if Image throws and exception?
 
-        '''
-        Path = self.grayscale_path
-        Im = Image.open(Path).convert(mode="L")
-        values = np.array(Im.getdata())
-        return values.reshape((5001,5001))
+        """
+        path = self.grayscale_path
+        img = Image.open(path).convert(mode="L")
+        values = np.array(img.getdata())
+        return values.reshape((5001, 5001))
 
     def rate(self):
-        '''Scores the image using Rossmo's metric: r = (n+.5m)/N; R = (.5-r)/.5
+        """Scores the image using Rossmo's metric: r = (n+.5m)/N; R = (.5-r)/.5
 
         We assume each pixel has the probability for that cell, or at least a
         value monotonically related to the probability.
@@ -277,25 +267,24 @@ class Test(models.Model):
          * Replaced inefficient loop with numpy ops. Thanks msonwalk for template!
          * Handled case where findloc is outside the image. (ROW)
 
-        '''
+        """
         x,y = int(self.test_case.findx), int(self.test_case.findy)
         values = self.getmap()            # a numpy array
-        N = np.size(values)                # num pixels
+        N = np.size(values)               # num pixels
         assert(N == 5001*5001)
 
-
         if (0 <= x <= 5000) and (0 <= y <= 5000):
-            p = values[x,y]                # prob at find location
+            p = values[x, y]              # prob at find location
             n = np.sum(values > p)        # num pixels > p
-            m = np.sum(values == p)        # num pixels == p
-            r = (n + m/2.)/N            # Uses decimal to force float division
+            m = np.sum(values == p)       # num pixels == p
+            r = (n + m / 2.) / N            # Uses decimal to force float division
         else:
-            p = 1. - np.sum(values)        # prob for ROW
+            p = 1. - np.sum(values)       # prob for ROW
             if p < 0 or p > 1:            # model didn't consider ROW
-                p = .05                    # assume 5% for ROW
-            r = 1-p                        # Assume we search bbox before ROW
+                p = .05                   # assume 5% for ROW
+            r = 1 - p                       # Assume we search bbox before ROW
 
-        R = (.5-r)/.5                    # Rescale to -1..1
+        R = (.5 - r) / .5                 # Rescale to -1..1
 
         # Store result and update model
         self.test_rating = round(R,6)
@@ -303,100 +292,88 @@ class Test(models.Model):
         self.model_set.all()[0].update_rating()
         return 0                        # could return r,R
 
-#----------------------------------------------------------------------------------
-# Define Model Class
-
-
 
 class Model(models.Model):
-    '''A Model has a name, description, and scores on its test cases.'''
+    """A Model has a name, description, and scores on its test cases."""
 
-    # Define Database Table Fields
-    Completed_cases = models.CharField(max_length = 30)
-    model_nameID = models.CharField(max_length = 30)
+    completed_cases = models.IntegerField(max_length=30, default=0)
+    name_id = models.CharField(max_length=30)
     #gridvalidated = models.BooleanField()
-    model_tests = models.ManyToManyField(Test, through = 'Test_Model_Link')
-    model_avgrating = models.CharField(max_length = 10)
-    ID2 = models.CharField(max_length = 100)
-    Description = models.TextField()
+    tests = models.ManyToManyField(Test, through='TestModelLink')
+    avgrating = models.CharField(max_length=10, default='unrated')
+    ID2 = models.CharField(max_length=100)
+    description = models.TextField()
 
-
-    def setup(self):
-        '''Models start out unrated.'''
-        self.model_avgrating = 'unrated'
-        self.Completed_cases = 0
-        #self.gridvalidated = False
-        # Save
-        self.save()
+    class Meta:
+        db_table = 'model'
 
     def update_rating(self):
-        '''Recalculate the model's ratings, ignoring any Active tests.
-        If there are no completed tests, sets model_avgrating to 'unrated'.
-        '''
+        """Recalculate the model's ratings, ignoring any active tests.
+        If there are no completed tests, sets avgrating to 'unrated'.
+        """
         counter = 0
-        add = float(0)
-        tests = [x for x in self.model_tests.all() if x.Active == False]
-        if len(tests) == 0:
-            self.model_avgrating = 'unrated'
+        add = 0.0
+        tests = [x for x in self.tests.all() if x.active == False]
+        if not tests:
+            self.avgrating = 'unrated'
         else:
             ratings = [float(t.test_rating) for t in tests]
-            self.model_avgrating = round(np.average(ratings), 5)
+            self.avgrating = round(np.average(ratings), 5)
+
         self.save()
-
-
-
-#----------------------------------------------------------------------------------
-# Define Account Class
 
 
 class Account(models.Model):
-
-    # Define Database Table Fields
-    sessionticker = models.CharField(max_length = 30)
-    completedtests = models.CharField(max_length = 30)
-    photolocation = models.CharField(max_length = 30)
-    photourl = models.CharField(max_length = 30)
-    institution_name = models.CharField(max_length = 40)
-    firstname_user = models.CharField(max_length = 30)
-    lastname_user = models.CharField(max_length = 30)
-    username = models.CharField(max_length = 30)
-    password  = models.CharField(max_length = 30)
-    account_models = models.ManyToManyField(Model, through = 'Model_Account_Link')
-    Email = models.EmailField()
+    username = models.CharField(max_length=30)
+    institution_name = models.CharField(max_length=40)
     Website = models.URLField()
-    ID2 = models.CharField(max_length = 100)
-    photosizex = models.CharField(max_length = 10)
-    photosizey = models.CharField(max_length = 10)
-    deleted_models = models.CharField(max_length = 10)
-    profpicrefresh =  models.CharField(max_length = 10)
 
-#----------------------------------------------------------------------------------
+    photosizex = models.IntegerField(default=0)
+    photosizey = models.IntegerField(default=0)
+    photolocation = models.CharField(max_length=30)
+    photourl = models.CharField(max_length=30)
+
+    account_models = models.ManyToManyField(Model, through='ModelAccountLink')
+    ID2 = models.CharField(max_length=100)
+
+    sessionticker = models.IntegerField(default=0)
+    completedtests = models.IntegerField(default=0)
+    deleted_models = models.IntegerField(default=0)
+    profpicrefresh = models.IntegerField(default=0)
+
+    class Meta:
+        db_table = 'account'
 
 
-class Model_Account_Link(models.Model):
-
+class ModelAccountLink(models.Model):
     account = models.ForeignKey(Account)
     model = models.ForeignKey(Model)
 
-#------------------------------------------------------------------------------------
+    class Meta:
+        db_table = "model_account_link"
 
-class Test_Model_Link(models.Model):
 
+class TestModelLink(models.Model):
     test = models.ForeignKey(Test)
     model = models.ForeignKey(Model)
-#---------------------------------------------------------------------------------
+
+    class Meta:
+        db_table = 'test_model_link'
 
 
 class Mainhits(models.Model):
-    hits = models.CharField(max_length = 10)
+    hits = models.IntegerField(max_length=10, default=0)
 
-    def setup(self):
-        self.hits = 0
-#----------------------------------------------------------------------------------
-class terminated_accounts(models.Model):
-    username = models.CharField(max_length = 30)
-    sessionticker = models.CharField(max_length = 30)
-    completedtests = models.CharField(max_length = 30)
-    institution_name = models.CharField(max_length = 30)
-    modelsi = models.CharField(max_length = 30)
-    deleted_models = models.CharField(max_length = 10)
+    class Meta:
+        db_table = 'mainhits'
+
+class TerminatedAccounts(models.Model):
+    username = models.CharField(max_length=30)
+    sessionticker = models.CharField(max_length=30)
+    completedtests = models.CharField(max_length=30)
+    institution_name = models.CharField(max_length=30)
+    modelsi = models.CharField(max_length=30)
+    deleted_models = models.CharField(max_length=10)
+
+    class Meta:
+        db_table = 'terminated_accounts'

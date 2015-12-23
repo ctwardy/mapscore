@@ -3,21 +3,23 @@
 # -*- mode: python -*-
 # -*- py-indent-offset: 4 -*-
 
-# MapScore main views file
+"""
+MapScore main views file
+
+"""
 
 # Import standard library modules
-import random
-import math
+import os
+import re
 import shutil
 import csv
-import os
-import string
-import numpy as np
 import sys
 import cStringIO
-import time
-import re
-import os
+import zipfile
+
+# Other 3rd-party Imports
+import numpy as np
+from PIL import Image
 
 # Import Django modules and functions
 from django.contrib.auth.decorators import login_required
@@ -29,42 +31,35 @@ from django.shortcuts import redirect
 from django.core.mail import send_mail
 from django.core import exceptions
 from django.core.files.move import file_move_safe
-from operator import itemgetter, attrgetter
+from operator import attrgetter
 from django.template import RequestContext
+from django.core.context_processors import csrf
+
 
 # Import mapscore Django models
 from mapscore.framework.models import Account
 from mapscore.framework.models import Test
 from mapscore.framework.models import Case
 from mapscore.framework.models import Model
-from mapscore.framework.models import Model_Account_Link
-from mapscore.framework.models import Test_Model_Link
+from mapscore.framework.models import ModelAccountLink
+from mapscore.framework.models import TestModelLink
 from mapscore.framework.models import Mainhits
-from mapscore.framework.models import terminated_accounts
-
-from PIL import Image
-import zipfile
-from django.core.servers.basehttp import FileWrapper
-from django.core.context_processors import csrf
+from mapscore.framework.models import TerminatedAccounts
 from mapscore.forms import ZipUploadForm
 
 # User-uploaded content
 MEDIA_DIR = 'media/'
 USER_GRAYSCALE = MEDIA_DIR
 
-# To print to the console, use:
-# print >> sys.stderr, 'Hello world!'
-
-
 ######################################## Helper functions ########################################
 
 def get_sorted_models(all_models, condition=lambda model: True):
     ''' Return list of rated models, highest-rated first.
-        Uses model_avgrating attribute and operator.attrgetter method. '''
+        Uses avgrating attribute and operator.attrgetter method. '''
 
     rated_models = list(model for model in all_models
-        if model.model_avgrating != 'unrated' and condition(model))
-    return sorted(rated_models, key=attrgetter('model_avgrating'), reverse=True)
+        if model.avgrating != 'unrated' and condition(model))
+    return sorted(rated_models, key=attrgetter('avgrating'), reverse=True)
 
 
 def confidence_interval(scores):
@@ -91,9 +86,9 @@ def confidence_interval(scores):
 
 
 def check_account_fields(fields, new_user=True):
-    ''' Validate all user field changes by checking them against their respective regexes.
+    """ Validate all user field changes by checking them against their respective regexes.
         Ensure that no two accounts have the same username if creating a new user.
-        Ensure that the password confirmation matches. '''
+        Ensure that the password confirmation matches. """
 
     regexes = {
         'first_name' : r'^.+$',
@@ -116,7 +111,7 @@ def check_account_fields(fields, new_user=True):
         del(good_fields['password2'])
     account_unames = Account.objects.values_list('username', flat=True)
     user_unames = User.objects.values_list('username', flat=True)
-    term_account_unames = terminated_accounts.objects.values_list('username', flat=True)
+    term_account_unames = TerminatedAccounts.objects.values_list('username', flat=True)
     if 'username' in good_fields and new_user and (
         uname in account_unames or uname in user_unames or uname in term_account_unames):
         del(good_fields['username'])
@@ -154,19 +149,19 @@ def set_prof_pic(account, tmp_img=None):
 
 
 def set_account_fields(fields, account, user):
-    ''' Given a dictionary of valid fields, update the account and user objects. '''
+    """ Given a dictionary of valid fields, update the account and user objects. """
 
-    first_name, last_name, email = fields['first_name'], fields['last_name'], fields['email']
-    institution, website = fields['institution'], fields['website']
-    username, password = fields['username'], fields['password1']
-    account.firstname_user, account.lastname_user, account.Email = first_name, last_name, email
-    account.institution_name, account.Website = institution, website
-    account.username, account.password = username, password
-    account.save()
-    user.first_name, user.last_name, user.email = first_name, last_name, email
-    user.username = username
-    user.set_password(password)
+    user.username = fields['username']
+    user.first_name = fields['first_name']
+    user.last_name = fields['last_name']
+    user.email = fields['email']
+    user.set_password(fields['password1'])
     user.save()
+
+    account.username = user.username
+    account.institution_name =  fields['institution']
+    account.website = fields['website']
+    account.save()
 
 
 def show_find_pt(URL2):
@@ -209,15 +204,14 @@ def create_test(model, case):
 
     # Overwrite an existing test
     if findtest != None:
-        OldLink = Test_Model_Link.objects.get(test = findtest.id)
+        OldLink = TestModelLink.objects.get(test = findtest.id)
         OldLink.delete()
         findtest.delete()
 
     newtest = Test(test_case=case, test_name=case.case_name, ID2=ID2)
     newtest.save()
-    Link = Test_Model_Link(test=newtest, model=model)
+    Link = TestModelLink(test=newtest, model=model)
     Link.save()
-    newtest.setup()
     newtest.save()
     return newtest
 
@@ -225,7 +219,6 @@ def create_test(model, case):
 ######################################## Views ########################################
 
 def base_redirect(response):
-    ''' Go to main. '''
     return redirect('/main/')
 
 
@@ -244,7 +237,6 @@ def main_page(request):
     # Record a hit on the main page
     if len(Mainhits.objects.all()) == 0:
         newhits = Mainhits()
-        newhits.setup()
         newhits.save()
     mainpagehit = Mainhits.objects.all()[0]
     mainpagehit.hits = int(mainpagehit.hits) + 1
@@ -262,12 +254,12 @@ def main_page(request):
     request.session['ActiveAdminCase'] = 'none'
 
     best_models = get_sorted_models(Model.objects.all(),
-        condition=lambda model: len(model.model_tests.all()) >= 5)
+        condition=lambda model: len(model.tests.all()) >= 5)
     best_model_attrs = list([
         model.account_set.all()[0].institution_name,
-        model.model_nameID,
-        model.model_avgrating,
-        len(model.model_tests.all())
+        model.name_id,
+        model.avgrating,
+        len(model.tests.all())
         ] for model in best_models[:10])
 
     input_dict = dict(csrf(request))
@@ -283,7 +275,7 @@ def log_in(request):
     username, password = request.POST.get('username'), request.POST.get('password')
     if not username or not password:
         return incorrect_login(request)
-    elif username in terminated_accounts.objects.values_list('username', flat=True):
+    elif username in TerminatedAccounts.objects.values_list('username', flat=True):
         return error('This account was deleted.')
     else:
         user = auth.authenticate(username=username, password=password)
@@ -318,11 +310,11 @@ def password_reset(request):
     request_to_input(request.session, input_dict, 'error')
     return render_to_response('PasswordReset.html', input_dict)
 
-
+# TODO: Fix password reset so it is more secure and doesn't allow a DoS on users
 def password_reset_submit(request):
-    ''' Given a valid username, set a user's password to a random string.
+    """ Given a valid username, set a user's password to a random string.
         Store plaintext passwords in Account objects because, in the event of an email send failure,
-        User objects only store passwords as a hash, and hashes are non-reversible. '''
+        User objects only store passwords as a hash, and hashes are non-reversible. """
 
     username = request.POST['Username']
     try:
@@ -334,16 +326,15 @@ def password_reset_submit(request):
 
     tmp_passwd = os.urandom(16).encode('base-64')[:-3]
     user.set_password(tmp_passwd)
-    account.password = tmp_passwd
     account.save()
     user.save()
 
     try:
         msg = 'Your new temporary password is: %s' % tmp_passwd
         send_mail(
-            'Temporary MapScore Password', msg, 'mapscore@c4i.gmu.edu', [account.Email], fail_silently=False)
+            'Temporary MapScore Password', msg, 'mapscore@c4i.gmu.edu', [user.email], fail_silently=False)
     except:
-        print >> sys.stderr, 'Attempted to send email to user %s, email %s' % (username, account.Email)
+        print >> sys.stderr, 'Attempted to send email to user %s, email %s' % (username, user.email)
     request.session['info'] = 'Please check your email for the temporary password.'
     return redirect('/main/')
 
@@ -361,9 +352,9 @@ def create_account(request):
 
 
 def create_account_submit(request):
-    ''' Check user field input for correctness.
+    """ Check user field input for correctness.
         Create an account and user if all fields are valid. Otherwise,
-        redirect back to the registration page. '''
+        redirect back to the registration page. """
 
     fields, checks_out = check_account_fields(request.POST)
     captcha = request.POST.get('captcha')
@@ -376,7 +367,7 @@ def create_account_submit(request):
         if 'good_fields' in request.session:
             del(request.session['good_fields'])
 
-        user, account = User(), Account(sessionticker=1, completedtests=0, deleted_models=0, profpicrefresh=0)
+        user, account = User(), Account(sessionticker=1)
         set_account_fields(fields, account, user)
         user.is_active = True
         user.save()
@@ -405,15 +396,16 @@ def edit_account(request):
 
     input_dict, account = dict(csrf(request)), request.session.get('active_account')
     good_fields = request.session.get('good_fields')
+    thisuser = User.objects.get(username=account.username)
     reset_dict = {
-        'first_name' : account.firstname_user,
-        'last_name' : account.lastname_user,
-        'email' : account.Email,
-        'institution' : account.institution_name,
-        'website' : account.Website,
-        'username' : account.username,
-        'password1' : account.password,
-        'password2' : account.password
+        'first_name': thisuser.first_name,
+        'last_name': thisuser.last_name,
+        'email': thisuser.email,
+        'institution': account.institution_name,
+        'website': account.Website,
+        'username': account.username,
+        'password1': "",
+        'password2': ""
     }
     if '/account/' in request.META.get('HTTP_REFERER'):
         good_fields = reset_dict
@@ -433,7 +425,8 @@ def edit_account_submit(request):
     fields, checks_out = check_account_fields(request.POST, new_user=new_user)
 
     old_password = request.POST.get('old_password')
-    if old_password != account.password:
+    #if old_password != account.password:
+    if not request.user.check_password(old_password):
         checks_out = False
 
     if checks_out:
@@ -442,16 +435,16 @@ def edit_account_submit(request):
 
         for model in account.account_models.all():
             s = 'thumb_' + model.ID2.replace(':','_')
-            model.ID2 = account.ID2 + ':' + model.model_nameID
+            model.ID2 = account.ID2 + ':' + model.name_id
             model.save()
-            for test in model.model_tests.all():
+            for test in model.tests.all():
                 test.ID2 = model.ID2 + ':' + test.test_name
                 test.save()
 
             media_files = os.listdir(MEDIA_DIR)
             for media in media_files:
                 if media.startswith(s):
-                    new_loc = MEDIA_DIR + 'thumb_' + model.ID2.replace(':','_') + media[media.find(s) + len(s):]
+                    new_loc = MEDIA_DIR + 'thumb_' + model.ID2.replace(':', '_') + media[media.find(s) + len(s):]
                     shutil.move(MEDIA_DIR + media, new_loc)
 
         new_location = '%sprofpic_%s_%i.png' % (MEDIA_DIR, account.ID2, int(account.profpicrefresh))
@@ -480,8 +473,8 @@ def edit_model(request):
     if 'overwrite' in request.GET:
         input_dict['href'], input_dict['to'] = '/model_menu/', 'model menu'
         input_dict['overwrite'] = request.GET['overwrite']
-        model = request.session['active_account'].account_models.get(model_nameID=request.GET['overwrite'])
-        input_dict['name'], input_dict['desc'] = model.model_nameID, model.Description
+        model = request.session['active_account'].account_models.get(name_id=request.GET['overwrite'])
+        input_dict['name'], input_dict['desc'] = model.name_id, model.description
     if 'name' in request.session:
         input_dict['name'] = request.session['name']
     if 'desc' in request.session:
@@ -503,7 +496,7 @@ def edit_model_submit(request):
         request.session['error'] = \
             'Your model\'s name can only contain letters, numbers, and underscores (no spaces).'
         return redirect('/edit_model/')
-    elif name in account.account_models.values_list('model_nameID', flat=True) and not overwrite:
+    elif name in account.account_models.values_list('name_id', flat=True) and not overwrite:
         request.session['error'] = 'A model named "%s" already exists in the database.' % name
         return redirect('/edit_model/')
     elif re.match(bad_desc_regex, desc):
@@ -512,24 +505,23 @@ def edit_model_submit(request):
     else:
         del(request.session['name'], request.session['desc'])
         if overwrite:
-            old_model = account.account_models.get(model_nameID=overwrite)
+            old_model = account.account_models.get(name_id=overwrite)
             s = 'thumb_' + old_model.ID2.replace(':','_')
-            old_model.model_nameID = name
-            old_model.Description = desc
+            old_model.name_id = name
+            old_model.description = desc
             old_model.ID2 = str(account.ID2) + ':' + name
             old_model.save()
             media_files = os.listdir(MEDIA_DIR)
             for media in media_files:
                 if media.startswith(s):
-                    new_loc = MEDIA_DIR + 'thumb_' + old_model.ID2.replace(':','_') + media[media.find(s) + len(s):]
+                    new_loc = MEDIA_DIR + 'thumb_' + old_model.ID2.replace(':', '_') + media[media.find(s) + len(s):]
                     shutil.move(MEDIA_DIR + media, new_loc)
             request.session['active_model'] = old_model
             request.session['info'] = 'Your model has been successfully edited.'
         else:
-            new_model = Model(model_nameID=name, ID2=str(account.ID2) + ':' + str(name), Description=desc)
-            new_model.setup()
+            new_model = Model(name_id=name, ID2=str(account.ID2) + ':' + str(name), description=desc)
             new_model.save()
-            link = Model_Account_Link(model=new_model, account=account)
+            link = ModelAccountLink(model=new_model, account=account)
             link.save()
             request.session['active_model'] = new_model
             request.session['info'] = 'Your model has been successfully created.'
@@ -545,7 +537,7 @@ def account_access(request):
     request.session['active_model'] = 'none'
 
     account = request.session['active_account']
-    model_list = account.account_models.values_list('model_nameID', flat=True)
+    model_list = account.account_models.values_list('name_id', flat=True)
 
     profpic = request.session['active_account'].photourl
     inputdic = {'Name':request.session['active_account'].institution_name,'modelname_list':model_list ,'profpic':profpic}
@@ -567,8 +559,8 @@ def batch_test_upload(request):
         form = ZipUploadForm(request.POST, request.FILES)
         if form.is_valid():
             case_list = form.process_zip_file()
-            gc = 0 #good count
-            bc = 0 #bad count
+            gc = 0  # good count
+            bc = 0  # bad count
             for index, (path, fname, file_size, model, case, status) in enumerate(case_list):
                 if status == "ready":
                     model_count = Model.objects.filter(ID2=str(request.session['active_account'].ID2 +":"+ model)).count()
@@ -674,7 +666,7 @@ def process_batch_tests(request):
             print >>sys.stderr, 'DEBUG: deleting previous test\n'
             print >>sys.stderr, str(findtest.id) + ":" + str(findtest.ID2)
             #delete the test_model_link first
-            OldLink = Test_Model_Link.objects.get(test = findtest.id)
+            OldLink = TestModelLink.objects.get(test = findtest.id)
             OldLink.delete()
             #then delete existing test
             findtest.delete()
@@ -686,10 +678,9 @@ def process_batch_tests(request):
 
         newtest.save()
 
-        Link = Test_Model_Link( test = newtest,
+        Link = TestModelLink( test = newtest,
                     model = a_model)
         Link.save()
-        newtest.setup()
         newtest.save()
 
         # copy grayscale from temp to media for storage
@@ -749,10 +740,10 @@ def model_access(request):
     # If not coming from Account
     if request.session['active_model'] != 'none':
         account_name = request.session['active_account'].institution_name
-        model_name = request.session['active_model'].model_nameID
-        AllTests = request.session['active_model'].model_tests.all()
+        model_name = request.session['active_model'].name_id
+        AllTests = request.session['active_model'].tests.all()
 
-        rating = request.session['active_model'].model_avgrating
+        rating = request.session['active_model'].avgrating
         input_dic = {'rating':rating,'Name_act':account_name, 'Name_m':model_name}
 
         # If incorrect completed test entered
@@ -773,11 +764,11 @@ def model_access(request):
             request.session['active_model'] = Model.objects.get(ID2 = str(request.session['active_account'].ID2) + ':' + str(selection))
 
             account_name = request.session['active_account'].institution_name
-            model_name = request.session['active_model'].model_nameID
+            model_name = request.session['active_model'].name_id
 
-            AllTests = request.session['active_model'].model_tests.all()
+            AllTests = request.session['active_model'].tests.all()
 
-            rating = request.session['active_model'].model_avgrating
+            rating = request.session['active_model'].avgrating
             input_dic = {'rating':rating,'Name_act':account_name, 'Name_m':model_name}
 
 
@@ -803,11 +794,12 @@ def admin_log_in(request):
 
     # Verify user
     auth.logout(request)
-    user = auth.authenticate(username = User_in , password = Pass_in)
-    auth.login(request, user)
+    user = auth.authenticate(username=User_in, password=Pass_in)
+
 
     # User exists
     if user is not None:
+        auth.login(request, user)
         if user.is_superuser == True:
             request.session['admintoken'] = True
             request.session['admin_name'] = User_in
@@ -924,7 +916,7 @@ def evaluate(request):
         print >>sys.stderr, 'DEBUG: deleting previous test\n'
         print >>sys.stderr, str(findtest.id) + ":" + str(findtest.ID2)
         #delete the test_model_link first
-        OldLink = Test_Model_Link.objects.get(test = findtest.id)
+        OldLink = TestModelLink.objects.get(test = findtest.id)
         OldLink.delete()
         #then delete existing test
         findtest.delete()
@@ -938,7 +930,7 @@ def evaluate(request):
     test.save()
     model.update_rating()
     # removing below to derive the completed count from a query
-    #model.Completed_cases = int(model.Completed_cases) + 1
+    #model.completed_cases = int(model.completed_cases) + 1
     model.save()
     os.remove(path)
     #account.completedtests = int(account.completedtests) + 1
@@ -947,7 +939,7 @@ def evaluate(request):
 
     request.session['info'] = \
         'Congratulations! The %s model has been successfully rated on the %s case.' % (
-        model.model_nameID, case.case_name)
+        model.name_id, case.case_name)
     return redirect('/completed_test/?name=%s' % case.case_name)
 
 
@@ -955,13 +947,13 @@ def evaluate(request):
 def completed_test(request):
     test_name = str(request.GET.get('name')).strip()
     completed_lst = list(test.test_name for test in
-        request.session['active_model'].model_tests.all() if not test.Active)
+        request.session['active_model'].tests.all() if not test.active)
 
     if test_name not in completed_lst:
         request.session['error'] = 'The test that you requested does not exist.'
         return redirect('/model_menu/')
 
-    active_test = request.session['active_model'].model_tests.get(test_name=test_name)
+    active_test = request.session['active_model'].tests.get(test_name=test_name)
     active_case = active_test.test_case
     input_dict = case_to_dict(active_case)
     input_dict['rating'] = str(active_test.test_rating)
@@ -972,7 +964,7 @@ def completed_test(request):
 @login_required
 def leaderboard(request):
     input_dict = dict(csrf(request))
-    models = list(Model.objects.filter(Completed_cases__gt=0))
+    models = list(Model.objects.filter(completed_cases__gt=0))
     filter_choice = request.POST.get('filter')
 
     instname = lambda model: model.account_set.all()[0].institution_name
@@ -980,8 +972,8 @@ def leaderboard(request):
         model_data, case_name = list(), request.POST.get('case_name')
         for model in models:
             try:
-                test = model.model_tests.get(test_name=case_name, Active=False)
-                model_data.append((instname(model), model.model_nameID,
+                test = model.tests.get(test_name=case_name, active=False)
+                model_data.append((instname(model), model.name_id,
                     round(float(test.test_rating), 3), '', 1))
             except Test.DoesNotExist:
                 pass
@@ -989,24 +981,24 @@ def leaderboard(request):
     elif filter_choice == 'category':
         model_data, category = list(), request.POST.get('case_category')
         for model in models:
-            all_tests = model.model_tests.filter(Active=False)
+            all_tests = model.tests.filter(active=False)
             valid_tests = list(test for test in all_tests if test.test_case.subject_category == category)
             if len(valid_tests) > 0:
                 scores = list(float(test.test_rating) for test in valid_tests)
                 lowerbound, upperbound = (-1, 1) if len(scores) == 1 else confidence_interval(scores)
-                model_data.append((instname(model), model.model_nameID,
+                model_data.append((instname(model), model.name_id,
                     round(sum(scores) / len(scores), 3), '[%5.3f, %5.3f]' % (lowerbound, upperbound), len(scores)))
         input_dict['msg'] = 'of category "%s"' % category
     else:
         model_data = list()
         for model in models:
-            all_tests = model.model_tests.filter(Active=False)
+            all_tests = model.tests.filter(active=False)
             scores = list(float(test.test_rating) for test in all_tests)
             lowerbound, upperbound = (-1, 1)
             if len(scores) > 1:
                 lowerbound, upperbound = confidence_interval(scores)
-            model_data.append((instname(model), model.model_nameID,
-                round(float(model.model_avgrating), 3), '[%5.3f, %5.3f]' % (lowerbound, upperbound), len(model.model_tests.all())))
+            model_data.append((instname(model), model.name_id,
+                round(float(model.avgrating), 3), '[%5.3f, %5.3f]' % (lowerbound, upperbound), len(model.tests.all())))
 
     input_dict['case_names'] = Case.objects.values_list('case_name', flat=True)
     input_dict['case_categories'] = set(case.subject_category for case in Case.objects.all())
@@ -1026,10 +1018,10 @@ def Leader_model(request):
         account = model.account_set.all()[0]
         institution = account.institution_name
         username = account.username
-        name = model.model_nameID
-        rating = float(model.model_avgrating)
-        tests = model.model_tests.all()
-        finished_tests = [test for test in tests if not test.Active]
+        name = model.name_id
+        rating = float(model.avgrating)
+        tests = model.tests.all()
+        finished_tests = [test for test in tests if not test.active]
         N = len(finished_tests)
         scores = [float(x.test_rating) for x in finished_tests]
 
@@ -1139,7 +1131,7 @@ def switchboard_totest(request):
 
     # If entry is valid
     all_tests = Test.objects.all()
-    matched_tests = [test for test in all_tests if test.test_name == casename and not test.Active]
+    matched_tests = [test for test in all_tests if test.test_name == casename and not test.active]
     sorted_tests = sorted(matched_tests,
                           key=attrgetter('test_rating'),
                           reverse=True)
@@ -1151,10 +1143,10 @@ def switchboard_totest(request):
         inputlist.append(
             # TODO: No field institution_name.  Fields are:
             # account_set, clean_fields, gridvalidated, id, model_account_link_set,
-            # model_avgrating, model_nameID, model_tests, test_model_link_set,
+            # avgrating, name_id, tests, test_model_link_set,
             # update_rating, validate_unique
             [test.model_set.all()[0].institution_name,
-             test.model_set.all()[0].model_nameID,
+             test.model_set.all()[0].name_id,
              test.test_name,
              test.test_rating,
              test.model_set.all()[0].account_set.all()[0].username])
@@ -1210,11 +1202,11 @@ def testcaseshow(request):
 
     Completed_list = []
     for i in list(Account.account_models.all()):
-        name =    'Model Name: ' + str(i.model_nameID)
+        name =    'Model Name: ' + str(i.name_id)
         lst = []
         lst.append(name)
-        for j in list(i.model_tests.all()):
-            if not j.Active:
+        for j in list(i.tests.all()):
+            if not j.active:
                 lst.append(str( j.test_name))
 
         Completed_list.append(lst)
@@ -1261,8 +1253,8 @@ def return_leader(request):
 @login_required
 def completedtest_info(request):
     completed_lst = []
-    for i in list(request.session['active_model'].model_tests.all()):
-        if not i.Active:
+    for i in list(request.session['active_model'].tests.all()):
+        if not i.active:
             thumb = MEDIA_DIR + "thumb_" + str(i.ID2).replace(':','_') + ".png"
             completed_lst.append({'test_name':i.test_name, 'test_rating':i.test_rating, 'thumb':thumb, 'thumbexists':os.path.isfile(thumb)})
 
@@ -1308,31 +1300,32 @@ def caseref_return(request):
 
 @login_required
 def Account_Profile(request):
-    Account_in = request.GET['Account']
+    account_in = request.GET['Account']
 
-    Active_account = Account.objects.get(username = Account_in)
+    active_account = Account.objects.get(username=account_in)
+    active_user = User.objects.get(username=active_account.username)
+    name = str(active_account.institution_name)
+    email = str(active_user.email)
+    registeredUser = str(active_user.get_full_name())
+    website = str(active_account.Website)
+    profpic = str(active_account.photourl)
 
-    Name = str(Active_account.institution_name)
-    Email = str(Active_account.Email)
-    RegisteredUser = str(Active_account.firstname_user) + ' ' + str(Active_account.lastname_user)
-    website = str(Active_account.Website)
-    profpic = str(Active_account.photourl)
-
-    inputdic = {'Name':Name, 'Email':Email, 'RegisteredUser':RegisteredUser, 'website':website,'profpic':profpic}
+    inputdic = {'Name': name, 'Email': email, 'RegisteredUser': registeredUser,
+                'website': website, 'profpic': profpic}
 
     if website !='none':
         inputdic['websitexists'] = True
 
-    inputdic['xsize'] = int(Active_account.photosizex)
-    inputdic['ysize'] = int(Active_account.photosizey)
+    inputdic['xsize'] = int(active_account.photosizex)
+    inputdic['ysize'] = int(active_account.photosizey)
 
     # get model descriptions
     modellst = []
-    for i in Active_account.account_models.all():
+    for i in active_account.account_models.all():
         templst = []
-        templst.append(i.model_nameID)
-        templst.append(i.Description)
-        templst.append(Account_in)
+        templst.append(i.name_id)
+        templst.append(i.description)
+        templst.append(account_in)
         modellst.append(templst)
 
     inputdic['modellst'] = modellst
@@ -1517,7 +1510,7 @@ def traffic(request):
         inputlst.append(tmplst)
 
     deletedlst = []
-    for i in terminated_accounts.objects.all():
+    for i in TerminatedAccounts.objects.all():
         tmplst = []
         tmplst.append(str(i.username))
         tmplst.append(str(i.institution_name))
@@ -1553,7 +1546,7 @@ def deleteaccount_confirm(request):
         request.session['error'] = 'Invalid password.'
         return redirect('/delete_account/')
 
-    t = terminated_accounts(username=account.username, sessionticker=account.sessionticker,
+    t = TerminatedAccounts(username=account.username, sessionticker=account.sessionticker,
         completedtests=account.completedtests, institution_name=account.institution_name,
         modelsi=str(len(account.account_models.all())), deleted_models=str(account.deleted_models)
     )
@@ -1562,14 +1555,14 @@ def deleteaccount_confirm(request):
         os.remove(account.photolocation)
 
     for model in account.account_models.all():
-        for test in model.model_tests.all():
+        for test in model.tests.all():
             test.delete()
-        for link in Test_Model_Link.objects.all():
+        for link in TestModelLink.objects.all():
             if str(link.model.ID2) == str(model.ID2):
                 link.delete()
         model.delete()
 
-    for link in Model_Account_Link.objects.all():
+    for link in ModelAccountLink.objects.all():
         if str(link.account.ID2) == str(account.ID2):
             link.delete()
 
@@ -1579,7 +1572,7 @@ def deleteaccount_confirm(request):
     request.session['info'] = 'Your account was successfully deleted.'
     return redirect('/main/')
 
-
+# TODO: Fix terminated accounts, this is broken.
 def terminate_accounts(request):
     #------------------------------------------------------------------
     # Token Verification
@@ -1683,7 +1676,7 @@ def adminterminate_account(request):
 
     # create new deleted object
 
-    t = terminated_accounts()
+    t = TerminatedAccounts()
     t.username = str(account.username)
     t.sessionticker = str(account.sessionticker)
     t.completedtests = str(account.completedtests)
@@ -1697,11 +1690,11 @@ def adminterminate_account(request):
 
     for i in account.account_models.all():
 
-        for j in i.model_tests.all():
+        for j in i.tests.all():
             j.delete()
 
         # delete all model test links
-        for k in Test_Model_Link.objects.all():
+        for k in TestModelLink.objects.all():
             if str(k.model.ID2) == str(i.ID2):
                 k.delete()
 
@@ -1713,7 +1706,7 @@ def adminterminate_account(request):
 
     #Delete model account links
 
-    for i in Model_Account_Link.objects.all():
+    for i in ModelAccountLink.objects.all():
         if str(i.account.ID2) == str(account.ID2):
             i.delete()
 
@@ -1729,7 +1722,7 @@ def adminterminate_account(request):
 @login_required
 def delete_model(request):
     account = request.session['active_account']
-    input_dict = {'modelname_list' : account.account_models.values_list('model_nameID', flat=True)}
+    input_dict = {'modelname_list' : account.account_models.values_list('name_id', flat=True)}
     request_to_input(request.session, input_dict, 'error')
     input_dict.update(csrf(request))
     return render_to_response('delete_model.html', input_dict)
@@ -1753,16 +1746,16 @@ def deletemodel_confirm(request):
 
     # Delete all tests
 
-    for j in model.model_tests.all():
+    for j in model.tests.all():
         j.delete()
 
     # delete Test Model Links
-    for i in Test_Model_Link.objects.all():
+    for i in TestModelLink.objects.all():
         if str(i.model.ID2) == str(model.ID2):
             i.delete()
 
     # delete Account Model Links
-    for i in Model_Account_Link.objects.all():
+    for i in ModelAccountLink.objects.all():
         if str(i.model.ID2) == str(model.ID2):
             i.delete()
 
@@ -1780,7 +1773,7 @@ def deletemodel_confirm(request):
     account.deleted_models = int(account.deleted_models) + 1
     account.save()
 
-    request.session['info'] = 'Model "%s" has been successfully deleted.' % model.model_nameID
+    request.session['info'] = 'Model "%s" has been successfully deleted.' % model.name_id
     return redirect('/account/')
 
 
@@ -1805,9 +1798,9 @@ def switchboard_toscenario(request):
     for i in Account.objects.all():
         for j in i.account_models.all():
             scenarioclick = 0
-            tests = j.model_tests.all()
+            tests = j.tests.all()
             finished_tests = [x for x in tests
-                if x.test_case.scenario == name and not x.Active]
+                if x.test_case.scenario == name and not x.active]
             N = len(finished_tests)
             if N <= 0:
                 # No finished cases
@@ -1817,7 +1810,7 @@ def switchboard_toscenario(request):
             username = i.username
             scores = [float(x.test_rating) for x in finished_tests]
             avg_rating = np.mean(scores)
-            entry = [i.institution_name, j.model_nameID,
+            entry = [i.institution_name, j.name_id,
                      '%5.3f'%avg_rating, N, username]
             if N < 2:
                 entry.extend([-1, 1, True])  # std=False, sm.sample=True
@@ -3494,11 +3487,11 @@ def model_Profile(request):
     Model = str(request.GET['Model'])
 
     Active_account = Account.objects.get(username = Account_in)
-    Active_model = Active_account.account_models.get(model_nameID = Model)
+    Active_model = Active_account.account_models.get(name_id = Model)
 
-    Name = str(Active_model.model_nameID)
+    Name = str(Active_model.name_id)
     Accountname = str(Active_account.institution_name)
-    description = str(Active_model.Description)
+    description = str(Active_model.description)
     username = str(Active_account.username)
 
     modeldic = {'Name':Name,'Accountname':Accountname,'Description':description,'username':username}
@@ -3767,7 +3760,7 @@ def TesttypeSwitch(request):
         return redirect('/casetypeselect/')
 
     for case in Case.objects.all():
-        if case.subject_category == selection and case not in request.session['active_model'].model_tests.all():
+        if case.subject_category == selection and case not in request.session['active_model'].tests.all():
             request.session['active_case'] = case
             return redirect('/test/')
 
@@ -3797,7 +3790,7 @@ def TestNameSwitch(request):
 
 @login_required
 def NextSequentialTestSwitch(request):
-    tested_cases = [test.test_case for test in request.session['active_model'].model_tests.all()]
+    tested_cases = [test.test_case for test in request.session['active_model'].tests.all()]
     for case in Case.objects.all():
         if case not in tested_cases:
             request.session['active_case'] = case
