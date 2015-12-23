@@ -1,7 +1,7 @@
 \documentclass[]{article}
 
 %opening
-\title{Modeling Lost Person Movement as Diffusion based on elevation and land cover}
+\title{Modeling Lost Person Movement as Diffusion Using Elevation and Land Cover}
 \author{Eric Cawi}
 
 \begin{document}
@@ -13,8 +13,13 @@ This work creates a model for lost person movement based on gas diffusion. to be
 \end{abstract}
 \tableofcontents
 
+We use Burgess and Darken's \ycite{burgess_realistic_2004} gas diffusion model of path planning to create probability maps for lost hikers. Where Burgess and Darken sample the diffusion gradient to find discrete likely paths from source to target, we use the diffusion gradient itself as a probability map, and find it is competitive with the Euclidean ring model in \cite{koester_lost_2008}.
+
 \section{Create Working Gas Model}
-Burgess and Darken created a simple gas diffusion model to create avenues of approach. \textbf{Insert diagram here}. First, the area is divided into cells. Then the elevation data is transformed onto the interval $[0,.25]$, which represents the maximum transfer of gas from that cell to the another cell. For example, a cell with a value of .25 and a concentration of 1 (units) can transfer up to .25 of it's gas to each of the four neighboring cells. This ensures the conservation of concentration in the simulation. This simulation also allows for sources and sinks to be placed at arbitrary grid cells. Burgess and Darken run this simulation until a relative equilibrium is reached (mathematically taking the limit as time goes to infinity), and then use the gradient of the final concentration to generate possible paths of approach for military applications. Note-using the gradient to generate the avenues of approach is solving the transport equation-hard to solve numerically.
+
+\textbf{Insert diagram here}. 
+
+First, the area is divided into cells. Each cell has a concentrationThen the elevation data is transformed onto the interval $[0,.25]$, which represents the maximum transfer of gas from that cell to the another cell. For example, a cell with a value of .25 and a concentration of 1 (units) can transfer up to .25 of its gas to each of the four neighboring cells. This ensures the conservation of concentration in the simulation. This simulation also allows for sources and sinks to be placed at arbitrary grid cells. Burgess and Darken run this simulation until a relative equilibrium is reached (mathematically taking the limit as time goes to infinity), and then use the gradient of the final concentration to generate possible paths of approach for military applications. Note-using the gradient to generate the avenues of approach is solving the transport equation-hard to solve numerically.
 
 For search and rescue, I am more interested in the final gas concentration. Modeling the last known point as a source, the gas model simulates the overall movement of many hikers from the last known point (assertion, want to prove this). I use the source because it models a spike of probability at the LKP, and as B/D used originally it represents a continuous stream of people moving around the material
 
@@ -43,6 +48,9 @@ Compare results and speed.
 \section{Discussion}
 Goal: An easy GIS ready application/A diffusion model that responds to terrain and is about as good as the distance model, which means that the search team now has more information.
 
+\section{References}
+\bibliographystyle{plain}
+\bibliography{diffusionwriteup}
 
 %Need Citations
 \end{document}

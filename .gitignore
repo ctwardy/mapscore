@@ -19,3 +19,18 @@ arc-models/*_flymake.py
 *.7
 
 junk.py
+*.rel
+
+*.aux
+
+*.bbl
+
+*.bib
+
+*.blg
+
+*.log
+
+*.toc
+
+arc-models/diffusionwriteup.synctex.gz
