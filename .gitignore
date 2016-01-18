@@ -15,3 +15,8 @@ probmap
 arc-models/lognorm_summary.pdf
 
 arc-models/motion_model_flymake.py
+
+.idea/*
+.idea*
+.ipynb*
+.#*
