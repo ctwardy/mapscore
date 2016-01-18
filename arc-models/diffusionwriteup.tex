@@ -48,6 +48,21 @@ Compare results and speed.
 \section{Discussion}
 Goal: An easy GIS ready application/A diffusion model that responds to terrain and is about as good as the distance model, which means that the search team now has more information.
 
+
+\section{Bacteria Model}
+\textbf{Justin Spiegel}
+
+This section discusses a motion-model variation inspired by the chemotaxis of \emph{Eschericha Coli} (\emph{E. Coli}) bacteria that reside in the lower intestine of mammals. \emph{E. Coli} have molecular 'taste-buds' that allow them to remember the level of glucose in their environment one second into the past. These taste-buds then power a flagellum, which receives from them a conditional command:
+\begin{verbatim}
+if glucose gradient > T:
+    move forward
+else:
+    change direction at random
+\end{verbatim}
+Such models are \emph{myopic} and \emph{stubborn}.  They are myopic in that they choose based only on the local gradient, rather than solving field equations. They are stubborn in that they prefer the current direction to to potentially more rewarding alternatives, so long as the current direction is acceptable, meaning that it exceeds a certain threshold of desirability. Stubbornness may model well-known human tendencies to satisfice rather than optimize.  
+
+Learning behavior for the \emph{E. coli} model would be relatively easy: simply take the difference in a continuous feature between end and start location, divide it by some estimation or calculation of the time, and multiply it by some constant $K$ to get the minimum threshold that the agent's path would need to exceed for the direction to remain unchanged.
+
 \section{References}
 \bibliographystyle{plain}
 \bibliography{diffusionwriteup}
