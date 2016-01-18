@@ -13,24 +13,22 @@ temp.txt
 probmap
 
 arc-models/*.pdf
-
 arc-models/*_flymake.py
+arc-models/diffusionwriteup.synctex.gz
 
 *.7
 
 junk.py
+
 *.rel
-
 *.aux
-
 *.bbl
-
 *.bib
-
 *.blg
-
 *.log
-
 *.toc
 
-arc-models/diffusionwriteup.synctex.gz
+.idea/*
+.idea*
+.ipynb*
+.#*
