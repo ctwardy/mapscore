@@ -32,3 +32,5 @@ junk.py
 .idea*
 .ipynb*
 .#*
+ISRID*xlsx
+ISRID*csv
