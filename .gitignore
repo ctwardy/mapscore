@@ -1,6 +1,10 @@
 *.pyc
 *.[oa]
 *~
+*.zip
+*.png
+.Python
+bin/
 media/t*png
 media/profpic*png
 todo.txt
@@ -8,13 +12,21 @@ settings.py
 temp.txt
 probmap
 
-*.zip
+arc-models/*.pdf
+arc-models/*_flymake.py
+arc-models/diffusionwriteup.synctex.gz
 
-*.png
+*.7
 
-arc-models/lognorm_summary.pdf
+junk.py
 
-arc-models/motion_model_flymake.py
+*.rel
+*.aux
+*.bbl
+*.bib
+*.blg
+*.log
+*.toc
 
 .idea/*
 .idea*
