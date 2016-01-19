@@ -28,23 +28,23 @@ In this model, I use elevation/land cover data as the speed at which the gas is 
 Elevation- using Tobler's hiking function
 Land Cover - using 1-Don's values
 \section{Diffusion Equation with source}
-The diffusion equation models the overall random walks of particles diffusing through materials. At each point there is some diffusion constant determining the maximum velocity of the concentration. Mathematically, freely diffusing gas like the Burgess Darken model can be modeled with this equation. In 1-D with a constant diffusion coefficient, the solution is a normal distribution, and generalizations give similarly smooth distributions. In our case the diffusion is given by:
+The diffusion equation models the overall random walks of particles diffusing through materials. At each point there is some diffusion constant determining the maximum velocity of the concentration. Mathematically, freely diffusing gas like the Burgess Darken model can be modeled with this equation. In 1-D with a constant diffusion coefficient, the solution is a normal distribution, and generalizations to higher give similarly smooth distributions. In our case the diffusion is given by:
 \[\frac{dc(x,y,t)}{dt}=\nabla \cdot(D(x,y)\nabla c(x,y,t)=\]
 \[(\frac{dD(x,y)}{dx},\frac{dD(x,y)}{dy})\cdot\nabla c(x,y,t) + D(x,y)\Delta c(x,y,t)\]
-Current work: finite difference scheme for this equation.
-\section{Boundary Considerations}
-I'm considering using the boundary of the map as a sink and seeing what happens, or having some other way of modeling the interactions with the outside layer because in the current state we might be getting innaccurate reflection. Boundary conditions will be important for the PDE formulation as well.
+For use with mapscore the boundary of the map is treated as a sink, which prevents excess build up of gas from the source. This also has the effect of "spreading out" the solution in that the particles are drawn from the center to the edges. With the simplicity of the diffusion code, the amount of hikers escaping the box is also estimated by measuring the volume of gas pouring into the sink.
 
 \section{Static Model Preliminary Testing}
-Done on 10 arizona cases I had elevation data for. Observations- On flat terrain the concentration behaves like regular diffusion, i.e. a smooth version of the distance rings. Otherwise, it avoids big changes in elevation, as expected. E.g. if a subject doesn't start on a mountain then the mountain will have lower probability. However, a 2 or 3 of the hikers tested were going for the mountain, which makes sense because they were probably trying to hike on the mountain, but this model isn't going to catch that. Fixing this would require more information about the subject, for example "They were heading towards Mt. Awesome when they got lost." Since the odds are they moved in the direction of Mt. Awesome, a sink dropped at the intended location would skew the concentration in that direction. But that isn't available all the time.
-Not done for land cover yet
+Done on 10 arizona cases and ~200 Yosemite cases. Observations- On flat terrain the concentration behaves like regular diffusion, i.e. a smooth version of the distance rings. Otherwise, it avoids big changes in elevation, as expected. E.g. if a subject doesn't start on a mountain then the mountain will have lower probability. However, several of the hikers tested were found near a mountain peak, which makes sense because they were probably trying to hike up the mountain, but this model isn't going to catch that. Fixing this would require more information about the subject, for example "They were heading towards Mt. Awesome when they got lost." Since the odds are they moved in the direction of Mt. Awesome, a sink dropped at the intended location would skew the concentration in that direction. But that isn't available all the time. Score: .8
+
+Land cover was also implemented for all of the Yosemite cases by elementwise modulation with the elevation map score: .76.  This score is called into question because several maps do not display the correct form when land cover is added. The cause for this is unknown but suspected to be numerical instability, and is currently being looked at.
 \section{Scaling with Bob's Book}
-not done
+not done-need actual correct maps to figure out correctly.
+The tobler hiking function turns out not to be a very accurate crow's flight path approximation because large changes in slope will take "hours" to traverse, and such changes happen frequently in yosemite national park.  Other possible approaches for time scaling would be to generate many paths at each point in a circle around the IPP, and average each point, then average the points together, though I'm not sure that would help much. I'm more interested in scaling the diffusion mapping to bob's book.
 \section{Testing/fitting on Yosemite Cases}
-Prediction- lots of mountains in yosemite, so we should see higher probabilities around ridges/trails that stay at the same elevation. I would like to somehow set up this as a batch
+Batch implementation was achieved, though something is happening somewhere in the code on some maps to cause numerical instability.
 
 \section{Comparison with diffusion Models}
-Compare results and speed.
+nixed since the gas simulation is already fast
 \section{Discussion}
 Goal: An easy GIS ready application/A diffusion model that responds to terrain and is about as good as the distance model, which means that the search team now has more information.
 
