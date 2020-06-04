@@ -43,7 +43,7 @@ def read_cases(filename, sheet_index=0):
 
 
 def group_by_category(hours_slice, status_slice, category_slice):
-    category_map = dict()
+    category_map = {}
     cases = zip(hours_slice, status_slice, category_slice)
     for hours, status, category in cases:
         if hours != '' and category != '':
@@ -105,12 +105,11 @@ def bootstrap_resample(X, n=None):
 
     From http://nbviewer.ipython.org/gist/aflaxman/6871948
     """
-    if n == None:
+    if n is None:
         n = len(X)
 
     resample_i = np.floor(np.random.rand(n) * len(X)).astype(int)
-    X_resample = X[resample_i]
-    return X_resample
+    return X[resample_i]
 
 
 def add_trendline(x, y, N, color):
@@ -125,14 +124,14 @@ def main():
         exit(CMD_LINE_HELP.strip().format(sys.argv[0]))
     else:
         filename = sys.argv[1]
-    
+
     hours_slice, status_slice, category_slice = read_cases(filename)
     print('Number of cases: {}'.format(len(hours_slice)))
-    
+
     # Key: category, value: list of (hours, status) points
     category_map = group_by_category(hours_slice, status_slice, category_slice)
     category_groups = list(get_category_groups(category_map))
-    
+
     # Key: (lowerbound inclusive, upperbound), value: increment size
     bin_scheme = {
         (0, 12): 1, 
@@ -141,15 +140,15 @@ def main():
         (48, 96): 12, 
         (96, float('inf')): 48
     }
-    
+
     colors = 'rgbcyk'
     legend_patches, legend_labels = list(), list()
     for index, category_group in enumerate(category_groups):
         print('Group {}: {}'.format(index + 1, ', '.join(category_group)))
-        
+
         # Key: binned hours, value: list of integers where 
         # "1" means the subject(s) was/were DOA, "0" means otherwise
-        outcomes = dict()
+        outcomes = {}
         for category in category_group:
             for (hours, status) in category_map[category]:
                 binned_hours = binify(hours, bin_scheme)
@@ -157,7 +156,7 @@ def main():
                     outcomes[binned_hours].append(is_doa(status))
                 except KeyError:
                     outcomes[binned_hours] = [is_doa(status)]
-        
+
         # Lists for each number of total hours
         _x, _y, _N = list(), list(), list()
         for hours in sorted(outcomes.keys()):
@@ -167,14 +166,14 @@ def main():
             _N.append(len(DOA_list))
             print('Survival rate at {} hours = {:.1f}% (N={})'.format(
                 _x[-1], _y[-1], _N[-1]))
-        
+
         # Lists for each (lowerbound, upperbound)
         x, y, N = list(), list(), list()
-        boxplot_data = list()
+        boxplot_data = []
         for lowerbound, upperbound in bin_scheme:
-            selected_hours = list(hours for hours in _x
-                        if lowerbound <= hours < upperbound)
-            survival_rates = list(_y[_x.index(hours)] for hours in selected_hours)
+            selected_hours = [hours for hours in _x
+                                    if lowerbound <= hours < upperbound]
+            survival_rates = [_y[_x.index(hours)] for hours in selected_hours]
             x.append(np.average(selected_hours))
             y.append(np.average(survival_rates))
             N.append(sum(_N[_x.index(hours)] for hours in selected_hours))
@@ -184,7 +183,7 @@ def main():
                     ecolor=colors[index], alpha=0.2)
             elif '-B' in sys.argv:
                 boxplot_data.append(survival_rates)
-        
+
         # The points and variations ploted are for the
         # data within each (lowerbound, upperbound).
         plt.scatter(x, y, c=colors[index], s=N, alpha=0.5)
@@ -196,13 +195,13 @@ def main():
         legend_labels.append(label)
         if '-T' in sys.argv[2:]:
             add_trendline(_x, _y, _N, colors[index])
-        
+
         if '-B' in sys.argv[2:] and '-E' not in sys.argv[2:]:
             # To set the whiskers to the 95% range, 
             # use the optional argument whis=[2.5, 97.5]
             # Only works in matplotlib version > 1.4
             plt.boxplot(boxplot_data, positions=x, widths=[10] * len(x))
-    
+
     plt.title('Total Hours vs. Survival Rate')
     plt.xlabel('Total Hours (hours)')
     plt.ylabel('Survival Rate (percent)')

@@ -95,8 +95,7 @@ def avg_speed(current_cell, new_theta,dr, walking_speeds, res):
         newx, newy = oldx+dx, oldy+dy
         first_speed = walking_speeds[oldy][oldx]
         last_speed = walking_speeds[newy][newx]
-        speed = (first_speed+last_speed)/2
-        return speed
+        return (first_speed+last_speed)/2
         
 def main():
 

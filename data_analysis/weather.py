@@ -59,8 +59,7 @@ def request_data(endpoint, safe=':,', **parameters):
         urllib.parse.urlencode(parameters, safe=safe))
     request = urllib.request.Request(url, headers={'token': API_TOKEN})
     response = urllib.request.urlopen(request)
-    data = json.loads(response.read().decode('utf-8'))
-    return data
+    return json.loads(response.read().decode('utf-8'))
 
 
 def get_bounds(coordinates, d):
@@ -111,8 +110,7 @@ def get_stations(date, coordinates, datasetid='GHCND', d=20):
         enddate=date_as_str, 
         extent=extent
     )
-    for station in data['results']:
-        yield station
+    yield from data['results']
 
 
 def get_conditions(date, coordinates):

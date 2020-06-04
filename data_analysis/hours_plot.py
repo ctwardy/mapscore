@@ -65,12 +65,11 @@ def bootstrap_resample(X, n=None):
 
     From http://nbviewer.ipython.org/gist/aflaxman/6871948
     """
-    if n == None:
+    if n is None:
         n = len(X)
 
     resample_i = np.floor(np.random.rand(n) * len(X)).astype(int)
-    X_resample = X[resample_i]
-    return X_resample
+    return X[resample_i]
 
 
 mapping = dict()  # Key: hours, value: list of subject statuses
@@ -106,7 +105,7 @@ def is_doa(x):
     return 0
 
 x = list(sorted(mapping.keys()))
-y = list(percent_survival(mapping[hours]) for hours in x)
+y = [percent_survival(mapping[hours]) for hours in x]
 N = [len(mapping[hours]) for hours in x]
 for hours, survival_rate, n in zip(x, y, N):
     print('Survival rate at {} hours = {:.1f}% (N={})'.format(hours, survival_rate, N))
@@ -137,8 +136,8 @@ if '-E' in sys.argv:
 elif '-B' in sys.argv:
     data, positions, widths = list(), list(), list()
     for (lowerbound, upperbound), increment in bin_scheme.items():
-        bin_x = list(hours for hours in x if lowerbound < hours <= upperbound)
-        bin_y = list(y[x.index(hours)] for hours in bin_x)
+        bin_x = [hours for hours in x if lowerbound < hours <= upperbound]
+        bin_y = [y[x.index(hours)] for hours in bin_x]
         data.append(bin_y)
         positions.append(np.average(bin_x))
         widths.append(min(20, (upperbound - lowerbound) // 1.5))

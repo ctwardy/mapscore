@@ -263,7 +263,7 @@ sr1 = arcpy.SpatialReference("WGS 1984")
 cursor = arcpy.da.SearchCursor(fctable, ["Name","State",
         "Subject_Ca","EcoRegion","Terrain","lat","long_"])
 for row in cursor:
-       
+
         namelist.append(row[0]);
         stateabbrv.append(row[1]);
         subject_category.append(row[2]);
@@ -280,33 +280,36 @@ for value in range(len(stateabbrv)):
         for val in nameval:
             if (val >='0' and val <= '9'):
                 keystr = keystr + val     
-                   
+
         keyval = keystr;
         totname = stateabbrv[value] + keyval
         key.append(totname);
         keystr = ''
-#transform to integers        
-for i in range(len(cat_list)):
-	raster_name = "C:/Users/Eric Cawi/Documents/SAR/tifs/" + cat_list[i] + ".tif"
-	transform_name = "C:/Users/Eric Cawi/Documents/SAR/tifs/transform" + cat_list[i] + ".tif"
-	conversion_name = "C:/Users/Eric Cawi/Documents/SAR/16bittifs/" + cat_list[i] + ".tif"
-	png_name = "C:/Users/Eric Cawi/Documents/SAR/pngs"
-	transform_raster = 5*Int(Log2(raster_name))+255
-	
-	transform_raster.save(transform_name)
-	arcpy.CopyRaster_management(transform_name, conversion_name,"DEFAULTS","","","","","16_BIT_UNSIGNED","NONE")
-	arcpy.RasterToOtherFormat_conversion(conversion_name,png_name, "PNG")
+png_name = "C:/Users/Eric Cawi/Documents/SAR/pngs"
+#transform to integers
+for cat in cat_list:
+    raster_name = "C:/Users/Eric Cawi/Documents/SAR/tifs/" + cat + ".tif"
+    transform_name = (
+        "C:/Users/Eric Cawi/Documents/SAR/tifs/transform" + cat + ".tif"
+    )
+
+    conversion_name = "C:/Users/Eric Cawi/Documents/SAR/16bittifs/" + cat + ".tif"
+    transform_raster = 5*Int(Log2(raster_name))+255
+
+    transform_raster.save(transform_name)
+    arcpy.CopyRaster_management(transform_name, conversion_name,"DEFAULTS","","","","","16_BIT_UNSIGNED","NONE")
+    arcpy.RasterToOtherFormat_conversion(conversion_name,png_name, "PNG")
 
 for i in range(len(key)):
-        
+
         sc = subject_category[i]
         ecoreg = ecoregion_domain[i]
         terr = terrain[i]
         fname = getpng(sc,ecoreg,terr)#gets the appropriate distance tif for each point in the pointlist
         #transform to integers
-        
+
         point_name = "C:/Users/Eric Cawi/Documents/SAR/test_cases/Distance_" + key[i]+".png" # the proper format for the thingy
-        
+
         shutil.copy(fname,point_name)#this should work
 
 exit;
