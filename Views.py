@@ -101,10 +101,10 @@ def check_account_fields(fields, new_user=True):
         'password2' : r'^.+$',
         'website' : r'.*$'
     }
-    good_fields = dict()
-    for field in regexes:
+    good_fields = {}
+    for field, value in regexes.items():
         field_input = fields.get(field)
-        if field_input and re.match(regexes[field], field_input) or field == 'website':
+        if field_input and re.match(value, field_input) or field == 'website':
             good_fields[field] = field_input
     uname, password1, password2 = \
         fields.get('username'), fields.get('password1'), fields.get('password2')
@@ -177,7 +177,7 @@ def show_find_pt(URL2):
 def case_to_dict(case):
     ''' Prepare case attributes to be passed to the template. '''
 
-    input_dict = dict()
+    input_dict = {}
     for attr in dir(case):
         try:
             input_dict[attr] = case.__getattribute__(attr)
@@ -274,7 +274,7 @@ def log_in(request):
         Otherwise, return an error page. '''
 
     username, password = request.POST.get('username'), request.POST.get('password')
-    if not username or not password:
+    if not (username and password):
         return incorrect_login(request)
     elif username in TerminatedAccounts.objects.values_list('username', flat=True):
         return error('This account was deleted.')
@@ -346,7 +346,7 @@ def create_account(request):
 
     input_dict = dict(csrf(request))
     if 'HTTP_REFERER' in request.META and '/reg_conditions/' in request.META.get('HTTP_REFERER'):
-        request.session['good_fields'] = dict()
+        request.session['good_fields'] = {}
         input_dict['first_time'] = True
     input_dict.update(request.session['good_fields'])
     return render_to_response('account_create.html', input_dict)
@@ -842,14 +842,35 @@ def testcase_admin(request):
     caselist = []
 
     for i in Case.objects.all():
-        inputlist = []
-        inputlist.append(i.id)
-        inputlist.append(i.case_name)
-        inputlist.append(i.Age)
-        inputlist.append(i.Sex)
-        inputlist.append('(' + str(i.upright_lat  ) + ',' + str(i.upright_lon ) + ');'+'(' + str(i.downright_lat) + ',' + str(i.downright_lon ) + ');'+'(' + str(i.upleft_lat) + ',' + str(i.upleft_lon ) + ');'+'(' + str(i.downleft_lat ) + ',' + str(i.downleft_lon) + ')')
-        inputlist.append('(' + str(i.findx) + ',' + str(i.findy ) + ')')
-        inputlist.append(str(i.UploadedLayers))
+        inputlist = [
+            i.id,
+            i.case_name,
+            i.Age,
+            i.Sex,
+            '('
+            + str(i.upright_lat)
+            + ','
+            + str(i.upright_lon)
+            + ');'
+            + '('
+            + str(i.downright_lat)
+            + ','
+            + str(i.downright_lon)
+            + ');'
+            + '('
+            + str(i.upleft_lat)
+            + ','
+            + str(i.upleft_lon)
+            + ');'
+            + '('
+            + str(i.downleft_lat)
+            + ','
+            + str(i.downleft_lon)
+            + ')',
+            '(' + str(i.findx) + ',' + str(i.findy) + ')',
+            str(i.UploadedLayers),
+        ]
+
         caselist.append(inputlist)
 
     return render_to_response('TestCaseMenu.html',{'case_list':caselist})
@@ -947,8 +968,8 @@ def evaluate(request):
 @login_required
 def completed_test(request):
     test_name = str(request.GET.get('name')).strip()
-    completed_lst = list(test.test_name for test in
-        request.session['active_model'].tests.all() if not test.active)
+    completed_lst = [test.test_name for test in
+            request.session['active_model'].tests.all() if not test.active]
 
     if test_name not in completed_lst:
         request.session['error'] = 'The test that you requested does not exist.'
@@ -1002,7 +1023,10 @@ def leaderboard(request):
                 model.save()
 
     input_dict['case_names'] = Case.objects.values_list('case_name', flat=True)
-    input_dict['case_categories'] = set(case.subject_category for case in Case.objects.all())
+    input_dict['case_categories'] = {
+        case.subject_category for case in Case.objects.all()
+    }
+
     input_dict['model_data'] = model_data
     input_dict['prev_filter'] = filter_choice
     return render_to_response('leaderboard.html', input_dict)
@@ -1323,10 +1347,7 @@ def Account_Profile(request):
     # get model descriptions
     modellst = []
     for i in active_account.account_models.all():
-        templst = []
-        templst.append(i.name_id)
-        templst.append(i.description)
-        templst.append(account_in)
+        templst = [i.name_id, i.description, account_in]
         modellst.append(templst)
 
     inputdic['modellst'] = modellst
@@ -1444,13 +1465,13 @@ def upload_casefile(request):
         except Case.DoesNotExist:
             find_case = None
         # Case does exist:
-        if find_case != None:
-            row.append("Ignored, name exists")
-        else:
+        if find_case is None:
             new_case.initialize()
             new_case.save()
             row.append("Success")
 
+        else:
+            row.append("Ignored, name exists")
     return render_to_response('bulkcasereg_complete.html', {'result': data})
 
 

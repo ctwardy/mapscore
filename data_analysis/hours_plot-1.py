@@ -55,12 +55,11 @@ def bootstrap_resample(X, n=None):
 
     From http://nbviewer.ipython.org/gist/aflaxman/6871948
     """
-    if n == None:
+    if n is None:
         n = len(X)
 
     resample_i = np.floor(np.random.rand(n) * len(X)).astype(int)
-    X_resample = X[resample_i]
-    return X_resample
+    return X[resample_i]
 
 
 def percent_survival(lst):
