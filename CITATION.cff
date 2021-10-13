@@ -1,0 +1,11 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+- family-names: "Twardy"
+  given-names: "Charles"
+  orcid: "https://orcid.org/0000-0003-2700-4557"
+title: "MapScore"
+version: 2.0.4
+doi: 0.1111/tgis.12143
+date-released: 1970-01-01
+url: "https://github.com/ctwardy/mapscore"
