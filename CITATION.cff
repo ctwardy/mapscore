@@ -1,0 +1,17 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+- family-names: "Sava"
+  given-names: "Elena"
+- family-names: "Twardy"
+  given-names: "Charles"
+  orcid: "https://orcid.org/0000-0003-2700-4557"
+- family-names: "Koester"
+  given-names: "Robert"
+- family-names: "Sonwalkar"
+  given-names: "Mukul"
+title: "MapScore"
+version: 2.0.4
+doi: 0.1111/tgis.12143
+date-released: 2012-04-04
+url: "https://github.com/ctwardy/mapscore"
